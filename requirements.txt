@@ -1,0 +1,5 @@
+pygad
+mysql-connector-python
+pyyaml
+python-dotenv
+pytest

@@ -1,0 +1,8 @@
+venv/
+venv/
+__pycache__/
+node_modules/
+*.csv
+*.sqlite3
+data/*
+.env
