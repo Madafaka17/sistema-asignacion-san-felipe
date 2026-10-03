@@ -1,0 +1,38 @@
+# Servidor MySQL para desarrollo y pruebas.
+#
+#   docker compose up -d      # crea la BD, el usuario y carga los scripts
+#   docker compose down       # detiene el contenedor (los datos se conservan)
+#   docker compose down -v    # detiene y BORRA los datos (vuelve a cargar los scripts)
+#
+# Las variables se leen del archivo .env (ver .env.example).
+# Los scripts de src/datos/ solo se ejecutan la primera vez, con el volumen vacío.
+
+services:
+  mysql:
+    image: mysql:8.4.11
+    container_name: san_felipe_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD en .env}
+      MYSQL_DATABASE: ${DB_NAME:?Defina DB_NAME en .env}
+      MYSQL_USER: ${DB_USER:?Defina DB_USER en .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD en .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=-05:00
+    ports:
+      # Solo accesible desde este equipo.
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
+    volumes:
+      - datos_mysql:/var/lib/mysql
+      - ./src/datos/esquema.sql:/docker-entrypoint-initdb.d/01_esquema.sql:ro
+      - ./src/datos/datos_ejemplo.sql:/docker-entrypoint-initdb.d/02_datos_ejemplo.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  datos_mysql:

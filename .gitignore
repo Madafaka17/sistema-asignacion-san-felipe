@@ -1,8 +1,58 @@
+# =====================================================================
+# Archivos que NO deben subirse al repositorio
+# =====================================================================
+
+# --- Secretos: contraseñas, claves de API, certificados ---------------
+# El archivo real de configuración local nunca se versiona.
+# Solo se sube la plantilla .env.example (sin valores reales).
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credenciales*.json
+secrets/
+
+# --- Entornos virtuales de Python --------------------------------------
 venv/
-venv/
+.venv/
+env/
+ENV/
+
+# --- Bytecode y cachés de Python ---------------------------------------
 __pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Compilación y distribución ----------------------------------------
+build/
+dist/
+*.egg-info/
+
+# --- Dependencias de otros ecosistemas ---------------------------------
 node_modules/
+
+# --- Datos locales, respaldos y resultados generados -------------------
+# Pueden contener datos personales (DNI, teléfonos de conductores).
+data/*
+salidas/
+respaldos/
+*.dump
 *.csv
 *.sqlite3
-data/*
-.env
+*.log
+logs/
+
+# --- Editores y sistema operativo --------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,61 @@
+# =====================================================================
+# Parámetros del algoritmo genético y de las reglas operativas
+# =====================================================================
+# Fundamento de cada parámetro: docs/teoria_algoritmo_genetico.md
+# Cada programación guarda una copia de este archivo en la columna
+# programacion.parametros, para poder repetir cualquier ejecución.
+# Al cambiar un valor, deje constancia del motivo en el commit.
+
+# Semilla de los generadores aleatorios (random y numpy.random).
+# Con la misma semilla, los mismos datos y las mismas versiones de las
+# dependencias, el algoritmo produce exactamente el mismo resultado.
+# Use null para obtener una ejecución distinta cada vez.
+semilla_aleatoria: 42
+
+poblacion:
+  tamano: 100                    # individuos por generación (pygad: sol_per_pop)
+  proporcion_heuristica: 0.2     # fracción inicial generada con la heurística voraz; el resto, al azar
+
+seleccion:
+  metodo: torneo                 # pygad: parent_selection_type = "tournament"
+  tamano_torneo: 3               # pygad: K_tournament
+  num_padres: 50                 # pygad: num_parents_mating
+
+cruce:
+  metodo: uniforme_por_salida    # operador propio (src/logica/algoritmo_genetico/cruce.py)
+  probabilidad: 0.85             # probabilidad de cruzar una pareja; si no, el hijo copia a un padre
+
+mutacion:
+  probabilidad_gen: 0.05         # probabilidad de reasignar cada gen a otro valor de su dominio
+  probabilidad_intercambio: 0.10 # probabilidad de intercambiar los conductores de dos salidas
+
+elitismo:
+  num_elites: 2                  # mejores individuos que pasan intactos (pygad: keep_elitism)
+
+parada:                          # se detiene con el PRIMER criterio que se cumpla
+  max_generaciones: 500          # pygad: num_generations
+  generaciones_sin_mejora: 50    # pygad: stop_criteria "saturate_50"
+  aptitud_objetivo: 1.0          # pygad: "reach_1.0" (solo si no hay ninguna penalización)
+  tiempo_maximo_s: 120           # pygad: "time_120"
+
+aptitud:
+  # aptitud = 1 / (1 + penalización total)
+  # Los pesos de las restricciones duras deben superar a la mayor penalización
+  # blanda posible, para que una solución factible siempre gane a una infactible.
+  pesos_restricciones_duras:
+    solapamiento_vehiculo: 1000  # por cada salida en la que el vehículo ya está ocupado
+    solapamiento_conductor: 1000 # por cada salida en la que el conductor ya está ocupado
+    licencia_incompatible: 1000  # por cada salida con licencia inferior a la que exige el vehículo
+    exceso_jornada: 1000         # por cada hora que un conductor supera la jornada máxima
+  pesos_restricciones_blandas:
+    capacidad_insuficiente: 1.0  # por cada pasajero de demanda que no cabe en el vehículo
+    equidad_conductores: 5.0     # por cada hora de desviación estándar de la carga de conductores
+    balance_flota: 2.0           # por cada hora de desviación estándar del uso de vehículos
+
+reglas_operativas:
+  # Valores por defecto: ajústelos a la política de la empresa y a la
+  # normativa vigente (RNAT, D.S. N.° 017-2009-MTC y modificatorias).
+  max_horas_conduccion_dia: 10           # jornada máxima de conducción por conductor
+  descanso_minimo_entre_servicios_min: 15 # descanso del conductor entre dos salidas
+  tiempo_alistamiento_vehiculo_min: 10   # limpieza / revisión del vehículo entre dos salidas
+  dias_alerta_vencimiento_licencia: 30   # aviso al operador si la licencia vence pronto
