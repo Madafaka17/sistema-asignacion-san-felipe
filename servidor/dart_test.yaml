@@ -1,0 +1,4 @@
+# Las pruebas de aceptación comparten una base MySQL de pruebas y la
+# recrean en cada prueba: los archivos se ejecutan uno a la vez.
+concurrency: 1
+timeout: 2m
