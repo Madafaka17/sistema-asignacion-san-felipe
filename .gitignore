@@ -12,34 +12,48 @@
 *.key
 *.p12
 *.pfx
+*.jks
+*.keystore
+key.properties
 credenciales*.json
 secrets/
+# Certificados de una CA corporativa o de un proxy para construir las
+# imágenes Docker detrás de él (ver README).
+docker/certificados/*
+!docker/certificados/.gitkeep
 
-# --- Entornos virtuales de Python --------------------------------------
+# --- Dart y Flutter: dependencias y compilación ------------------------
+# Se regeneran con `dart pub get` / `flutter pub get` a partir de
+# pubspec.yaml y pubspec.lock (que SÍ se versionan: fijan las versiones).
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+# Archivos generados por Flutter para cada plataforma de escritorio.
+cliente/linux/flutter/ephemeral/
+cliente/windows/flutter/ephemeral/
+cliente/macos/Flutter/ephemeral/
+cliente/ios/Flutter/ephemeral/
+cliente/**/GeneratedPluginRegistrant.*
+cliente/**/generated_plugin_registrant.*
+cliente/**/generated_plugins.cmake
+*.g.dart.incremental
+
+# --- Python (prototipo anterior) ---------------------------------------
 venv/
 .venv/
-env/
-ENV/
-
-# --- Bytecode y cachés de Python ---------------------------------------
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
 .coverage
 htmlcov/
 
-# --- Compilación y distribución ----------------------------------------
-build/
-dist/
-*.egg-info/
-
-# --- Dependencias de otros ecosistemas ---------------------------------
-node_modules/
-
 # --- Datos locales, respaldos y resultados generados -------------------
-# Pueden contener datos personales (DNI, teléfonos de conductores).
+# Pueden contener datos personales (DNI de conductores).
 data/*
 salidas/
 respaldos/
@@ -52,6 +66,7 @@ logs/
 # --- Editores y sistema operativo --------------------------------------
 .vscode/
 .idea/
+*.iml
 *.swp
 .DS_Store
 Thumbs.db
