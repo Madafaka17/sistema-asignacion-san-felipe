@@ -47,25 +47,25 @@ class _BotonAsincronoState extends State<BotonAsincrono> {
     final activo = !_enCurso && !widget.ocupado && widget.alPresionar != null;
     final alPresionar = activo ? _presionar : null;
     final Widget icono = _enCurso
-        ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+        ? const SizedBox.square(
+            dimension: 18,
+            child: CircularProgressIndicator(strokeWidth: 2, semanticsLabel: 'En curso'),
+          )
         : Icon(widget.icono ?? Icons.check);
     final etiqueta = Text(widget.etiqueta);
     final mostrarIcono = widget.icono != null || _enCurso;
-    return Semantics(
-      button: true,
-      enabled: activo,
-      label: _enCurso ? '${widget.etiqueta}, en curso' : null,
-      child: switch (widget.estilo) {
-        EstiloBoton.relleno => mostrarIcono
-            ? FilledButton.icon(onPressed: alPresionar, icon: icono, label: etiqueta)
-            : FilledButton(onPressed: alPresionar, child: etiqueta),
-        EstiloBoton.contorno => mostrarIcono
-            ? OutlinedButton.icon(onPressed: alPresionar, icon: icono, label: etiqueta)
-            : OutlinedButton(onPressed: alPresionar, child: etiqueta),
-        EstiloBoton.texto => mostrarIcono
-            ? TextButton.icon(onPressed: alPresionar, icon: icono, label: etiqueta)
-            : TextButton(onPressed: alPresionar, child: etiqueta),
-      },
-    );
+    // El botón de Material ya expone su rol, su etiqueta y si está activo
+    // a los lectores de pantalla; no se añade otro nodo semántico.
+    return switch (widget.estilo) {
+      EstiloBoton.relleno => mostrarIcono
+          ? FilledButton.icon(onPressed: alPresionar, icon: icono, label: etiqueta)
+          : FilledButton(onPressed: alPresionar, child: etiqueta),
+      EstiloBoton.contorno => mostrarIcono
+          ? OutlinedButton.icon(onPressed: alPresionar, icon: icono, label: etiqueta)
+          : OutlinedButton(onPressed: alPresionar, child: etiqueta),
+      EstiloBoton.texto => mostrarIcono
+          ? TextButton.icon(onPressed: alPresionar, icon: icono, label: etiqueta)
+          : TextButton(onPressed: alPresionar, child: etiqueta),
+    };
   }
 }
