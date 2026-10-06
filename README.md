@@ -1,249 +1,199 @@
-# Sistema de Asignación de Recursos — Transporte y Turismo San Felipe S.A.C.
+# Sistema de asignación de recursos — Transportes y Turismo San Felipe S.A.C.
 
-Aplicación de escritorio que genera la **programación operativa diaria** de
-la empresa: decide **qué vehículo y qué conductor cubren cada salida** de
-cada ruta, mediante un **algoritmo genético**. Respeta las reglas operativas
-(licencias, solapamientos, jornada máxima, descansos) y busca repartir la
-carga de trabajo de forma equitativa. Desarrollado como parte de una tesis.
+Sistema web y de escritorio que **propone la programación diaria** de la
+empresa (Soritor, San Martín): asigna a cada servicio del turno un vehículo,
+un conductor y una salida autorizada con un **algoritmo genético**, sin cruces
+de vehículos ni de conductores y respetando licencias, turnos y límites de
+conducción. El encargado de operaciones revisa la propuesta, la ajusta si
+hace falta y la aprueba; el personal de despacho registra los recursos, los
+servicios y las incidencias, y el sistema calcula los indicadores de
+desempeño (PIO, PSR, PSA, PUV y PAV).
 
-## Qué hace
+Implementa el modelo del capítulo III de la tesis *Sistema de asignación de
+recursos basado en algoritmo genético para optimizar la programación
+operativa* (ecuaciones 1–15 y 19–23, Tabla 22, historias HU-01 a HU-11).
 
-- **Gestión de datos maestros:** vehículos, conductores, rutas y horarios.
-- **Generación automática** de la programación de una fecha con un algoritmo
-  genético (PyGAD), configurable desde `config/parametros_ga.yaml`.
-- **Validación** de las reglas operativas: vehículo operativo, licencia
-  vigente y compatible, sin solapamientos, jornada máxima.
-- **Visualización:** diagrama de Gantt por vehículo y por conductor, curva de
-  convergencia del algoritmo e indicadores de calidad.
-- **Reportes** exportables a CSV.
-- **Control de acceso** por roles (administrador y operador).
-
-## Estado del proyecto
-
-| Componente | Estado |
+| | |
 |---|---|
-| Modelo de datos (`src/datos/esquema.sql`) y datos de ejemplo | ✅ Implementado y probado en MySQL 8.4.11 |
-| Conexión a la base de datos (`src/datos/conexion.py`) | ✅ Implementado y probado |
-| Configuración (`.env.example`, `config/parametros_ga.yaml`, `docker-compose.yml`) | ✅ Implementado |
-| Pruebas de configuración y de base de datos (`tests/`) | ✅ Implementado |
-| Documentación de arquitectura, modelos y algoritmo (`docs/`) | ✅ Completa |
-| Algoritmo genético (`src/logica/algoritmo_genetico/`) | ⏳ Pendiente: diseño en [docs/teoria_algoritmo_genetico.md](docs/teoria_algoritmo_genetico.md) |
-| Lógica de negocio (`generador_programacion.py`, `reglas_operativas.py`, `validaciones.py`) | ⏳ Pendiente: diseño en [docs/metodos_modelos_algoritmos.md](docs/metodos_modelos_algoritmos.md) |
-| Interfaz gráfica (`src/presentacion/`) | ⏳ Pendiente |
+| Versión | **1.0.0** (contrato de la API `1.0.0`) |
+| Arquitectura | cliente **Flutter (MVC)** · servidor **Dart** (Controller–Service–Repository) · **MySQL 8.4** |
+| Instalación | `docker compose up --build` |
+| Pruebas | 118 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz |
 
-## Tecnologías
+![Programación propuesta](docs/capturas/05_propuesta.png)
 
-| Componente | Tecnología | Versión |
-|---|---|---|
-| Lenguaje | Python | 3.12 |
-| Interfaz gráfica | Tkinter (incluido en Python) | — |
-| Gráficos | Matplotlib | 3.11.2 |
-| Algoritmo genético | PyGAD (sobre NumPy 2.5.3) | 3.7.0 |
-| Base de datos | MySQL (versión LTS) | 8.4.11 |
-| Conector de base de datos | mysql-connector-python | 26.7.0 |
-| Configuración | python-dotenv / PyYAML | 1.2.4 / 6.0.3 |
-| Pruebas | pytest | 9.1.1 |
-| Contenedores (opcional) | Docker con Docker Compose | — |
+---
+
+## Tecnologías (versiones fijas)
+
+| Componente | Tecnología |
+|---|---|
+| Cliente | Flutter 3.47.6 (web, Windows, Linux) · `provider 6.1.5+1` · `http 1.6.0` |
+| Servidor | Dart 3.13.5 · `shelf 1.4.2` · `shelf_router 1.1.4` · `dart_jsonwebtoken 3.4.1` · `crypto 3.0.7` · `yaml 3.1.4` |
+| Base de datos | MySQL 8.4.11 · `mysql_client_plus 0.1.3` (TLS) |
+| Núcleo compartido | paquete `dominio` (Dart puro): contrato, modelos, algoritmo genético, voraz, validador |
+| Despliegue | Docker Compose · imagen del servidor AOT sobre `scratch` · nginx 1.28 para el cliente web |
+| Pruebas | `package:test 1.32.0` · `flutter_test` · `integration_test` |
+
+Las dependencias transitivas quedan fijadas en los `pubspec.lock` versionados.
+
+## Arquitectura
+
+```text
+ Cliente Flutter (MVC)                       Servidor Dart                          MySQL 8.4
+┌───────────────────────────┐   REST/JSON   ┌──────────────────────────────────┐   SQL/TLS   ┌──────────┐
+│ Vistas → Controladores →  │ ────────────▶ │ Router → Controladores →         │ ──────────▶ │ esquema  │
+│ Modelo (ApiCliente,       │   JWT, cookie │ Servicios → Repositorios         │             │ del      │
+│ repositorios remotos)     │ ◀──────────── │      └→ núcleo de optimización   │ ◀────────── │ modelo   │
+└───────────────────────────┘ X-Version-Api └──────────────────────────────────┘             └──────────┘
+             └──────────── paquetes/dominio: contrato y modelos compartidos ──────────┘
+```
+
+Detalle en [docs/arquitectura.md](docs/arquitectura.md) y diagramas UML en
+[docs/uml.md](docs/uml.md).
+
+## Instalación y ejecución (un solo comando)
+
+Requisitos: **Docker** con **Compose v2** (Docker Desktop en Windows o macOS)
+y unos 4 GB libres para construir las imágenes.
+
+```sh
+git clone https://github.com/Madafaka17/sistema-asignacion-san-felipe.git
+cd sistema-asignacion-san-felipe
+cp .env.example .env
+#   Edite .env: DB_PASSWORD, MYSQL_ROOT_PASSWORD y JWT_SECRETO
+#   (genere este último con:  openssl rand -base64 48)
+docker compose up --build
+```
+
+La primera construcción tarda unos minutos (descarga Flutter y compila).
+Después:
+
+| Qué | Dónde |
+|---|---|
+| Cliente web | <http://localhost:3000> |
+| API | <http://localhost:8080/api/version> |
+| MySQL (MySQL Workbench) | `127.0.0.1:3306`, usuario y contraseña de `.env` |
+
+Usuarios de demostración (datos ficticios de `basedatos/datos_ejemplo.sql`;
+cámbielos antes de usar el sistema con datos reales):
+
+| Usuario | Contraseña | Rol | Ve |
+|---|---|---|---|
+| `jdespacho` | `Despacho2026` | Personal de despacho | servicios, vehículos, conductores, rutas, incidencias |
+| `operaciones` | `Opera2026` | Encargado de operaciones | programación y reportes |
+| `admin` | `Admin2026` | Administrador | usuarios, parámetros y bitácora |
+
+Recorrido sugerido: ingrese como `operaciones`, pulse **Generar
+programación** (turno de mañana, 12 servicios cargados), revise la tabla, el
+Gantt y la curva de convergencia y pulse **Aprobar**.
+
+```sh
+docker compose down        # detiene (conserva los datos)
+docker compose down -v     # borra también la base (se recarga al volver a subir)
+```
+
+> **Detrás de un proxy corporativo** que inspecciona TLS: copie el
+> certificado de su CA como `docker/certificados/ca.crt` y use
+> `docker compose -f docker-compose.yml -f docker-compose.proxy.yml up --build`.
+
+### Uso desde otros equipos de la red
+
+Los puertos se publican solo en `127.0.0.1`. Para la red de la empresa,
+cambie `127.0.0.1` por la IP del servidor en `docker-compose.yml`, ponga un
+proxy HTTPS delante de nginx y mantenga `COOKIE_SEGURA=true` (con HTTP sin
+TLS en la red local, póngalo en `false`).
+
+## Desarrollo sin Docker
+
+Requisitos: Dart 3.13.5, Flutter 3.47.6 y un MySQL 8.4 con
+`basedatos/esquema.sql` (y opcionalmente `datos_ejemplo.sql`) cargados.
+
+```sh
+# Servidor (lee DB_*, JWT_SECRETO… del entorno; ver .env.example)
+cd servidor && dart pub get
+set -a && source ../.env && set +a
+DB_HOST=127.0.0.1 PARAMETROS_ARCHIVO=../config/parametros.yaml dart run bin/servidor.dart
+
+# Cliente de escritorio (Linux o Windows)
+cd cliente && flutter pub get
+flutter run -d linux --dart-define=API_URL=http://localhost:8080/api
+flutter build windows --release --dart-define=API_URL=http://SERVIDOR:8080/api
+
+# Cliente web en modo desarrollo (el servidor debe admitir el origen en CORS_ORIGENES)
+flutter run -d chrome --web-port 3000 --dart-define=API_URL=http://localhost:8080/api
+```
+
+Los parámetros del método (población, generaciones, pesos de `J`, matriz de
+licencias…) están en [`config/parametros.yaml`](config/parametros.yaml); con
+Docker basta `docker compose restart servidor` para aplicarlos.
+
+## Pruebas
+
+```sh
+(cd paquetes/dominio && dart test)    # 53: núcleo, ecuaciones, contrato
+(cd servidor && dart test)            # 49: HU-01…HU-11 sobre MySQL (base <DB_NAME>_pruebas)
+(cd cliente && flutter test)          # 14: ApiCliente, controladores, formulario HU-06
+herramientas/e2e.sh                   # 2: ciclo completo y recorrido de pantallas (escritorio)
+```
+
+Las del servidor y las de integración usan el MySQL de `docker compose`
+(variables `PRUEBAS_DB_*`/`DB_*` del `.env`). Detalle de cada nivel y de la
+prueba de ciclo completo en [docs/pruebas.md](docs/pruebas.md).
+
+## Estructura del repositorio
+
+```text
+paquetes/dominio/      paquete compartido: contrato, modelos y núcleo de optimización
+servidor/              API REST: bin/servidor.dart, lib/src/{http,controladores,servicios,repositorios,seguridad}
+cliente/               Flutter MVC: lib/{modelo,controladores,vistas}, test/, integration_test/
+basedatos/             esquema.sql, datos_ejemplo.sql, creación de la base de pruebas
+config/parametros.yaml parámetros del modelo y del algoritmo (RNF-07)
+docker/, */Dockerfile  imágenes y configuración de nginx
+herramientas/          e2e.sh (pruebas de integración), respaldo.sh (respaldo y restauración)
+docs/                  documentación técnica, UML, wireframes y capturas
+```
 
 ## Documentación
 
 | Documento | Contenido |
 |---|---|
-| [docs/arquitectura.md](docs/arquitectura.md) | Capas, componentes, cómo se comunican, despliegue, seguridad y decisiones de diseño (con diagramas) |
-| [docs/metodos_modelos_algoritmos.md](docs/metodos_modelos_algoritmos.md) | Lógica principal, modelo entidad-relación, diccionario de datos, reglas operativas, validaciones y autenticación |
-| [docs/teoria_algoritmo_genetico.md](docs/teoria_algoritmo_genetico.md) | Cromosoma, función de aptitud, operadores, criterios de parada, pseudocódigo, ejemplo numérico y reproducibilidad |
+| [arquitectura.md](docs/arquitectura.md) | capas, comunicación, despliegue, configuración y seguridad |
+| [uml.md](docs/uml.md) | casos de uso, componentes, clases, secuencias, actividad, despliegue y ER (versión final) |
+| [metodos_modelos_algoritmos.md](docs/metodos_modelos_algoritmos.md) | lógica principal, algoritmos, validaciones e indicadores |
+| [formalizacion_algoritmo.md](docs/formalizacion_algoritmo.md) | ecuación → pseudocódigo → código, isomorfismo, estructura de datos y complejidad |
+| [teoria_algoritmo_genetico.md](docs/teoria_algoritmo_genetico.md) | diseño del algoritmo genético y parámetros (Tablas 22 y 23) |
+| [modelo_datos.md](docs/modelo_datos.md) | tablas de MySQL y su correspondencia con el modelo |
+| [contrato_api.md](docs/contrato_api.md) | endpoints, autenticación, errores y versionado |
+| [wireframes.md](docs/wireframes.md) | wireframes por caso de uso y su implementación |
+| [pruebas.md](docs/pruebas.md) | estrategia y resultados de las pruebas |
+| [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) | diferencias con el diseño de la tesis y pendientes |
 
-## Estructura del repositorio
+## Versiones
 
-```text
-sistema-asignacion-san-felipe/
-├── config/
-│   └── parametros_ga.yaml       # Parámetros del algoritmo genético y reglas operativas
-├── docs/                        # Arquitectura, modelos y algoritmos
-├── src/
-│   ├── presentacion/            # Capa de presentación (interfaz Tkinter)
-│   ├── logica/                  # Capa de lógica de negocio
-│   │   └── algoritmo_genetico/  # Cromosoma, aptitud, operadores, orquestador
-│   └── datos/                   # Capa de datos
-│       ├── conexion.py          # Conexión a MySQL leyendo .env
-│       ├── esquema.sql          # Tablas, restricciones y vistas
-│       └── datos_ejemplo.sql    # Datos ficticios para pruebas
-├── tests/                       # Pruebas automatizadas (pytest)
-├── .env.example                 # Plantilla de variables de entorno
-├── .python-version              # Versión de Python del proyecto
-├── docker-compose.yml           # MySQL 8.4.11 para desarrollo
-├── pytest.ini                   # Configuración de pytest
-└── requirements.txt             # Dependencias con versiones fijas
-```
+Las etiquetas siguen MAYOR.MENOR.PARCHE y la versión del contrato de la API
+(`X-Version-Api`); cliente y servidor operan juntos si coinciden en
+MAYOR.MENOR.
 
-## Requisitos previos
-
-- [Git](https://git-scm.com/)
-- [Python 3.12](https://www.python.org/downloads/) con Tkinter.
-  - **Windows:** el instalador oficial incluye Tkinter (opción *tcl/tk and IDLE*).
-  - **Ubuntu/Debian:** `sudo apt install python3.12-venv python3-tk`
-- Una de estas dos opciones para la base de datos:
-  - **Opción A (recomendada):** [Docker Desktop](https://www.docker.com/products/docker-desktop/), que incluye Docker Compose.
-  - **Opción B:** [MySQL Server 8.4](https://dev.mysql.com/downloads/mysql/8.4.html) instalado en el equipo.
-
-## Instalación
-
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/Madafaka17/sistema-asignacion-san-felipe.git
-cd sistema-asignacion-san-felipe
-```
-
-### 2. Crear el entorno virtual e instalar las dependencias
-
-**Windows (PowerShell):**
-
-```powershell
-py -3.12 -m venv venv
-.\venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-> Si PowerShell no permite ejecutar `Activate.ps1`, ejecute una vez
-> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y vuelva a intentarlo.
-
-**Linux / macOS:**
-
-```bash
-python3.12 -m venv venv
-source venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-### 3. Configurar las variables de entorno
-
-Copie la plantilla y cambie las contraseñas de ejemplo:
-
-```bash
-cp .env.example .env              # Linux / macOS
-Copy-Item .env.example .env       # Windows PowerShell
-```
-
-| Variable | Descripción | Valor de ejemplo |
-|---|---|---|
-| `DB_HOST` | Servidor MySQL | `127.0.0.1` |
-| `DB_PORT` | Puerto de MySQL | `3306` |
-| `DB_NAME` | Base de datos | `san_felipe` |
-| `DB_USER` | Usuario de la aplicación (no use `root`) | `san_felipe_app` |
-| `DB_PASSWORD` | Contraseña de `DB_USER` | — |
-| `MYSQL_ROOT_PASSWORD` | Contraseña de `root` del contenedor (solo Opción A) | — |
-
-El archivo `.env` está en `.gitignore`: **nunca lo suba al repositorio**.
-
-### 4. Crear la base de datos
-
-**Opción A: con Docker (recomendada)**
-
-```bash
-docker compose up -d
-docker compose ps        # esperar a que el estado sea "healthy"
-```
-
-Esto descarga MySQL 8.4.11, crea la base `DB_NAME` y el usuario `DB_USER`
-con los valores de `.env` y carga `esquema.sql` y `datos_ejemplo.sql`.
-Los datos se conservan entre reinicios. Para empezar desde cero (borra todos
-los datos): `docker compose down -v` y luego `docker compose up -d`.
-
-**Opción B: con MySQL instalado en el equipo**
-
-Conéctese como `root` (`mysql -h 127.0.0.1 -u root -p`) y ejecute, usando en
-`IDENTIFIED BY` la misma contraseña que puso en `DB_PASSWORD`:
-
-```sql
-CREATE DATABASE san_felipe CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-CREATE USER 'san_felipe_app'@'127.0.0.1' IDENTIFIED BY 'su_contrasena';
-GRANT ALL PRIVILEGES ON san_felipe.* TO 'san_felipe_app'@'127.0.0.1';
-```
-
-Después, desde la carpeta del proyecto, cargue el esquema y los datos de ejemplo:
-
-```bash
-mysql -h 127.0.0.1 -u san_felipe_app -p san_felipe -e "source src/datos/esquema.sql; source src/datos/datos_ejemplo.sql;"
-```
-
-> El usuario se crea para `127.0.0.1` (y no para `localhost`) porque la
-> aplicación se conecta por TCP. MySQL 8.4 rechaza esas conexiones si la
-> cuenta se creó como `'san_felipe_app'@'localhost'`.
-> En Windows, si `mysql` no se reconoce, use la ruta completa, por ejemplo
-> `"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"`.
-
-### 5. Verificar la instalación
-
-Con el entorno virtual activado:
-
-```bash
-python -m src.datos.conexion
-```
-
-Resultado esperado (con la Opción B la versión de MySQL puede variar):
-
-```text
-Conexión exitosa: MySQL 8.4.11, base de datos 'san_felipe', 10 tablas/vistas.
-```
-
-Ejecute las pruebas automatizadas:
-
-```bash
-pytest                                        # pruebas unitarias (no necesitan MySQL)
-PRUEBAS_BD=1 pytest -m integracion            # Linux / macOS: prueba la base de datos
-$env:PRUEBAS_BD=1; pytest -m integracion      # Windows PowerShell
-```
-
-Todas las pruebas deben pasar. Sin `PRUEBAS_BD=1`, las de integración se
-muestran como *skipped*.
-
-## Ejecución
-
-Por ahora se pueden ejecutar la verificación de la conexión y las pruebas
-(paso 5). La interfaz gráfica está en desarrollo; su punto de entrada será la
-pantalla de inicio de sesión: `python -m src.presentacion.login`.
-
-Ejecute siempre los comandos desde la carpeta raíz del proyecto y con el
-entorno virtual activado.
-
-## Configuración del algoritmo genético
-
-`config/parametros_ga.yaml` contiene los parámetros del algoritmo (tamaño de
-población, probabilidades de cruce y mutación, elitismo, criterios de parada,
-pesos de la función de aptitud) y de las reglas operativas (jornada máxima,
-descansos, alistamiento). Cada parámetro está comentado y su fundamento se
-explica en [docs/teoria_algoritmo_genetico.md](docs/teoria_algoritmo_genetico.md).
-La prueba `tests/test_configuracion.py` comprueba que los valores sean
-coherentes.
-
-## Reproducibilidad
-
-Lo que garantiza que otra persona obtenga el mismo comportamiento:
-
-| Elemento | Cómo se fija |
+| Etiqueta | Contenido |
 |---|---|
-| Versión de Python | `.python-version` (3.12) |
-| Dependencias | `requirements.txt` con versiones exactas, incluidas las transitivas |
-| Motor de base de datos | Imagen `mysql:8.4.11` en `docker-compose.yml` |
-| Estructura y datos de prueba | `esquema.sql` y `datos_ejemplo.sql` versionados; las fechas de vencimiento de licencias son relativas a la fecha de carga |
-| Resultados del algoritmo | `semilla_aleatoria` fija en `parametros_ga.yaml`; cada programación guarda la semilla y una copia de los parámetros usados |
-| Secretos | Fuera del repositorio (`.env`), con plantilla `.env.example` |
+| `v0.1.0` | paquete `dominio`: modelo matemático, algoritmo genético y voraz, contrato |
+| `v0.2.0` | base de datos y servidor REST con pruebas de aceptación |
+| `v0.3.0` | cliente Flutter MVC y prueba de ciclo completo |
+| `v1.0.0` | entorno Docker, documentación final y UML según lo construido |
 
-Para actualizar una dependencia: cambie su versión en `requirements.txt`,
-reinstale en un entorno virtual nuevo, ejecute `pytest` y registre el cambio
-en el commit.
+## Respaldos (RNF-05)
 
-## Solución de problemas
+```sh
+herramientas/respaldo.sh                              # respaldos/sanfelipe_AAAAMMDD_HHMMSS.sql.gz
+herramientas/respaldo.sh restaurar respaldos/ARCHIVO.sql.gz
+```
 
-| Problema | Solución |
-|---|---|
-| `Faltan variables de entorno: ...` | No existe `.env`. Copie `.env.example` como `.env` (paso 3) |
-| `Access denied for user 'san_felipe_app'@'...'` | **Docker:** si cambió `.env` después del primer `docker compose up`, el usuario conserva la contraseña anterior; ejecute `docker compose down -v` y `docker compose up -d` (borra los datos). **MySQL local:** cree el usuario para `127.0.0.1` (paso 4, Opción B) y verifique la contraseña |
-| `Can't connect to MySQL server on '127.0.0.1:3306'` | MySQL no está en ejecución: revise `docker compose ps` o el servicio de MySQL |
-| `port is already allocated` al levantar Docker | Ya hay otro MySQL usando el puerto 3306. Cambie `DB_PORT=3307` en `.env` |
-| `ModuleNotFoundError: No module named 'src'` | Ejecute los comandos desde la raíz del proyecto, con `python -m ...` |
-| `ModuleNotFoundError: No module named 'mysql'` (u otro paquete) | El entorno virtual no está activado (paso 2) |
-| `No module named '_tkinter'` | Instale Tkinter: `sudo apt install python3-tk` (Linux) o reinstale Python marcando *tcl/tk* (Windows) |
+Prográmelo a diario con cron o con el Programador de tareas de Windows.
+
+## Nota sobre el prototipo anterior
+
+`src/`, `tests/`, `requirements.txt`, `pytest.ini`, `.python-version` y
+`config/parametros_ga.yaml` son de un primer prototipo en Python que esta
+versión reemplaza; ninguna parte del sistema actual los usa y pueden
+eliminarse (ver [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) §7).

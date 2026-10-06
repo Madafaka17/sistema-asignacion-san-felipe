@@ -1,227 +1,132 @@
 # Arquitectura del sistema
 
-Este documento describe los componentes del sistema, cómo se organizan en
-capas y cómo se comunican entre sí. La lógica interna de cada componente se
-describe en [Métodos, modelos y algoritmos](metodos_modelos_algoritmos.md) y
-en [Teoría del algoritmo genético](teoria_algoritmo_genetico.md).
+Sistema cliente–servidor de tres capas físicas: **cliente Flutter** (web y
+escritorio), **servidor Dart** con una API REST y **MySQL 8.4**. El núcleo de
+optimización y el contrato de la API viven en un paquete Dart compartido
+(`paquetes/dominio`). Los diagramas UML completos están en [`uml.md`](uml.md).
 
 ## 1. Visión general
 
-El sistema es una **aplicación de escritorio en Python** organizada en
-**tres capas lógicas** (presentación, lógica de negocio y datos) que se
-conecta a un **servidor de base de datos MySQL**. Físicamente hay dos
-niveles:
-
-| Nivel | Qué contiene | Dónde se ejecuta |
-|---|---|---|
-| **Cliente** | Las tres capas de la aplicación: interfaz gráfica, lógica de negocio (incluido el algoritmo genético) y acceso a datos | Equipo de cada operador o administrador |
-| **Servidor de base de datos** | MySQL 8.4 con la base `san_felipe` | El mismo equipo (desarrollo, con Docker) o un servidor de la red local de la empresa |
-
-Cada capa solo conoce a la capa inmediatamente inferior. La interfaz nunca
-ejecuta SQL y el algoritmo genético no accede a la base de datos ni a la
-interfaz: recibe los datos del día ya cargados y devuelve la mejor solución.
-Por eso el algoritmo se puede probar de forma aislada con datos sintéticos.
-
-## 2. Diagrama de componentes
-
 ```mermaid
-flowchart TB
-    usuario(["Usuario<br/>administrador / operador"])
-
-    subgraph presentacion["Capa de presentación · src/presentacion · Tkinter + Matplotlib"]
-        direction LR
-        login["login.py"]
-        gestion["gestion_vehiculos.py<br/>gestion_conductores.py<br/>gestion_rutas.py<br/>gestion_horarios.py"]
-        prog["programacion_operativa.py"]
-        vis["visualizacion_resultados.py<br/>reportes.py"]
-    end
-
-    subgraph logica["Capa de lógica de negocio · src/logica"]
-        direction LR
-        gen["generador_programacion.py"]
-        reglas["reglas_operativas.py"]
-        val["validaciones.py"]
-        ag["algoritmo_genetico/<br/>PyGAD + NumPy"]
-        yaml[/"config/parametros_ga.yaml"/]
-    end
-
-    subgraph datos["Capa de datos · src/datos"]
-        direction LR
-        cx["conexion.py<br/>mysql-connector-python"]
-        env[/".env"/]
-    end
-
-    mysql[("Servidor de base de datos<br/>MySQL 8.4 · base san_felipe")]
-
-    usuario -->|"formularios, botones"| presentacion
-    presentacion -->|"llamadas a funciones Python"| logica
-    logica -->|"llamadas a funciones Python"| datos
-    datos -->|"protocolo MySQL sobre TCP/IP, puerto 3306<br/>SQL parametrizado, TLS"| mysql
-    yaml -.->|"PyYAML"| ag
-    env -.->|"python-dotenv"| cx
+flowchart LR
+  subgraph Cliente["Cliente · Flutter 3.47 (MVC)"]
+    V[Vistas] --> C[Controladores] --> M[Modelo:<br/>repositorios + ApiCliente]
+  end
+  subgraph Servidor["Servidor · Dart 3.13 + shelf"]
+    R[Router + middleware] --> CT[Controladores] --> S[Servicios] --> RP[Repositorios]
+    S --> N[[Núcleo de optimización<br/>paquete dominio]]
+  end
+  BD[(MySQL 8.4)]
+  M -- "REST/JSON · HTTPS<br/>JWT + cookie HttpOnly" --> R
+  RP -- "SQL parametrizado · TLS" --> BD
 ```
 
-Las tres capas se ejecutan dentro de la aplicación, en el equipo cliente; la
-base de datos se ejecuta en el servidor. Los archivos con forma de
-paralelogramo son archivos de configuración que lee el componente señalado.
+| Capa | Carpeta | Responsabilidad | No hace |
+|---|---|---|---|
+| Presentación (V) | `cliente/lib/vistas/` | dibujar el estado y enviar acciones al controlador | HTTP, reglas de negocio |
+| Control (C) | `cliente/lib/controladores/` | estado de cada caso de uso (`ChangeNotifier`): cargando, errores por campo, lista, propuesta | HTTP (solo usa interfaces de repositorio), SQL |
+| Modelo del cliente (M) | `cliente/lib/modelo/` | `ApiCliente` (JWT, renovación, versión, errores) y repositorios remotos | dibujar |
+| HTTP del servidor | `servidor/lib/src/http/`, `controladores/` | rutas, autenticación, autorización por rol, JSON ⇄ objetos del contrato | reglas de negocio, SQL |
+| Lógica de negocio | `servidor/lib/src/servicios/` | validaciones (HU-02 a HU-06), generación, ajuste y aprobación, incidencias, indicadores, bitácora, transacciones | HTTP, SQL |
+| Núcleo de optimización | `paquetes/dominio/lib/src/optimizacion/` | ecuación (1), F(X), AG, voraz, reparación, validador | base de datos, interfaz (RNF-07) |
+| Datos | `servidor/lib/src/repositorios/`, `infraestructura/base_datos.dart` | SQL con parámetros, pool de conexiones, transacciones | reglas de negocio |
+| Persistencia | `basedatos/esquema.sql` | tablas, claves y restricciones del modelo | — |
 
-## 3. Responsabilidades de cada componente
+## 2. Cliente: MVC
 
-### Capa de presentación (`src/presentacion/`)
+* **Vista → Controlador.** Cada pantalla (`PantallaServicios`,
+  `PantallaProgramacion`…) obtiene su controlador con `context.watch<…>()` y
+  le envía acciones (`guardar`, `generar`, `aprobar`). Los formularios
+  validan en el cliente lo mismo que valida el servidor (campos
+  obligatorios, formato de placa, duración > 0) y muestran los errores por
+  campo que devuelve el servidor (`erroresCampo`).
+* **Controlador → Modelo.** `ControladorBase.ejecutar` marca la pantalla como
+  ocupada, llama al repositorio, guarda el error del contrato y notifica. Si
+  ya hay una operación en curso, no inicia otra.
+* **Actualización reactiva.** Tras un 201/200 el controlador inserta o
+  reemplaza el elemento con la respuesta del servidor y notifica; la tabla se
+  redibuja sin volver a pedir la lista.
+* **Botón asíncrono.** `BotonAsincrono` se desactiva y muestra un indicador
+  mientras su acción está en curso: no se pueden enviar dos registros iguales.
+* **Composición.** `app.dart` crea `ApiCliente`, los repositorios y el
+  controlador de sesión; `vistas/modulos.dart` crea el controlador de cada
+  pantalla al abrirla. Ninguna vista ni controlador importa `package:http`.
 
-Interfaz gráfica con **Tkinter** (incluida en Python) y gráficos con
-**Matplotlib** integrados en las ventanas. Solo muestra datos, recoge lo que
-escribe el usuario y llama a funciones de la capa de lógica.
+## 3. Servidor: Controller–Service–Repository
 
-| Módulo | Responsabilidad |
-|---|---|
-| `login.py` | Inicio de sesión y control de acceso por rol |
-| `gestion_vehiculos.py` | Alta, edición, baja y consulta de vehículos |
-| `gestion_conductores.py` | Alta, edición, baja y consulta de conductores |
-| `gestion_rutas.py` | Mantenimiento de rutas |
-| `gestion_horarios.py` | Mantenimiento de horarios (salidas recurrentes por ruta) |
-| `programacion_operativa.py` | Elegir la fecha, lanzar el algoritmo, revisar y aprobar la programación |
-| `visualizacion_resultados.py` | Diagrama de Gantt por vehículo y por conductor, curva de convergencia del algoritmo |
-| `reportes.py` | Reportes de programación, horas por conductor y uso de la flota; exportación a CSV |
-
-### Capa de lógica de negocio (`src/logica/`)
-
-| Módulo | Responsabilidad |
-|---|---|
-| `generador_programacion.py` | Coordina el caso de uso principal: carga los datos del día, arma la instancia del problema, ejecuta el algoritmo, valida y guarda el resultado |
-| `reglas_operativas.py` | Define las reglas del negocio (solapamientos, licencias, jornada máxima, descansos) y las funciones que las verifican |
-| `validaciones.py` | Valida los datos que ingresa el usuario (placa, DNI, fechas, capacidades) y las precondiciones antes de programar |
-| `algoritmo_genetico/` | Algoritmo genético: `cromosoma`, `poblacion`, `aptitud`, `seleccion`, `cruce`, `mutacion`, `reparacion`, `elitismo`, `criterios_parada` y el orquestador `algoritmo.py`, que configura y ejecuta `pygad.GA` |
-
-### Capa de datos (`src/datos/`)
-
-| Archivo | Responsabilidad |
-|---|---|
-| `conexion.py` | Lee las credenciales de `.env`, abre conexiones a MySQL y controla las transacciones (`commit` o `rollback`) |
-| `esquema.sql` | Definición de tablas, claves, restricciones y vistas |
-| `datos_ejemplo.sql` | Datos ficticios para desarrollo y pruebas |
-
-Las consultas de cada entidad (listar vehículos operativos, guardar una
-programación, etc.) se agregan en esta capa y usan `obtener_conexion()`.
-
-## 4. Comunicación entre componentes
-
-| Origen → destino | Mecanismo | Qué se intercambia |
-|---|---|---|
-| Usuario → presentación | Eventos de la interfaz Tkinter | Datos de formularios, fecha a programar, aprobación |
-| Presentación → lógica | Llamadas a funciones Python, en el mismo proceso | Parámetros simples (fecha, id de usuario) y objetos de resultado (asignaciones, métricas) |
-| Lógica → algoritmo genético | Llamadas a funciones Python | Instancia del problema (salidas, vehículos, conductores, reglas) y parámetros; devuelve el mejor cromosoma y el historial de aptitud |
-| Lógica → datos | Llamadas a funciones Python | Diccionarios u objetos con las filas leídas o a guardar |
-| Datos → MySQL | Protocolo cliente/servidor de MySQL sobre TCP/IP (puerto 3306), cifrado con TLS cuando el servidor lo admite (MySQL 8.4 lo activa por defecto) | Sentencias SQL **parametrizadas** y sus resultados |
-| `.env` → datos | `python-dotenv` carga el archivo al iniciar | Host, puerto, base de datos, usuario y contraseña |
-| `parametros_ga.yaml` → algoritmo | `PyYAML` | Tamaño de población, probabilidades, pesos, criterios de parada, semilla |
-
-### Flujo principal: generar la programación de un día
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor O as Operador
-    participant P as programacion_operativa
-    participant G as generador_programacion
-    participant R as reglas_operativas /<br/>validaciones
-    participant AG as algoritmo_genetico
-    participant D as Capa de datos
-    participant DB as MySQL
-
-    O->>P: Elige la fecha y pulsa "Generar"
-    P->>G: generar_programacion(fecha, id_usuario)
-    G->>D: Cargar salidas, vehículos y conductores disponibles
-    D->>DB: SELECT parametrizados
-    DB-->>D: Filas
-    D-->>G: Datos del día
-    G->>R: Validar precondiciones
-    R-->>G: Correcto o lista de errores
-    G->>AG: ejecutar(instancia, parametros_ga.yaml)
-    loop Cada generación, hasta un criterio de parada
-        AG->>AG: Selección, cruce, mutación, reparación, evaluación
-    end
-    AG-->>G: Mejor cromosoma e historial de aptitud
-    G->>R: Verificar restricciones duras del resultado
-    G->>D: Guardar programación (borrador), asignaciones e historial
-    D->>DB: INSERT en una sola transacción
-    G-->>P: Resultado: asignaciones y métricas
-    P-->>O: Diagrama de Gantt, curva de convergencia, indicadores
-    O->>P: Aprueba la programación
-    P->>G: aprobar_programacion(id_programacion)
-    G->>D: Cambiar estado a "aprobada"
-    D->>DB: UPDATE
+```text
+solicitud HTTP
+  → cabecerasComunes   X-Version-Api, nosniff, DENY, no-store
+  → cors               orígenes de CORS_ORIGENES, con credenciales
+  → registrarSolicitudes
+  → manejarErrores     ExcepcionApi → {error: {codigo, mensaje, campos}}
+  → verificarVersionCliente   426 si X-Version-Cliente es incompatible
+  → autenticar         JWT de Authorization: Bearer (salvo rutas públicas)
+  → Router → Controlador → autorizar(rol, módulo) → Servicio → Repositorio → MySQL
 ```
+
+* **Controladores** (`controladores/`): un método por ruta; leen el cuerpo
+  con los `fromJson` del contrato y llaman a un servicio.
+* **Servicios** (`servicios/`): reglas de negocio y transacciones; registran
+  en la bitácora cada cambio de datos, la aprobación y el ajuste (RNF-06).
+* **Repositorios** (`repositorios/`): una interfaz y su implementación MySQL
+  por agregado; los servicios dependen de la interfaz.
+* **Raíz de composición** (`aplicacion.dart`): único lugar donde se crean y
+  conectan las capas; las pruebas la usan con un reloj fijo y otra base.
+* **Núcleo en un isolate.** `ProgramacionServicio.generar` ejecuta la
+  estrategia con `Isolate.run`, de modo que una ejecución de hasta 300 s no
+  bloquea las demás solicitudes.
+
+## 4. Comunicación
+
+| Tramo | Protocolo | Detalle |
+|---|---|---|
+| Navegador → nginx | HTTP(S) | el cliente web y la API comparten origen (`/api` por proxy inverso) |
+| Escritorio → servidor | HTTP(S) | `--dart-define=API_URL=http://servidor:8080/api` |
+| Cliente ⇄ servidor | REST + JSON | contrato de [`contrato_api.md`](contrato_api.md); versión en `X-Version-Api` / `X-Version-Cliente` |
+| Servidor → MySQL | protocolo MySQL sobre TLS | `mysql_client_plus`, pool de 10 conexiones, parámetros con nombre |
+| Servidor → núcleo | llamada en proceso (isolate) | objetos Dart tipados (`InstanciaTurno` → `ResultadoOptimizacion`) |
+
+El flujo detallado de la generación de la programación y del registro de un
+servicio está en los diagramas de secuencia de [`uml.md`](uml.md) (§6–§8).
 
 ## 5. Despliegue
 
-```mermaid
-flowchart LR
-    subgraph dev["Desarrollo / pruebas: un solo equipo"]
-        app1["Aplicación Python<br/>(entorno virtual venv)"]
-        subgraph docker["Docker"]
-            db1[("mysql:8.4.11<br/>docker-compose.yml")]
-        end
-        app1 -->|"127.0.0.1:3306"| db1
-    end
+`docker compose up --build` levanta tres contenedores (detalle en
+[`uml.md` §10](uml.md#10-despliegue)):
 
-    subgraph prod["Operación en la empresa: red local"]
-        pc1["PC operador 1"]
-        pc2["PC operador 2"]
-        srv[("Servidor MySQL 8.4")]
-        pc1 -->|"IP del servidor:3306"| srv
-        pc2 -->|"IP del servidor:3306"| srv
-    end
-```
-
-- **Desarrollo:** `docker compose up -d` levanta MySQL 8.4.11, crea la base y
-  el usuario de la aplicación y carga `esquema.sql` y `datos_ejemplo.sql`. El
-  puerto solo se publica en `127.0.0.1`, así que no es accesible desde otras
-  máquinas.
-- **Operación:** cada equipo ejecuta la aplicación con su propio `.env`, con
-  `DB_HOST` apuntando al servidor. En el servidor, el usuario de la
-  aplicación se crea para la red local (por ejemplo,
-  `'san_felipe_app'@'192.168.1.%'`) en lugar de `127.0.0.1`, y el puerto 3306
-  se abre solo a esa red. MySQL controla la concurrencia entre
-  usuarios y la regla de *una sola programación aprobada por fecha* se
-  garantiza con un índice único en la base de datos, no en la aplicación.
+| Servicio | Imagen | Puerto publicado | Notas |
+|---|---|---|---|
+| `basedatos` | `mysql:8.4.11` | `127.0.0.1:3306` | carga `esquema.sql`, `datos_ejemplo.sql` y crea `<DB_NAME>_pruebas` en el primer arranque; volumen `datos_mysql` |
+| `servidor` | `sanfelipe/servidor:1.0.0` (Dart AOT sobre `scratch`, ~20 MB) | `127.0.0.1:8080` | usuario sin privilegios; `config/parametros.yaml` montado; verificación de salud `servidor --salud` |
+| `cliente` | `sanfelipe/cliente:1.0.0` (Flutter web + nginx 1.28) | `127.0.0.1:3000` | sin CDN: funciona en la red local sin internet |
 
 ## 6. Configuración y secretos
 
-| Archivo | ¿Se versiona? | Contenido |
-|---|---|---|
-| `.env.example` | Sí | Plantilla con los nombres de las variables y valores de ejemplo |
-| `.env` | **No** (`.gitignore`) | Credenciales reales de cada equipo |
-| `config/parametros_ga.yaml` | Sí | Parámetros del algoritmo y de las reglas operativas |
-| `docker-compose.yml` | Sí | Versión exacta de MySQL y su configuración |
-
-Las variables de entorno definidas en el sistema tienen prioridad sobre las
-de `.env`. Cada programación guarda una copia de los parámetros usados
-(`programacion.parametros`, tipo JSON), así que cualquier resultado se puede
-volver a obtener aunque el archivo YAML cambie después.
+* Secretos solo en `.env` (ignorado por git); `.env.example` es la plantilla.
+  `docker compose` se niega a arrancar si faltan `DB_PASSWORD`,
+  `MYSQL_ROOT_PASSWORD` o `JWT_SECRETO`, y el servidor exige que
+  `JWT_SECRETO` tenga al menos 32 caracteres.
+* Parámetros del modelo y del método en `config/parametros.yaml` (RNF-07); el
+  servidor los valida al iniciar y guarda los efectivos con cada programación.
+* Versiones fijas: `pubspec.lock` de cada paquete, imágenes con etiqueta
+  exacta y Flutter 3.47.6 en el Dockerfile.
 
 ## 7. Seguridad
 
-- **Inyección SQL:** todas las consultas usan parámetros (`%s`) del conector,
-  nunca concatenación de texto.
-- **Contraseñas de usuarios:** se guarda un hash PBKDF2-SHA256 con sal
-  (módulo estándar `hashlib`), nunca el texto plano.
-- **Roles:** `administrador` (mantenimiento de datos maestros, usuarios y
-  aprobación) y `operador` (generar y consultar programaciones).
-- **Credenciales de la base de datos:** solo en `.env`; la aplicación usa un
-  usuario propio (`san_felipe_app`) con permisos únicamente sobre la base
-  `san_felipe`, nunca `root`.
-- **Datos personales:** DNI y teléfonos de conductores solo existen en la base
-  de datos; los respaldos y exportaciones (`respaldos/`, `salidas/`, `*.csv`)
-  están excluidos del repositorio.
+| Amenaza | Control |
+|---|---|
+| Robo de contraseñas | PBKDF2-HMAC-SHA256, 100 000 iteraciones, sal aleatoria; comparación en tiempo constante |
+| Fuerza bruta | bloqueo de 15 min tras 5 intentos; mismo mensaje y tiempo para usuario inexistente |
+| Robo de sesión (XSS) | token de acceso solo en memoria; token de actualización en cookie `HttpOnly`, rotado en cada uso y guardado como SHA-256 |
+| CSRF | cookie `SameSite=Strict` limitada a `/api/auth`; el resto exige `Authorization: Bearer` |
+| Escalada de privilegios | autorización en el servidor con la matriz `Permisos` en cada ruta (403) |
+| Inyección SQL | consultas con parámetros con nombre; nunca se concatena un dato |
+| Datos inválidos | lectura estricta de JSON (400), reglas de negocio (422) y `CHECK`/FK en MySQL |
+| Exposición | puertos en `127.0.0.1`, `X-Frame-Options: DENY`, `nosniff`, sin cabecera `X-Powered-By`, errores internos sin detalle |
+| Trazabilidad | bitácora de ingresos, bloqueos, cambios de datos, generación, ajuste y aprobación |
 
 ## 8. Decisiones de diseño
 
-| Decisión | Alternativa descartada | Motivo |
-|---|---|---|
-| Aplicación de escritorio con Tkinter | Aplicación web | Pocos usuarios en la oficina de la empresa; no requiere servidor web y Tkinter viene incluido en Python |
-| MySQL | SQLite | Varios usuarios simultáneos, integridad referencial y restricciones `CHECK` aplicadas por el motor |
-| PyGAD | Algoritmo genético programado desde cero | Biblioteca probada que permite reemplazar los operadores de cruce y mutación por operadores propios del problema |
-| Algoritmo genético independiente de la base de datos | Consultar la base durante la evaluación | La evaluación se ejecuta miles de veces: con los datos en memoria es rápida, determinista y fácil de probar |
-| Guardar el resultado en una sola transacción | Guardar asignación por asignación | Si algo falla no queda una programación a medias |
-| Versiones exactas de las dependencias y de MySQL | Rangos de versiones | Que otra persona obtenga exactamente el mismo comportamiento y los mismos resultados |
+Las decisiones y las diferencias con el diseño de la tesis están en
+[`decisiones_y_desviaciones.md`](decisiones_y_desviaciones.md).

@@ -1,0 +1,86 @@
+# Integración continua: análisis estático y pruebas de los tres paquetes y
+# construcción de las imágenes Docker en cada push y pull request.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dominio:
+    name: Núcleo (paquetes/dominio)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: paquetes/dominio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.5
+      - run: dart pub get --enforce-lockfile
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+  servidor:
+    name: Servidor (pruebas de aceptación sobre MySQL)
+    runs-on: ubuntu-24.04
+    services:
+      mysql:
+        image: mysql:8.4.11
+        env:
+          MYSQL_ROOT_PASSWORD: raiz-ci
+          MYSQL_DATABASE: sanfelipe_pruebas
+          MYSQL_USER: sanfelipe
+          MYSQL_PASSWORD: clave-ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -praiz-ci --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+    defaults:
+      run:
+        working-directory: servidor
+    env:
+      PRUEBAS_DB_HOST: 127.0.0.1
+      PRUEBAS_DB_PORT: 3306
+      PRUEBAS_DB_NAME: sanfelipe_pruebas
+      PRUEBAS_DB_USER: sanfelipe
+      PRUEBAS_DB_PASSWORD: clave-ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.13.5
+      - run: dart pub get --enforce-lockfile
+      - run: dart analyze --fatal-infos
+      - run: dart test
+
+  cliente:
+    name: Cliente Flutter (unitarias y de widgets)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: cliente
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.6
+          channel: stable
+      - run: flutter pub get --enforce-lockfile
+      - run: flutter analyze --fatal-infos
+      - run: flutter test
+
+  docker:
+    name: Imágenes Docker (docker compose build)
+    runs-on: ubuntu-24.04
+    needs: [dominio, servidor, cliente]
+    steps:
+      - uses: actions/checkout@v4
+      - run: cp .env.example .env
+      - run: docker compose config --quiet
+      - run: docker compose build
