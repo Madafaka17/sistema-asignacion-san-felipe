@@ -22,6 +22,14 @@ void main() {
     expect(versionesCompatibles(info.versionApi, versionApi), isTrue);
   });
 
+  test('un cliente con otra versión MAYOR.MENOR recibe 426; uno compatible pasa', () async {
+    final antiguo = await entorno.solicitar('GET', '/api/version', cabeceras: {'x-version-cliente': '0.9.0'});
+    expect(antiguo.estado, 426);
+    expect(antiguo.error['codigo'], CodigoError.versionIncompatible.valor);
+    final compatible = await entorno.solicitar('GET', '/api/version', cabeceras: {'x-version-cliente': '1.0.7'});
+    expect(compatible.estado, 200);
+  });
+
   test('todas las respuestas llevan X-Version-Api y las cabeceras de seguridad', () async {
     for (final r in [
       await entorno.get('/api/version'),

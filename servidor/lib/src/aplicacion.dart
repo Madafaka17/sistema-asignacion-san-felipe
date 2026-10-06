@@ -151,6 +151,7 @@ Handler crearAplicacion({
       .addMiddleware(cors(configuracion.origenesPermitidos))
       .addMiddleware(registrarSolicitudes())
       .addMiddleware(manejarErrores())
+      .addMiddleware(verificarVersionCliente())
       .addMiddleware(autenticar(tokens, rutasPublicas: AutenticacionControlador.rutasPublicas))
       .addHandler(enrutador.call);
 }

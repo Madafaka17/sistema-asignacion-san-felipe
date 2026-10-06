@@ -55,6 +55,21 @@ Middleware cabecerasComunes() => (interno) => (solicitud) async {
       });
     };
 
+/// Compatibilidad cliente–servidor: si el cliente declara su versión en
+/// `X-Version-Cliente` y no coincide en MAYOR.MENOR con [versionApi], se
+/// responde 426 para que el cliente pida actualizarse en lugar de enviar
+/// datos con otra forma.
+Middleware verificarVersionCliente() => (interno) => (solicitud) {
+      final version = solicitud.headers['x-version-cliente'];
+      if (version != null && !versionesCompatibles(version, versionApi)) {
+        return respuestaError(ExcepcionApi(
+          CodigoError.versionIncompatible,
+          'El cliente $version no es compatible con la API $versionApi; actualice la aplicación',
+        ));
+      }
+      return interno(solicitud);
+    };
+
 /// Autenticación: verifica el JWT de `Authorization: Bearer` y deja el
 /// usuario en el contexto. Las rutas públicas no lo exigen.
 Middleware autenticar(Tokens tokens, {required Set<String> rutasPublicas}) => (interno) => (solicitud) {

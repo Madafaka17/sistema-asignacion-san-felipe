@@ -23,6 +23,10 @@ enum CodigoError {
   /// Cuenta bloqueada temporalmente (HTTP 423).
   bloqueado('bloqueado', 423),
 
+  /// El cliente usa una versión del contrato que el servidor no admite
+  /// (HTTP 426): debe actualizarse.
+  versionIncompatible('version_incompatible', 426),
+
   /// Error inesperado del servidor (HTTP 500).
   interno('interno', 500);
 
