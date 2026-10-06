@@ -1,16 +1,25 @@
-# Servidor MySQL para desarrollo y pruebas.
+# =====================================================================
+# Entorno completo con un solo comando:
 #
-#   docker compose up -d      # crea la BD, el usuario y carga los scripts
-#   docker compose down       # detiene el contenedor (los datos se conservan)
-#   docker compose down -v    # detiene y BORRA los datos (vuelve a cargar los scripts)
+#   cp .env.example .env      # y complete las contraseñas y JWT_SECRETO
+#   docker compose up --build
 #
-# Las variables se leen del archivo .env (ver .env.example).
-# Los scripts de src/datos/ solo se ejecutan la primera vez, con el volumen vacío.
+#   Cliente web:  http://localhost:3000   (usuarios en basedatos/datos_ejemplo.sql)
+#   API REST:     http://localhost:8080/api/version
+#   MySQL:        127.0.0.1:3306 (MySQL Workbench)
+#
+#   docker compose down       # detiene (los datos se conservan)
+#   docker compose down -v    # detiene y BORRA los datos (se recargan los scripts)
+#
+# Los puertos se publican solo en 127.0.0.1. Para usar el sistema desde otros
+# equipos de la red, cambie 127.0.0.1 por la IP del servidor y ponga HTTPS
+# delante (ver README, «Despliegue en la red de la empresa»).
+# =====================================================================
+name: sanfelipe
 
 services:
-  mysql:
+  basedatos:
     image: mysql:8.4.11
-    container_name: san_felipe_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD en .env}
@@ -20,19 +29,64 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
+      # Hora de Perú (UTC−5, sin horario de verano): CURDATE() y las marcas de
+      # tiempo por defecto coinciden con la hora local de la empresa.
       - --default-time-zone=-05:00
     ports:
-      # Solo accesible desde este equipo.
-      - "127.0.0.1:${DB_PORT:-3306}:3306"
+      - "127.0.0.1:${PUERTO_MYSQL:-3306}:3306"
     volumes:
       - datos_mysql:/var/lib/mysql
-      - ./src/datos/esquema.sql:/docker-entrypoint-initdb.d/01_esquema.sql:ro
-      - ./src/datos/datos_ejemplo.sql:/docker-entrypoint-initdb.d/02_datos_ejemplo.sql:ro
+      # Solo se ejecutan la primera vez, con el volumen vacío.
+      - ./basedatos/esquema.sql:/docker-entrypoint-initdb.d/01_esquema.sql:ro
+      - ./basedatos/datos_ejemplo.sql:/docker-entrypoint-initdb.d/02_datos_ejemplo.sql:ro
+      - ./basedatos/crear_base_pruebas.sh:/docker-entrypoint-initdb.d/03_crear_base_pruebas.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
       interval: 5s
       timeout: 5s
       retries: 30
+      start_period: 20s
+
+  servidor:
+    build:
+      context: .
+      dockerfile: servidor/Dockerfile
+    image: sanfelipe/servidor:1.0.0
+    restart: unless-stopped
+    depends_on:
+      basedatos:
+        condition: service_healthy
+    environment:
+      DB_HOST: basedatos
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_TLS: "true"
+      JWT_SECRETO: ${JWT_SECRETO:?Defina JWT_SECRETO en .env (al menos 32 caracteres)}
+      JWT_MINUTOS: ${JWT_MINUTOS:-15}
+      REFRESH_DIAS: ${REFRESH_DIAS:-7}
+      COOKIE_SEGURA: ${COOKIE_SEGURA:-true}
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:3000}
+      DESFASE_HORARIO_MIN: ${DESFASE_HORARIO_MIN:--300}
+    volumes:
+      # RNF-07: los parámetros se cambian en el archivo, sin reconstruir la
+      # imagen; basta `docker compose restart servidor`.
+      - ./config/parametros.yaml:/app/config/parametros.yaml:ro
+    ports:
+      - "127.0.0.1:${PUERTO_SERVIDOR:-8080}:8080"
+
+  cliente:
+    build:
+      context: .
+      dockerfile: cliente/Dockerfile
+    image: sanfelipe/cliente:1.0.0
+    restart: unless-stopped
+    depends_on:
+      servidor:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${PUERTO_CLIENTE:-3000}:80"
 
 volumes:
   datos_mysql:
