@@ -1,0 +1,58 @@
+# =====================================================================
+# Parámetros del sistema (RNF-07)
+# =====================================================================
+# El método de optimización, sus parámetros y los pesos de la función de
+# pérdida J se cambian aquí, sin modificar el código. El servidor valida
+# el archivo al iniciar (Σ w_j = 1, w_j ∈ [0, 1], b_j > 0, etc.) y no
+# arranca si es inválido. Cada programación guarda una copia de este
+# contenido en programacion.parametros para poder repetir la ejecución.
+# Al cambiar un valor, deje constancia del motivo en el commit.
+
+optimizacion:
+  # algoritmo_genetico (Tabla 22) | voraz (ecuación 12, línea base)
+  metodo: algoritmo_genetico
+
+# Parámetros del modelo (Tabla 11 de la tesis)
+modelo:
+  holgura_minima_min: 10        # t_mín: separación entre servicios consecutivos (ecuación 4)
+  tolerancia_salida_min: 60     # H_s = salidas autorizadas en [hora solicitada, + tolerancia]
+  penalizacion_m: 1000000       # M: domina a J, de modo que Φ = 0 siempre gana (ecuación 7)
+  pesos:                        # w_j de la ecuación (8); deben sumar 1
+    retraso: 0.25
+    reprogramacion: 0.25
+    tiempo_muerto: 0.25
+    desequilibrio: 0.25
+  referencias:                  # b_j: normalizan cada componente de J
+    retraso_min: 60
+    tiempo_muerto_por_vehiculo_min: 60
+    desequilibrio_min: 60
+  # λ(c, v): categorías vehiculares que habilita cada licencia. Valores
+  # por defecto que deben contrastarse con el Reglamento Nacional de
+  # Licencias de Conducir vigente antes del uso en producción.
+  habilitacion_licencias:
+    A-IIa: [M1]
+    A-IIb: [M1, M2]
+    A-IIIa: [M1, M2, M3]
+    A-IIIb: [M1, M2]
+    A-IIIc: [M1, M2, M3]
+
+# Algoritmo genético (Tabla 23 de la tesis)
+algoritmo_genetico:
+  tamano_poblacion: 50          # P
+  generaciones_maximas: 100     # G_máx
+  probabilidad_cruce: 0.80      # p_c
+  probabilidad_mutacion: 0.10   # p_m (por descendiente)
+  tamano_torneo: 3              # k
+  proporcion_elite: 0.10        # ε → redondeo(ε·P) = 5 élites
+  generaciones_sin_mejora: 20   # g_conv
+  limite_tiempo_s: 300          # t_lím (RNF-01)
+  pasadas_reparacion: 5         # pasadas máximas de la reparación dirigida
+  semilla: 1                    # misma semilla + mismos datos = misma propuesta
+
+seguridad:
+  intentos_maximos: 5           # bloqueo tras 5 intentos fallidos (HU-01)
+  minutos_bloqueo: 15
+  iteraciones_pbkdf2: 100000    # PBKDF2-HMAC-SHA256
+
+indicadores:
+  minutos_disponibles_vehiculo: 600   # tiempo disponible por vehículo y día (PUV, ecuación 22)

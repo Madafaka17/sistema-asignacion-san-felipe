@@ -1,0 +1,36 @@
+name: cliente
+description: >-
+  Cliente Flutter (arquitectura MVC) del sistema de asignación de recursos:
+  interfaz web y de escritorio para despacho, operaciones y administración.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+  flutter: 3.47.6
+
+# Versiones fijas (sin ^) para que cualquier clon resuelva lo mismo; las
+# transitivas quedan fijadas en pubspec.lock.
+dependencies:
+  dominio:
+    path: ../paquetes/dominio
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: 1.6.0
+  intl: 0.20.3
+  provider: 6.1.5+1
+  web: 1.1.1
+
+dev_dependencies:
+  flutter_lints: 6.0.0
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  # Solo la prueba de ciclo completo lo usa para comprobar el registro en MySQL.
+  mysql_client_plus: 0.1.3
+
+flutter:
+  uses-material-design: true

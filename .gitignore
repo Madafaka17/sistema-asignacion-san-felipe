@@ -1,8 +1,73 @@
+# =====================================================================
+# Archivos que NO deben subirse al repositorio
+# =====================================================================
+
+# --- Secretos: contraseñas, claves de API, certificados ---------------
+# El archivo real de configuración local nunca se versiona.
+# Solo se sube la plantilla .env.example (sin valores reales).
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+key.properties
+credenciales*.json
+secrets/
+# Certificados de una CA corporativa o de un proxy para construir las
+# imágenes Docker detrás de él (ver README).
+docker/certificados/*
+!docker/certificados/.gitkeep
+
+# --- Dart y Flutter: dependencias y compilación ------------------------
+# Se regeneran con `dart pub get` / `flutter pub get` a partir de
+# pubspec.yaml y pubspec.lock (que SÍ se versionan: fijan las versiones).
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+# Archivos generados por Flutter para cada plataforma de escritorio.
+cliente/linux/flutter/ephemeral/
+cliente/windows/flutter/ephemeral/
+cliente/macos/Flutter/ephemeral/
+cliente/ios/Flutter/ephemeral/
+cliente/**/GeneratedPluginRegistrant.*
+cliente/**/generated_plugin_registrant.*
+cliente/**/generated_plugins.cmake
+*.g.dart.incremental
+
+# --- Python (prototipo anterior) ---------------------------------------
 venv/
-venv/
+.venv/
 __pycache__/
-node_modules/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Datos locales, respaldos y resultados generados -------------------
+# Pueden contener datos personales (DNI de conductores).
+data/*
+salidas/
+respaldos/
+*.dump
 *.csv
 *.sqlite3
-data/*
-.env
+*.log
+logs/
+
+# --- Editores y sistema operativo --------------------------------------
+.vscode/
+.idea/
+*.iml
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
