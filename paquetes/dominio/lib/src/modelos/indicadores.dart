@@ -50,6 +50,7 @@ class ReporteIndicadores {
     this.pav = 0,
     this.desviacionCarga = 0,
     this.tiempoGeneracionPromedioS = 0,
+    this.tiempoNucleoPromedioS = 0,
     this.programacionesGeneradas = 0,
     this.reemplazos = 0,
     this.saltosCola = 0,
@@ -74,6 +75,7 @@ class ReporteIndicadores {
         pav = 0,
         desviacionCarga = 0,
         tiempoGeneracionPromedioS = 0,
+        tiempoNucleoPromedioS = 0,
         programacionesGeneradas = 0,
         reemplazos = 0,
         saltosCola = 0,
@@ -100,7 +102,10 @@ class ReporteIndicadores {
 
   /// Promedio de `D(X)` de las programaciones aprobadas, en minutos.
   final double desviacionCarga;
+  /// Tiempo medio de generación de la propuesta (toda la solicitud) y, por
+  /// separado, del núcleo de optimización (CU-11: no se mezclan).
   final double tiempoGeneracionPromedioS;
+  final double tiempoNucleoPromedioS;
   final int programacionesGeneradas;
 
   /// Indicadores operativos de la Tabla 24 sobre las programaciones
@@ -130,6 +135,7 @@ class ReporteIndicadores {
         'pav': pav,
         'desviacionCarga': desviacionCarga,
         'tiempoGeneracionPromedioS': tiempoGeneracionPromedioS,
+        'tiempoNucleoPromedioS': tiempoNucleoPromedioS,
         'programacionesGeneradas': programacionesGeneradas,
         'reemplazos': reemplazos,
         'saltosCola': saltosCola,
@@ -157,6 +163,7 @@ class ReporteIndicadores {
       pav: d('pav'),
       desviacionCarga: d('desviacionCarga'),
       tiempoGeneracionPromedioS: d('tiempoGeneracionPromedioS'),
+      tiempoNucleoPromedioS: d('tiempoNucleoPromedioS'),
       programacionesGeneradas: json['programacionesGeneradas'] as int,
       reemplazos: json['reemplazos'] as int,
       saltosCola: json['saltosCola'] as int,

@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:crypto/crypto.dart';
 import 'package:dominio/dominio.dart';
 
 import '../configuracion/parametros_sistema.dart';
@@ -12,12 +14,19 @@ import '../repositorios/repositorio_pares.dart';
 import '../repositorios/repositorio_programaciones.dart';
 import '../repositorios/repositorio_rutas.dart';
 import '../repositorios/repositorio_servicios.dart';
+import '../repositorios/repositorio_snapshots.dart';
 import '../repositorios/repositorio_vehiculos.dart';
 import '../seguridad/tokens.dart';
 import 'registros_servicio.dart';
 
 /// Caso de uso principal (HU-07, HU-08 y HU-09; Figura 5 de la tesis):
 /// genera la propuesta de programación, permite ajustarla y aprobarla.
+///
+/// Procedencia y versiones (sección 5.5 y CU-07, CU-09 y CU-12): cada
+/// ejecución guarda el snapshot de su entrada con su SHA-256, la versión del
+/// algoritmo, la semilla, los parámetros y el tiempo del núcleo; cada ajuste
+/// crea la versión siguiente y conserva la anterior; aprobar o ajustar una
+/// versión sustituida responde 409.
 class ProgramacionServicio {
   ProgramacionServicio({
     required this.bd,
@@ -27,6 +36,7 @@ class ProgramacionServicio {
     required this.rutas,
     required this.cola,
     required this.pares,
+    required this.snapshots,
     required this.programaciones,
     required this.bitacora,
     required this.parametros,
@@ -40,6 +50,7 @@ class ProgramacionServicio {
   final RepositorioRutas rutas;
   final RepositorioCola cola;
   final RepositorioPares pares;
+  final RepositorioSnapshots snapshots;
   final RepositorioProgramaciones programaciones;
   final RepositorioBitacora bitacora;
   final ParametrosSistema parametros;
@@ -52,6 +63,13 @@ class ProgramacionServicio {
   Future<Programacion> obtener(int id) async =>
       await programaciones.buscar(id) ?? noEncontrado('Programación no encontrada');
 
+  /// Snapshot de la entrada de la versión [id], para auditar o repetir la
+  /// ejecución.
+  Future<SnapshotEntrada> entrada(int id) async {
+    await obtener(id);
+    return await snapshots.deProgramacion(id) ?? noEncontrado('La programación no tiene snapshot de entrada');
+  }
+
   /// HU-07: genera una propuesta para la fecha. Cada ejecución crea un
   /// registro nuevo; la programación aprobada no se modifica.
   Future<Programacion> generar(DateTime fecha, UsuarioAutenticado usuario) async {
@@ -61,7 +79,7 @@ class ProgramacionServicio {
 
     // La lógica de negocio construye la instancia del turno: A_s (ec. 1) y
     // los datos de Γ, de los límites y de la programación comprometida b(s).
-    final (instancia, vehiculosDisponibles) = await _instancia(fecha);
+    final (instancia, datos, vehiculosDisponibles) = await _instancia(fecha);
 
     // El núcleo de optimización se ejecuta en un isolate aparte para no
     // bloquear el bucle de eventos del servidor durante el cálculo.
@@ -84,9 +102,13 @@ class ProgramacionServicio {
     final tiempoMs = cronometro.elapsedMilliseconds;
 
     final id = await bd.transaccion((tx) async {
+      final (snapshotId, huella) = await _registrarEntrada(tx, datos);
       final id = await programaciones.guardar(
         tx,
         NuevaProgramacion(
+          snapshotId: snapshotId,
+          versionAlgoritmo: resultado.versionAlgoritmo,
+          tiempoNucleoMs: resultado.tiempo.inMilliseconds,
           fecha: fecha,
           metodo: resultado.metodo,
           aptitud: resultado.evaluacion.aptitud,
@@ -141,6 +163,10 @@ class ProgramacionServicio {
           'salidasDemoradas': excepciones.values.where((x) => x.demoraMin > 0).length,
           'minutosDemora': excepciones.values.fold<int>(0, (suma, x) => suma + x.demoraMin),
           'tiempoMs': tiempoMs,
+          'tiempoNucleoMs': resultado.tiempo.inMilliseconds,
+          'versionAlgoritmo': resultado.versionAlgoritmo,
+          'semilla': resultado.semilla,
+          'huellaEntrada': huella,
         },
         fechaHora: reloj.ahora(),
       );
@@ -149,9 +175,11 @@ class ProgramacionServicio {
     return obtener(id);
   }
 
-  /// HU-09: ajuste manual de una asignación. La alternativa debe ser
+  /// HU-09 y CU-12: ajuste manual de una asignación. La alternativa debe ser
   /// admisible (ecuación 1); si deja un cruce, se guarda marcada como
-  /// conflicto y la programación no puede aprobarse hasta resolverlo.
+  /// conflicto y la programación no puede aprobarse hasta resolverlo. El
+  /// ajuste crea una versión nueva (con el snapshot de la entrada con la que
+  /// se validó) y la versión ajustada queda `sustituida`, sin cambios.
   Future<Programacion> ajustar(
     int programacionId,
     int servicioId,
@@ -159,13 +187,12 @@ class ProgramacionServicio {
     UsuarioAutenticado usuario,
   ) async {
     final programacion = await obtener(programacionId);
-    if (programacion.estado != EstadoProgramacion.propuesta) {
-      throw ExcepcionApi(CodigoError.reglaNegocio, 'Solo se ajusta una programación propuesta');
-    }
+    await _exigirVigente(programacion.id, programacion.estado, 'ajusta');
     final anterior = programacion.asignaciones.where((a) => a.servicioId == servicioId).firstOrNull ??
         noEncontrado('El servicio no pertenece a la programación');
 
-    final (instancia, _) = await _instancia(programacion.fecha, incluir: {for (final a in programacion.asignaciones) a.servicioId});
+    final (instancia, datos, _) =
+        await _instancia(programacion.fecha, incluir: {for (final a in programacion.asignaciones) a.servicioId});
     final servicio = instancia.servicios.where((s) => s.servicioId == servicioId).firstOrNull ??
         noEncontrado('Servicio no encontrado');
     final alternativa = servicio.alternativas
@@ -206,16 +233,28 @@ class ProgramacionServicio {
     final (estados, phiValidador) = _estadosTrasValidar(instancia, elegidas, programacion);
     final evaluacion = Evaluador(instancia).evaluarProgramacion(elegidas);
 
-    await bd.transaccion((tx) async {
+    final nuevaId = await bd.transaccion((tx) async {
+      // Versión esperada: si otro usuario ajustó o aprobó esta versión
+      // mientras tanto, el ajuste se rechaza.
+      await _exigirVigente(programacionId, await programaciones.bloquear(tx, programacionId), 'ajusta');
+      final (snapshotId, _) = await _registrarEntrada(tx, datos);
+      final nuevaId = await programaciones.crearVersion(
+        tx,
+        programacionId,
+        snapshotId: snapshotId,
+        creadoPor: usuario.id,
+        creadoEn: reloj.ahora(),
+      );
+      await programaciones.marcarSustituida(tx, programacionId);
       for (final entrada in elegidas.entries) {
         final (estado, motivo) = estados[entrada.key]!;
         if (entrada.key != servicioId) {
-          await programaciones.actualizarEstado(tx, programacionId, entrada.key, estado, motivo);
+          await programaciones.actualizarEstado(tx, nuevaId, entrada.key, estado, motivo);
           continue;
         }
         await programaciones.actualizarAsignacion(
           tx,
-          programacionId,
+          nuevaId,
           NuevaAsignacion(
             servicioId: servicioId,
             vehiculoId: alternativa.vehiculoId,
@@ -232,7 +271,7 @@ class ProgramacionServicio {
       }
       await programaciones.actualizarMetricas(
         tx,
-        programacionId,
+        nuevaId,
         phiValidador: phiValidador,
         componentes: evaluacion.componentes,
       );
@@ -241,8 +280,10 @@ class ProgramacionServicio {
         usuarioId: usuario.id,
         accion: 'ajustar_asignacion',
         entidad: 'programacion',
-        entidadId: programacionId,
+        entidadId: nuevaId,
         detalle: {
+          'versionAnterior': programacionId,
+          'version': programacion.version + 1,
           'servicio': anterior.codigoServicio,
           'antes': {'vehiculoId': anterior.vehiculoId, 'conductorId': anterior.conductorId, 'salida': anterior.salida},
           'despues': ajuste.toJson(),
@@ -253,8 +294,9 @@ class ProgramacionServicio {
         },
         fechaHora: reloj.ahora(),
       );
+      return nuevaId;
     });
-    return obtener(programacionId);
+    return obtener(nuevaId);
   }
 
   /// HU-09: aprobación. Requiere que el validador independiente confirme
@@ -262,9 +304,7 @@ class ProgramacionServicio {
   /// incidencias pendientes.
   Future<Programacion> aprobar(int id, UsuarioAutenticado usuario) async {
     final programacion = await obtener(id);
-    if (programacion.estado != EstadoProgramacion.propuesta) {
-      throw ExcepcionApi(CodigoError.reglaNegocio, 'Solo se aprueba una programación propuesta');
-    }
+    await _exigirVigente(id, programacion.estado, 'aprueba');
     final conRecursos = [for (final a in programacion.asignaciones) if (a.tieneRecursos) a];
     final todosConductores = await conductores.todos();
     final validacion = Validador(holguraMinima: parametros.modelo.holguraMinima).validar(
@@ -294,6 +334,9 @@ class ProgramacionServicio {
     }
 
     await bd.transaccion((tx) async {
+      // CU-09: bloquea la fila de la versión y verifica su estado; dos
+      // aprobaciones simultáneas no pueden registrarse las dos.
+      await _exigirVigente(id, await programaciones.bloquear(tx, id), 'aprueba');
       final ahora = reloj.ahora();
       await programaciones.reemplazarAprobada(tx, programacion.fecha);
       await programaciones.aprobar(tx, id, usuario.id, ahora);
@@ -315,6 +358,10 @@ class ProgramacionServicio {
         entidadId: id,
         detalle: {
           'fecha': fechaATexto(programacion.fecha),
+          'ejecucion': programacion.ejecucionId,
+          'version': programacion.version,
+          'huellaEntrada': programacion.huellaEntrada,
+          'versionAlgoritmo': programacion.versionAlgoritmo,
           'asignados': programacion.asignados,
           'incidencias': programacion.pendientes,
           // Sección 3.6: cada salto de cola, reemplazo o demora aprobado
@@ -337,7 +384,32 @@ class ProgramacionServicio {
     return obtener(id);
   }
 
-  Future<(InstanciaTurno, int)> _instancia(DateTime fecha, {Set<int> incluir = const {}}) async {
+  /// Solo se ajusta o aprueba la versión vigente de una propuesta.
+  Future<void> _exigirVigente(int id, EstadoProgramacion? estado, String accion) async {
+    if (estado == EstadoProgramacion.sustituida) {
+      final sustituta = await programaciones.sustitutaDe(id);
+      throw ExcepcionApi(
+        CodigoError.conflicto,
+        'Esta versión fue sustituida por un ajuste'
+        '${sustituta == null ? '' : ' (versión ${sustituta.$2}, programación #${sustituta.$1})'}: '
+        'revise la versión vigente',
+      );
+    }
+    if (estado != EstadoProgramacion.propuesta) {
+      throw ExcepcionApi(CodigoError.reglaNegocio, 'Solo se $accion una programación propuesta');
+    }
+  }
+
+  /// Guarda el snapshot de la entrada (JSON canónico y su SHA-256) y
+  /// devuelve su id y su huella.
+  Future<(int, String)> _registrarEntrada(Ejecutor tx, DatosTurno datos) async {
+    final contenido = jsonCanonico(datos.toJson());
+    final huella = sha256.convert(utf8.encode(contenido)).toString();
+    final id = await snapshots.registrar(tx, fecha: datos.fecha, sha256: huella, contenido: contenido);
+    return (id, huella);
+  }
+
+  Future<(InstanciaTurno, DatosTurno, int)> _instancia(DateTime fecha, {Set<int> incluir = const {}}) async {
     final delDia = await servicios.deFecha(fecha, {EstadoServicio.pendiente, EstadoServicio.programado});
     final todosVehiculos = await vehiculos.todos();
     final datos = DatosTurno(
@@ -357,6 +429,7 @@ class ProgramacionServicio {
     );
     return (
       ConstructorInstancia(parametros.modelo).construir(datos),
+      datos,
       todosVehiculos.where((v) => v.disponible).length,
     );
   }

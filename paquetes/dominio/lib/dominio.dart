@@ -9,6 +9,7 @@
 library;
 
 export 'src/contrato/errores.dart';
+export 'src/contrato/json_canonico.dart';
 export 'src/contrato/lector_json.dart';
 export 'src/contrato/pagina.dart';
 export 'src/contrato/version.dart';

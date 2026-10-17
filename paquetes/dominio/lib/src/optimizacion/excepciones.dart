@@ -26,6 +26,7 @@ class ExcepcionesAsignacion {
     String vehiculo(int id) => instancia.codigosVehiculo[id] ?? 'V$id';
     String conductor(int id) => instancia.codigosConductor[id] ?? instancia.conductores[id]?.codigo ?? 'C$id';
 
+    final demora = nominal == null || a.salida <= nominal ? 0 : a.salida - nominal;
     final partes = [
       if (salto)
         servicio.alternativas.any((x) => x.vehiculoId == v0)
@@ -39,11 +40,16 @@ class ExcepcionesAsignacion {
                 'el reemplazo evita un cruce o un exceso de conducción, o mejora F(X)'
             : 'reemplazo: el conductor habitual (${conductor(habitual)}) no está disponible, '
                 'no tiene licencia habilitante o su turno no cubre el servicio',
+      if (demora > 0)
+        servicio.alternativas.any((x) => x.salida == nominal)
+            ? 'demora de $demora min: hay alternativas a la hora nominal, pero la elegida evita un cruce '
+                'o mejora F(X)'
+            : 'demora de $demora min: ninguna alternativa admisible sale a la hora nominal',
     ];
     return ExcepcionesAsignacion(
       saltoCola: salto,
       reemplazo: reemplazo,
-      demoraMin: nominal == null || a.salida <= nominal ? 0 : a.salida - nominal,
+      demoraMin: demora,
       vehiculoCola: v0,
       conductorHabitual: habitual,
       explicacion: partes.isEmpty ? null : 'Propuesta del sistema — ${partes.join('; ')}',
@@ -63,9 +69,11 @@ class ExcepcionesAsignacion {
   final int? vehiculoCola;
   final int? conductorHabitual;
 
-  /// Por qué el módulo de optimización propone el salto o el reemplazo.
+  /// Por qué el módulo de optimización propone el salto, el reemplazo o la
+  /// demora.
   final String? explicacion;
 
-  /// Un salto de cola o un reemplazo introducido a mano exige un motivo.
-  bool get requiereJustificacion => saltoCola || reemplazo;
+  /// Un salto de cola, un reemplazo o una demora introducidos a mano exigen
+  /// un motivo (sección 3.6).
+  bool get requiereJustificacion => saltoCola || reemplazo || demoraMin > 0;
 }

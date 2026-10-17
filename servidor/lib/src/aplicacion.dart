@@ -21,6 +21,7 @@ import 'repositorios/repositorio_reportes.dart';
 import 'repositorios/repositorio_rutas.dart';
 import 'repositorios/repositorio_servicios.dart';
 import 'repositorios/repositorio_sesiones.dart';
+import 'repositorios/repositorio_snapshots.dart';
 import 'repositorios/repositorio_usuarios.dart';
 import 'repositorios/repositorio_vehiculos.dart';
 import 'seguridad/contrasenas.dart';
@@ -31,7 +32,7 @@ import 'servicios/programacion_servicio.dart';
 import 'servicios/registros_servicio.dart';
 
 /// Versión del ejecutable del servidor (independiente de la del contrato).
-const versionServidor = '1.1.0';
+const versionServidor = '1.2.0';
 
 /// Raíz de composición: el único lugar donde se crean y conectan las capas
 /// (inyección de dependencias manual).
@@ -60,6 +61,7 @@ Handler crearAplicacion({
   final repoRutas = RepositorioRutasMysql(bd);
   final repoCola = RepositorioColaMysql(bd);
   final repoPares = RepositorioParesMysql(bd);
+  final repoSnapshots = RepositorioSnapshotsMysql(bd);
   final repoServicios = RepositorioServiciosMysql(bd);
   final repoProgramaciones = RepositorioProgramacionesMysql(bd);
   final repoIncidencias = RepositorioIncidenciasMysql(bd);
@@ -132,6 +134,7 @@ Handler crearAplicacion({
     rutas: repoRutas,
     cola: repoCola,
     pares: repoPares,
+    snapshots: repoSnapshots,
     programaciones: repoProgramaciones,
     bitacora: repoBitacora,
     parametros: parametros,

@@ -2,7 +2,7 @@ name: servidor
 description: >-
   Servidor (backend) del sistema de asignación de recursos: API REST,
   lógica de negocio, núcleo de optimización y persistencia en MySQL.
-version: 1.1.0
+version: 1.2.0
 publish_to: none
 
 environment:

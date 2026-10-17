@@ -51,7 +51,7 @@ services:
     build:
       context: .
       dockerfile: servidor/Dockerfile
-    image: sanfelipe/servidor:1.1.0
+    image: sanfelipe/servidor:1.2.0
     restart: unless-stopped
     depends_on:
       basedatos:
@@ -80,7 +80,7 @@ services:
     build:
       context: .
       dockerfile: cliente/Dockerfile
-    image: sanfelipe/cliente:1.1.0
+    image: sanfelipe/cliente:1.2.0
     restart: unless-stopped
     depends_on:
       servidor:

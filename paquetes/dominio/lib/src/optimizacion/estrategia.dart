@@ -2,6 +2,11 @@ import '../modelos/programacion.dart';
 import 'evaluador.dart';
 import 'instancia.dart';
 
+/// Versión del núcleo de optimización. Se guarda con cada ejecución junto
+/// con el método, la semilla, los parámetros y la huella de la entrada, para
+/// identificar con qué código se obtuvo una propuesta.
+const versionNucleo = '1.2.0';
+
 /// Resultado de una estrategia de optimización.
 class ResultadoOptimizacion {
   const ResultadoOptimizacion({
@@ -24,8 +29,13 @@ class ResultadoOptimizacion {
   final Evaluacion evaluacion;
   final int generaciones;
   final List<PuntoConvergencia> historial;
+  /// Tiempo del núcleo, medido dentro de la estrategia: no incluye la
+  /// lectura de datos, la construcción de `A_s` ni la API.
   final Duration tiempo;
   final int? semilla;
+
+  /// `método@versión del núcleo`, por ejemplo `algoritmo_genetico@1.2.0`.
+  String get versionAlgoritmo => '$metodo@$versionNucleo';
 }
 
 /// Patrón Strategy: todas las estrategias reciben la misma instancia, se

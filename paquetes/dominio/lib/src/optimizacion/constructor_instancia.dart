@@ -41,6 +41,52 @@ class DatosTurno {
 
   /// `b(s)`: id del servicio → alternativa de la programación aprobada.
   final Map<int, Alternativa> comprometidas;
+
+  /// Contenido del snapshot de entrada (sección 5.5 de la tesis): cada lista
+  /// en orden de id, para que la misma entrada tenga la misma huella con
+  /// [jsonCanonico].
+  Map<String, Object?> toJson() {
+    List<Map<String, Object?>> ordenar<T>(List<T> lista, int Function(T) id, Map<String, Object?> Function(T) json) =>
+        [for (final e in [...lista]..sort((a, b) => id(a).compareTo(id(b)))) json(e)];
+    return {
+      'fecha': fechaATexto(fecha),
+      'servicios': ordenar(servicios, (s) => s.id, (s) => s.toJson()),
+      'vehiculos': ordenar(vehiculos, (v) => v.id, (v) => v.toJson()),
+      'conductores': ordenar(conductores, (c) => c.id, (c) => c.toJson()),
+      'rutas': ordenar(rutas, (r) => r.id, (r) => r.toJson()),
+      'salidas': ordenar(salidas, (s) => s.id, (s) => s.toJson()),
+      'entradas': ordenar(entradas, (e) => e.id, (e) => e.toJson()),
+      'pares': [
+        for (final p in [...pares]
+          ..sort((a, b) => a.vehiculoId != b.vehiculoId
+              ? a.vehiculoId.compareTo(b.vehiculoId)
+              : a.conductorId.compareTo(b.conductorId)))
+          p.toJson(),
+      ],
+      'comprometidas': {
+        for (final id in comprometidas.keys.toList()..sort()) '$id': comprometidas[id]!.toJson(),
+      },
+    };
+  }
+
+  factory DatosTurno.fromJson(Map<String, Object?> json) {
+    List<T> lista<T>(String clave, T Function(Object?) desdeJson) =>
+        [for (final e in json[clave] as List<Object?>) desdeJson(e)];
+    return DatosTurno(
+      fecha: textoAFecha(json['fecha'] as String),
+      servicios: lista('servicios', ServicioProgramado.fromJson),
+      vehiculos: lista('vehiculos', Vehiculo.fromJson),
+      conductores: lista('conductores', Conductor.fromJson),
+      rutas: lista('rutas', Ruta.fromJson),
+      salidas: lista('salidas', SalidaAutorizada.fromJson),
+      entradas: lista('entradas', EntradaCola.fromJson),
+      pares: lista('pares', ParAutorizado.fromJson),
+      comprometidas: {
+        for (final e in (json['comprometidas'] as Map).entries)
+          int.parse(e.key as String): Alternativa.fromJson((e.value as Map).cast<String, Object?>()),
+      },
+    );
+  }
 }
 
 /// Construye la instancia del turno: aplica la ecuación (1) —con las reglas

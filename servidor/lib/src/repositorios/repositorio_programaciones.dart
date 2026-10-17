@@ -47,6 +47,9 @@ class NuevaProgramacion {
     required this.creadoEn,
     required this.asignaciones,
     required this.historial,
+    required this.snapshotId,
+    required this.versionAlgoritmo,
+    required this.tiempoNucleoMs,
   });
 
   final DateTime fecha;
@@ -64,6 +67,9 @@ class NuevaProgramacion {
   final DateTime creadoEn;
   final List<NuevaAsignacion> asignaciones;
   final List<PuntoConvergencia> historial;
+  final int snapshotId;
+  final String versionAlgoritmo;
+  final int tiempoNucleoMs;
 }
 
 abstract interface class RepositorioProgramaciones {
@@ -87,6 +93,20 @@ abstract interface class RepositorioProgramaciones {
 
   Future<void> reemplazarAprobada(Ejecutor ejecutor, DateTime fecha);
 
+  /// Bloquea la fila de la versión hasta el final de la transacción y
+  /// devuelve su estado (CU-09: «bloquea la fila de versión»).
+  Future<EstadoProgramacion?> bloquear(Ejecutor ejecutor, int id);
+
+  /// Copia la versión [anteriorId] con sus asignaciones como la versión
+  /// siguiente de la misma ejecución, con el snapshot de la entrada usada
+  /// para validar el ajuste, y devuelve su id.
+  Future<int> crearVersion(Ejecutor ejecutor, int anteriorId, {required int snapshotId, required int creadoPor, required DateTime creadoEn});
+
+  Future<void> marcarSustituida(Ejecutor ejecutor, int id);
+
+  /// Versión que sustituyó a [id], si la hay: `(id, versión)`.
+  Future<(int, int)?> sustitutaDe(int id);
+
   Future<void> aprobar(Ejecutor ejecutor, int id, int usuarioId, DateTime momento);
 }
 
@@ -101,9 +121,10 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
     final id = (await tx.ejecutar(
       'INSERT INTO programacion (fecha, metodo, aptitud, phi, phi_validador, conflictos_vehiculo, '
       'conflictos_conductor, conductores_excedidos, exceso_min, retraso_min, reprogramados, tiempo_muerto_min, '
-      'desviacion_carga, perdida, generaciones, tiempo_ms, semilla, vehiculos_disponibles, parametros, '
-      'creado_por, creado_en) VALUES (:fecha, :metodo, :aptitud, :phi, :phiV, :cv, :cc, :nexc, :exceso, '
-      ':retraso, :reprog, :tm, :d, :j, :gen, :ms, :semilla, :vehiculos, :parametros, :usuario, :creado)',
+      'desviacion_carga, perdida, generaciones, tiempo_ms, tiempo_nucleo_ms, semilla, vehiculos_disponibles, parametros, '
+      'version_algoritmo, snapshot_id, creado_por, creado_en) VALUES (:fecha, :metodo, :aptitud, :phi, :phiV, :cv, '
+      ':cc, :nexc, :exceso, :retraso, :reprog, :tm, :d, :j, :gen, :ms, :nucleo, :semilla, :vehiculos, :parametros, '
+      ':algoritmo, :snapshot, :usuario, :creado)',
       {
         'fecha': formatoFecha(p.fecha),
         'metodo': p.metodo,
@@ -121,14 +142,19 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
         'j': c.perdida,
         'gen': p.generaciones,
         'ms': p.tiempoMs,
+        'nucleo': p.tiempoNucleoMs,
         'semilla': p.semilla,
         'vehiculos': p.vehiculosDisponibles,
         'parametros': p.parametrosJson,
+        'algoritmo': p.versionAlgoritmo,
+        'snapshot': p.snapshotId,
         'usuario': p.creadoPor,
         'creado': p.creadoEn,
       },
     ))
         .idInsertado;
+    // La versión 1 identifica a la ejecución del método.
+    await tx.ejecutar('UPDATE programacion SET ejecucion_id = id WHERE id = :id', {'id': id});
 
     for (final lote in _lotes(p.asignaciones, 100)) {
       final valores = <String>[];
@@ -177,10 +203,11 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
   static const _columnasProgramacion =
       'p.id, p.fecha, p.estado, p.metodo, p.aptitud, p.phi, p.phi_validador, p.conflictos_vehiculo, '
       'p.conflictos_conductor, p.conductores_excedidos, p.exceso_min, p.retraso_min, p.reprogramados, '
-      'p.tiempo_muerto_min, p.desviacion_carga, p.perdida, p.generaciones, p.tiempo_ms, p.semilla, '
-      'p.creado_en, p.aprobado_en, uc.nombre_usuario AS creador, ua.nombre_usuario AS aprobador';
+      'p.tiempo_muerto_min, p.desviacion_carga, p.perdida, p.generaciones, p.tiempo_ms, p.tiempo_nucleo_ms, p.semilla, '
+      'p.creado_en, p.aprobado_en, p.version, p.ejecucion_id, p.version_anterior_id, p.version_algoritmo, '
+      'se.sha256 AS huella, uc.nombre_usuario AS creador, ua.nombre_usuario AS aprobador';
   static const _desdeProgramacion = 'FROM programacion p LEFT JOIN usuario uc ON uc.id = p.creado_por '
-      'LEFT JOIN usuario ua ON ua.id = p.aprobado_por';
+      'LEFT JOIN usuario ua ON ua.id = p.aprobado_por LEFT JOIN snapshot_entrada se ON se.id = p.snapshot_id';
 
   static Programacion _programacion(Fila f, {List<Asignacion> asignaciones = const [], List<PuntoConvergencia> historial = const []}) =>
       Programacion(
@@ -211,6 +238,12 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
         aprobadoEn: f.fechaHoraNula('aprobado_en'),
         asignaciones: asignaciones,
         historial: historial,
+        version: f.entero('version'),
+        ejecucionId: f.enteroNulo('ejecucion_id') ?? f.entero('id'),
+        versionAnteriorId: f.enteroNulo('version_anterior_id'),
+        huellaEntrada: f.textoNulo('huella'),
+        versionAlgoritmo: f.texto('version_algoritmo'),
+        tiempoNucleoMs: f.entero('tiempo_nucleo_ms'),
       );
 
   @override
@@ -227,9 +260,10 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
       'WHERE a.programacion_id = :id',
       {'id': id},
     );
+    // La curva de convergencia es de la ejecución (versión 1).
     final historial = await _bd.consultar(
-      'SELECT generacion, mejor, promedio FROM historial_aptitud WHERE programacion_id = :id ORDER BY generacion',
-      {'id': id},
+      'SELECT generacion, mejor, promedio FROM historial_aptitud WHERE programacion_id = :ejecucion ORDER BY generacion',
+      {'ejecucion': filas.single.enteroNulo('ejecucion_id') ?? id},
     );
     return _programacion(
       filas.single,
@@ -369,6 +403,53 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
         "UPDATE programacion SET estado = 'reemplazada' WHERE fecha = :fecha AND estado = 'aprobada'",
         {'fecha': formatoFecha(fecha)},
       );
+
+  @override
+  Future<EstadoProgramacion?> bloquear(Ejecutor tx, int id) async {
+    final filas = await tx.consultar('SELECT estado FROM programacion WHERE id = :id FOR UPDATE', {'id': id});
+    return filas.isEmpty ? null : EstadoProgramacion.desdeValor(filas.single.texto('estado'));
+  }
+
+  @override
+  Future<int> crearVersion(
+    Ejecutor tx,
+    int anteriorId, {
+    required int snapshotId,
+    required int creadoPor,
+    required DateTime creadoEn,
+  }) async {
+    const columnas = 'fecha, metodo, aptitud, phi, phi_validador, conflictos_vehiculo, conflictos_conductor, '
+        'conductores_excedidos, exceso_min, retraso_min, reprogramados, tiempo_muerto_min, desviacion_carga, perdida, '
+        'generaciones, tiempo_ms, tiempo_nucleo_ms, semilla, vehiculos_disponibles, parametros, version_algoritmo';
+    final id = (await tx.ejecutar(
+      'INSERT INTO programacion ($columnas, estado, version, ejecucion_id, version_anterior_id, snapshot_id, '
+      "creado_por, creado_en) SELECT $columnas, 'propuesta', version + 1, ejecucion_id, id, :snapshot, :usuario, "
+      ':creado FROM programacion WHERE id = :anterior',
+      {'anterior': anteriorId, 'snapshot': snapshotId, 'usuario': creadoPor, 'creado': creadoEn},
+    ))
+        .idInsertado;
+    const columnasAsignacion = 'servicio_id, vehiculo_id, conductor_id, salida, fin, estado, motivo, ajustada, '
+        'salto_cola, reemplazo, demora_min, vehiculo_cola_id, conductor_habitual_id, justificacion';
+    await tx.ejecutar(
+      'INSERT INTO asignacion (programacion_id, $columnasAsignacion) '
+      'SELECT :nueva, $columnasAsignacion FROM asignacion WHERE programacion_id = :anterior',
+      {'nueva': id, 'anterior': anteriorId},
+    );
+    return id;
+  }
+
+  @override
+  Future<void> marcarSustituida(Ejecutor tx, int id) =>
+      tx.ejecutar("UPDATE programacion SET estado = 'sustituida' WHERE id = :id", {'id': id});
+
+  @override
+  Future<(int, int)?> sustitutaDe(int id) async {
+    final filas = await _bd.consultar(
+      'SELECT id, version FROM programacion WHERE version_anterior_id = :id',
+      {'id': id},
+    );
+    return filas.isEmpty ? null : (filas.single.entero('id'), filas.single.entero('version'));
+  }
 
   @override
   Future<void> aprobar(Ejecutor tx, int id, int usuarioId, DateTime momento) => tx.ejecutar(

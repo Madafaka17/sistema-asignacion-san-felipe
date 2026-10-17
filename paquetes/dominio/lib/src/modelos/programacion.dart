@@ -10,6 +10,10 @@ enum EstadoProgramacion {
 
   /// Fue aprobada y luego la sustituyó otra aprobación de la misma fecha.
   reemplazada('reemplazada', 'Reemplazada'),
+
+  /// Versión anterior de una propuesta ajustada (CU-12): se conserva sin
+  /// cambios, pero ya no puede ajustarse ni aprobarse.
+  sustituida('sustituida', 'Sustituida por un ajuste'),
   descartada('descartada', 'Descartada');
 
   const EstadoProgramacion(this.valor, this.etiqueta);
@@ -256,7 +260,13 @@ class Programacion {
     this.aprobadoEn,
     this.asignaciones = const [],
     this.historial = const [],
-  });
+    this.version = 1,
+    int? ejecucionId,
+    this.versionAnteriorId,
+    this.huellaEntrada,
+    this.versionAlgoritmo = '',
+    this.tiempoNucleoMs = 0,
+  }) : ejecucionId = ejecucionId ?? id;
 
   final int id;
   final DateTime fecha;
@@ -282,6 +292,25 @@ class Programacion {
   final DateTime? aprobadoEn;
   final List<Asignacion> asignaciones;
   final List<PuntoConvergencia> historial;
+
+  /// Versión de la propuesta: 1 la genera el método; cada ajuste crea la
+  /// siguiente (CU-12) y deja la anterior como `sustituida`.
+  final int version;
+
+  /// Programación (versión 1) de la ejecución del método a la que pertenece
+  /// esta versión.
+  final int ejecucionId;
+  final int? versionAnteriorId;
+
+  /// SHA-256 del snapshot de entrada con el que se construyó la instancia.
+  final String? huellaEntrada;
+
+  /// `método@versión del núcleo` de la ejecución.
+  final String versionAlgoritmo;
+
+  /// Tiempo del núcleo de optimización; `tiempoMs` es el de toda la
+  /// solicitud (lectura, construcción de `A_s`, núcleo, validación).
+  final int tiempoNucleoMs;
 
   int get asignados => asignaciones.where((a) => a.estado == EstadoAsignacion.asignado).length;
 
@@ -316,6 +345,12 @@ class Programacion {
         'aprobadoEn': aprobadoEn?.toIso8601String(),
         'asignaciones': [for (final a in asignaciones) a.toJson()],
         'historial': [for (final p in historial) p.toJson()],
+        'version': version,
+        'ejecucionId': ejecucionId,
+        'versionAnteriorId': versionAnteriorId,
+        'huellaEntrada': huellaEntrada,
+        'versionAlgoritmo': versionAlgoritmo,
+        'tiempoNucleoMs': tiempoNucleoMs,
       };
 
   factory Programacion.fromJson(Map<String, Object?> json) => Programacion(
@@ -343,6 +378,50 @@ class Programacion {
           for (final p in (json['historial'] as List? ?? const []))
             PuntoConvergencia.fromJson((p as Map).cast<String, Object?>()),
         ],
+        version: json['version'] as int,
+        ejecucionId: json['ejecucionId'] as int,
+        versionAnteriorId: json['versionAnteriorId'] as int?,
+        huellaEntrada: json['huellaEntrada'] as String?,
+        versionAlgoritmo: json['versionAlgoritmo'] as String,
+        tiempoNucleoMs: json['tiempoNucleoMs'] as int,
+      );
+}
+
+/// Snapshot de la entrada de una programación (sección 5.5 de la tesis):
+/// los datos del turno con los que se construyó la instancia, tal como se
+/// leyeron, y su huella SHA-256 sobre el [jsonCanonico] del contenido. Se
+/// guarda una sola vez y no se modifica.
+class SnapshotEntrada {
+  const SnapshotEntrada({
+    required this.id,
+    required this.fecha,
+    required this.sha256,
+    required this.contenido,
+    required this.creadoEn,
+  });
+
+  final int id;
+  final DateTime fecha;
+  final String sha256;
+
+  /// `DatosTurno.toJson()`.
+  final Map<String, Object?> contenido;
+  final DateTime creadoEn;
+
+  Map<String, Object?> toJson() => {
+        'id': id,
+        'fecha': fechaATexto(fecha),
+        'sha256': sha256,
+        'contenido': contenido,
+        'creadoEn': creadoEn.toIso8601String(),
+      };
+
+  factory SnapshotEntrada.fromJson(Map<String, Object?> json) => SnapshotEntrada(
+        id: json['id'] as int,
+        fecha: textoAFecha(json['fecha'] as String),
+        sha256: json['sha256'] as String,
+        contenido: (json['contenido'] as Map).cast<String, Object?>(),
+        creadoEn: DateTime.parse(json['creadoEn'] as String),
       );
 }
 

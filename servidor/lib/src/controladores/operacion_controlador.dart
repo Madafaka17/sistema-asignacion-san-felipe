@@ -27,6 +27,10 @@ class ProgramacionControlador {
       autorizar(s, Modulo.programacion);
       return respuestaJson((await _servicio.obtener(parametroEntero(s, 'id'))).toJson());
     });
+    r.get('/api/programaciones/<id|[0-9]+>/entrada', (Request s) async {
+      autorizar(s, Modulo.programacion);
+      return respuestaJson((await _servicio.entrada(parametroEntero(s, 'id'))).toJson());
+    });
     r.put('/api/programaciones/<id|[0-9]+>/asignaciones/<servicio|[0-9]+>', (Request s) async {
       final usuario = autorizar(s, Modulo.programacion, escritura: true);
       final ajuste = AjusteAsignacion.fromJson(await leerJson(s));

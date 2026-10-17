@@ -63,7 +63,12 @@ class PantallaReportes extends StatelessWidget {
               IndicadorKpi(ancho: 204, titulo: 'PUV', valor: porcentaje(r.puv), detalle: 'Utilización de la flota (ec. 22)'),
               IndicadorKpi(ancho: 204, titulo: 'PAV', valor: porcentaje(r.pav), detalle: 'Asignaciones sin conflicto (ec. 23)'),
               IndicadorKpi(ancho: 204, titulo: 'D(X)', valor: '${r.desviacionCarga.toStringAsFixed(1)} min', detalle: 'Desviación de la carga de conductores'),
-              IndicadorKpi(ancho: 204, titulo: 'Tiempo medio', valor: '${r.tiempoGeneracionPromedioS.toStringAsFixed(2)} s', detalle: 'Generación de la propuesta'),
+              IndicadorKpi(
+                ancho: 204,
+                titulo: 'Tiempo medio',
+                valor: '${r.tiempoGeneracionPromedioS.toStringAsFixed(2)} s',
+                detalle: 'Generación de la propuesta; núcleo ${r.tiempoNucleoPromedioS.toStringAsFixed(2)} s',
+              ),
               // Indicadores operativos de la Tabla 24 (sección 3.5).
               IndicadorKpi(ancho: 204, key: const Key('kpi_reemplazos'), titulo: 'Reemplazos', valor: '${r.reemplazos}', detalle: 'Servicios sin el conductor habitual (Ση)'),
               IndicadorKpi(ancho: 204, key: const Key('kpi_saltos'), titulo: 'Saltos de cola', valor: '${r.saltosCola}', detalle: 'Servicios con la siguiente unidad (Σσ)'),

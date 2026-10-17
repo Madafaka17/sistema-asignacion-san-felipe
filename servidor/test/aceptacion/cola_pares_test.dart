@@ -267,13 +267,18 @@ void main() {
     test('se rechaza una unidad fuera de la cola o un conductor no autorizado; un salto exige motivo', () async {
       final b = await base();
       final id = await entorno.servicio('S-001', b.ruta, '06:00', entrada: b.cola[0], capacidad: 12);
-      final p = Programacion.fromJson((await entorno.generar()).mapa);
-      final ruta = '/api/programaciones/${p.id}/asignaciones/$id';
-      Future<Respuesta> ajustar(int v, String c, {String? motivo}) => entorno.put(
-            ruta,
-            AjusteAsignacion(vehiculoId: v, conductorId: b.c[c]!, salida: 360, justificacion: motivo).toJson(),
-            como: 'operaciones',
-          );
+      // Cada ajuste aceptado crea una versión nueva: el siguiente se hace
+      // sobre ella.
+      var vigente = Programacion.fromJson((await entorno.generar()).mapa).id;
+      Future<Respuesta> ajustar(int v, String c, {String? motivo}) async {
+        final r = await entorno.put(
+          '/api/programaciones/$vigente/asignaciones/$id',
+          AjusteAsignacion(vehiculoId: v, conductorId: b.c[c]!, salida: 360, justificacion: motivo).toJson(),
+          como: 'operaciones',
+        );
+        if (r.estado == 200) vigente = r.mapa['id'] as int;
+        return r;
+      }
 
       final fueraDeCola = await ajustar(b.v[2], 'C-03');
       expect(fueraDeCola.estado, 422);

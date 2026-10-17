@@ -54,7 +54,7 @@ class ServidorSimulado {
 
   /// Versión, sesión inexistente al iniciar e ingreso de [usuario].
   void conSesion(Usuario usuario) {
-    en('GET', '/api/version', (_) => json(const InfoVersion(versionApi: versionApi, versionServidor: '1.1.0').toJson()));
+    en('GET', '/api/version', (_) => json(const InfoVersion(versionApi: versionApi, versionServidor: '1.2.0').toJson()));
     en('POST', '/api/auth/refrescar', (_) => json(ExcepcionApi(CodigoError.noAutenticado, 'Sin sesión').toJson(), 401));
     en('POST', '/api/auth/ingresar', (s) {
       final datos = jsonDecode(s.body) as Map<String, Object?>;

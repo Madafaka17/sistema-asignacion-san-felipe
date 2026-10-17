@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS incidencia;
 DROP TABLE IF EXISTS historial_aptitud;
 DROP TABLE IF EXISTS asignacion;
 DROP TABLE IF EXISTS programacion;
+DROP TABLE IF EXISTS snapshot_entrada;
 DROP TABLE IF EXISTS servicio;
 DROP TABLE IF EXISTS entrada_cola;
 DROP TABLE IF EXISTS cola;
@@ -247,14 +248,40 @@ CREATE TABLE servicio (
 ) ENGINE = InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Snapshot de la entrada (sección 5.5 de la tesis): los datos del turno con
+-- los que se construyó la instancia, como JSON canónico (claves ordenadas,
+-- listas por id), y su SHA-256. La restricción ck_snapshot_huella hace que
+-- el contenido y la huella no puedan divergir; la aplicación solo inserta y
+-- lee: una entrada distinta es otro snapshot.
+-- ---------------------------------------------------------------------
+CREATE TABLE snapshot_entrada (
+    id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    fecha      DATE         NOT NULL,
+    sha256     CHAR(64)     NOT NULL,
+    contenido  MEDIUMTEXT   NOT NULL COMMENT 'DatosTurno en JSON canónico',
+    creado_en  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_snapshot_sha256 (sha256),
+    CONSTRAINT ck_snapshot_huella CHECK (sha256 = SHA2(contenido, 256))
+) ENGINE = InnoDB;
+
+-- ---------------------------------------------------------------------
 -- X: programaciones generadas (HU-07) con F(X), Φ(X) y sus componentes.
--- Cada ejecución se guarda como un registro nuevo; solo puede haber una
--- programación aprobada por fecha (índice único sobre fecha_aprobada).
+-- Cada ejecución se guarda como un registro nuevo (versión 1) con su
+-- snapshot de entrada, la versión del algoritmo y el tiempo del núcleo;
+-- cada ajuste (CU-12) crea la versión siguiente de la misma ejecución y la
+-- anterior queda 'sustituida'. Solo puede haber una programación aprobada
+-- por fecha (índice único sobre fecha_aprobada).
 -- ---------------------------------------------------------------------
 CREATE TABLE programacion (
     id                      INT UNSIGNED  NOT NULL AUTO_INCREMENT,
     fecha                   DATE          NOT NULL,
-    estado                  ENUM('propuesta', 'aprobada', 'reemplazada', 'descartada') NOT NULL DEFAULT 'propuesta',
+    estado                  ENUM('propuesta', 'aprobada', 'reemplazada', 'sustituida', 'descartada') NOT NULL DEFAULT 'propuesta',
+    version                 SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    ejecucion_id            INT UNSIGNED  NULL COMMENT 'Versión 1 de la ejecución del método',
+    version_anterior_id     INT UNSIGNED  NULL,
+    snapshot_id             INT UNSIGNED  NULL,
+    version_algoritmo       VARCHAR(64)   NOT NULL DEFAULT '' COMMENT 'método@versión del núcleo',
     metodo                  VARCHAR(40)   NOT NULL,
     aptitud                 DOUBLE        NOT NULL COMMENT 'F(X) de la mejor solución',
     phi                     INT UNSIGNED  NOT NULL COMMENT 'Φ(X) de la mejor solución',
@@ -269,7 +296,8 @@ CREATE TABLE programacion (
     desviacion_carga        DOUBLE        NOT NULL DEFAULT 0,
     perdida                 DOUBLE        NOT NULL DEFAULT 0,
     generaciones            INT UNSIGNED  NOT NULL DEFAULT 0,
-    tiempo_ms               INT UNSIGNED  NOT NULL,
+    tiempo_ms               INT UNSIGNED  NOT NULL COMMENT 'Toda la solicitud de generación',
+    tiempo_nucleo_ms        INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'Solo el núcleo de optimización',
     semilla                 INT UNSIGNED  NULL,
     vehiculos_disponibles   INT UNSIGNED  NOT NULL COMMENT '|V| operativo, para el indicador PUV',
     parametros              JSON          NOT NULL COMMENT 'Copia de los parámetros usados',
@@ -280,7 +308,11 @@ CREATE TABLE programacion (
     fecha_aprobada          DATE AS (IF(estado = 'aprobada', fecha, NULL)) STORED,
     PRIMARY KEY (id),
     UNIQUE KEY uq_programacion_aprobada (fecha_aprobada),
+    UNIQUE KEY uq_programacion_version (ejecucion_id, version),
     KEY ix_programacion_fecha (fecha),
+    CONSTRAINT fk_programacion_ejecucion FOREIGN KEY (ejecucion_id) REFERENCES programacion (id),
+    CONSTRAINT fk_programacion_anterior  FOREIGN KEY (version_anterior_id) REFERENCES programacion (id),
+    CONSTRAINT fk_programacion_snapshot  FOREIGN KEY (snapshot_id) REFERENCES snapshot_entrada (id),
     CONSTRAINT fk_programacion_creador  FOREIGN KEY (creado_por)   REFERENCES usuario (id) ON DELETE SET NULL,
     CONSTRAINT fk_programacion_aprobador FOREIGN KEY (aprobado_por) REFERENCES usuario (id) ON DELETE SET NULL
 ) ENGINE = InnoDB;

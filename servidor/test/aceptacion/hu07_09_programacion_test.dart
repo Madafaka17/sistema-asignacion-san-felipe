@@ -184,7 +184,15 @@ void main() {
       final evento = (await entorno.consultar("SELECT detalle FROM bitacora WHERE accion = 'ajustar_asignacion'")).single;
       expect(evento.texto('detalle'), contains('S-115'));
       expect(evento.texto('detalle'), contains('C-12 con descanso médico'));
-      expect((await entorno.post('/api/programaciones/${propuesta.id}/aprobar', null, como: 'operaciones')).estado, 200);
+
+      // CU-12: el ajuste es la versión 2; la versión 1 se conserva sin cambios.
+      final version2 = Programacion.fromJson(r.mapa);
+      expect((version2.version, version2.versionAnteriorId, version2.ejecucionId), (2, propuesta.id, propuesta.id));
+      final version1 = Programacion.fromJson((await entorno.get('/api/programaciones/${propuesta.id}', como: 'operaciones')).mapa);
+      expect(version1.estado, EstadoProgramacion.sustituida);
+      expect(version1.asignaciones.single.conductorId, c12);
+      expect((await entorno.post('/api/programaciones/${propuesta.id}/aprobar', null, como: 'operaciones')).estado, 409);
+      expect((await entorno.post('/api/programaciones/${version2.id}/aprobar', null, como: 'operaciones')).estado, 200);
     });
 
     test('(error) ajuste con conflicto: V-07 en S-120 y S-115 superpuestos impide aprobar', () async {
@@ -215,11 +223,14 @@ void main() {
       final marcadas = conCruce.asignaciones.where((a) => a.estado == EstadoAsignacion.conflicto).map((a) => a.codigoServicio);
       expect(marcadas, unorderedEquals(['S-115', 'S-120']));
 
-      final aprobar = await entorno.post('/api/programaciones/${propuesta.id}/aprobar', null, como: 'operaciones');
+      final aprobar = await entorno.post('/api/programaciones/${conCruce.id}/aprobar', null, como: 'operaciones');
       expect(aprobar.estado, 409);
       expect(aprobar.mensajeError, allOf(contains('cruces sin resolver'), contains('S-115'), contains('S-120')));
-      final estado = (await entorno.consultar('SELECT estado FROM programacion WHERE id = :id', {'id': propuesta.id})).single;
-      expect(estado.texto('estado'), 'propuesta');
+      final estados = await entorno.consultar(
+        'SELECT id, estado FROM programacion WHERE id IN (:a, :b) ORDER BY id',
+        {'a': propuesta.id, 'b': conCruce.id},
+      );
+      expect([for (final f in estados) f.texto('estado')], ['sustituida', 'propuesta']);
     });
 
     test('un ajuste fuera de las alternativas admisibles se rechaza (422)', () async {

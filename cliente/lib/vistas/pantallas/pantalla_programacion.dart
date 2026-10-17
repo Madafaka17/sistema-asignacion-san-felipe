@@ -117,7 +117,8 @@ class _Historial extends StatelessWidget {
           const Text('Ejecuciones:'),
           for (final p in c.historial)
             ChoiceChip(
-              label: Text('#${p.id} · ${p.estado.etiqueta} · ${hora(p.creadoEn.hour * 60 + p.creadoEn.minute)}'),
+              label: Text('#${p.ejecucionId}${p.version > 1 ? ' v${p.version}' : ''} · ${p.estado.etiqueta} · '
+                  '${hora(p.creadoEn.hour * 60 + p.creadoEn.minute)}'),
               selected: p.id == c.actual?.id,
               onSelected: (_) => c.abrir(p),
             ),
@@ -138,7 +139,11 @@ class _Resumen extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        IndicadorKpi(titulo: 'Estado', valor: p.estado.etiqueta, detalle: 'Programación #${p.id}'),
+        IndicadorKpi(
+          titulo: 'Estado',
+          valor: p.estado.etiqueta,
+          detalle: 'Ejecución #${p.ejecucionId} · versión ${p.version}',
+        ),
         IndicadorKpi(
           key: const Key('kpi_asignados'),
           titulo: 'Servicios asignados',
@@ -164,8 +169,15 @@ class _Resumen extends StatelessWidget {
         IndicadorKpi(titulo: 'Desequilibrio D', valor: '${k.desviacionCarga.toStringAsFixed(1)} min', detalle: '${k.reprogramados} reprogramados'),
         IndicadorKpi(
           titulo: p.metodo == AlgoritmoGenetico.identificador ? 'Algoritmo genético' : p.metodo,
-          valor: '${(p.tiempoMs / 1000).toStringAsFixed(2)} s',
-          detalle: '${p.generaciones} generaciones',
+          valor: '${(p.tiempoNucleoMs / 1000).toStringAsFixed(2)} s',
+          detalle: '${p.generaciones} generaciones · solicitud ${(p.tiempoMs / 1000).toStringAsFixed(2)} s',
+        ),
+        // Procedencia (sección 5.5): huella de la entrada y versión del núcleo.
+        IndicadorKpi(
+          key: const Key('kpi_procedencia'),
+          titulo: 'Procedencia',
+          valor: p.huellaEntrada == null ? '—' : '${p.huellaEntrada!.substring(0, 12)}…',
+          detalle: '${p.versionAlgoritmo}${p.semilla == null ? '' : ' · semilla ${p.semilla}'}',
         ),
       ]),
     );
@@ -329,7 +341,7 @@ class _FormularioAjusteState extends State<_FormularioAjuste> {
           key: const Key('campo_justificacion_ajuste'),
           controlador: _justificacion,
           etiqueta: 'Motivo del ajuste',
-          ayuda: 'Obligatorio si salta la cola o reemplaza al conductor habitual',
+          ayuda: 'Obligatorio si salta la cola, reemplaza al conductor habitual o demora la salida',
           errorServidor: e['justificacion'],
           obligatorio: false,
           validar: (t) => t.length > 255 ? 'Máximo 255 caracteres' : null,

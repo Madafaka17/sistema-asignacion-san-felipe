@@ -122,6 +122,23 @@ void main() {
     });
   });
 
+  test('CU-12: el ajuste abre la versión nueva y el historial muestra la anterior como sustituida', () async {
+    final v1 = programacion();
+    final v2 = Programacion.fromJson({...v1.toJson(), 'id': 8, 'version': 2, 'ejecucionId': 7, 'versionAnteriorId': 7});
+    final sustituida = Programacion.fromJson({...v1.toJson(), 'estado': 'sustituida'});
+    final repositorio = _Versiones(v1, v2, sustituida);
+    final c = ProgramacionControlador(repositorio, _Vehiculos(), _Conductores());
+    await c.cargar();
+    final a = c.asignaciones.firstWhere((a) => a.tieneRecursos);
+    expect(await c.ajustar(a, AjusteAsignacion(vehiculoId: 1, conductorId: 1, salida: a.salida!)), isTrue);
+    expect(c.actual?.id, 8);
+    expect([for (final p in c.historial) (p.id, p.version, p.estado)], [
+      (8, 2, EstadoProgramacion.propuesta),
+      (7, 1, EstadoProgramacion.sustituida),
+    ]);
+    expect(c.puedeAprobar, isTrue);
+  });
+
   test('un error del servidor queda en el controlador con sus campos y libera el estado ocupado', () async {
     final c = ProgramacionControlador(_Programaciones(null), _Vehiculos(), _Conductores());
     final resultado = await c.generar();
@@ -162,6 +179,25 @@ class _Programaciones implements RepositorioProgramaciones {
 
   @override
   Future<Programacion> aprobar(int id) async => _resultado!;
+}
+
+/// Versiones de una ejecución: el ajuste devuelve la versión 2 y, desde
+/// entonces, el listado trae las dos.
+class _Versiones extends _Programaciones {
+  _Versiones(super.v1, this._v2, this._sustituida);
+
+  final Programacion _v2;
+  final Programacion _sustituida;
+  bool _ajustada = false;
+
+  @override
+  Future<List<Programacion>> listar(DateTime fecha) async => _ajustada ? [_v2, _sustituida] : super.listar(fecha);
+
+  @override
+  Future<Programacion> ajustar(int programacionId, int servicioId, AjusteAsignacion ajuste) async {
+    _ajustada = true;
+    return _v2;
+  }
 }
 
 class _Vehiculos implements RepositorioVehiculos {

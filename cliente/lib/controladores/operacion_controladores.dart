@@ -97,13 +97,23 @@ class ProgramacionControlador extends ControladorBase {
     return true;
   }
 
-  /// HU-09, ajuste manual de una asignación.
+  /// HU-09 y CU-12, ajuste manual de una asignación. El servidor responde
+  /// con una versión nueva (otro id) y deja la anterior como sustituida, así
+  /// que se relee el historial.
   Future<bool> ajustar(Asignacion asignacion, AjusteAsignacion ajuste) async {
     final programacion = _actual;
     if (programacion == null) return false;
-    final ajustada = await ejecutar(() => _programaciones.ajustar(programacion.id, asignacion.servicioId, ajuste));
-    if (ajustada == null) return false;
-    _sustituir(ajustada);
+    final datos = await ejecutar(() async {
+      final ajustada = await _programaciones.ajustar(programacion.id, asignacion.servicioId, ajuste);
+      return (ajustada, await _programaciones.listar(_fecha));
+    });
+    if (datos == null) {
+      await _refrescarHistorial();
+      return false;
+    }
+    final (ajustada, historial) = datos;
+    _actual = ajustada;
+    _historial = historial;
     _mensaje = ajustada.phiValidador == 0
         ? 'Ajuste registrado en ${asignacion.codigoServicio}'
         : 'El ajuste genera cruces: resuélvalos antes de aprobar';
@@ -120,7 +130,10 @@ class ProgramacionControlador extends ControladorBase {
       final aprobada = await _programaciones.aprobar(programacion.id);
       return (aprobada, await _programaciones.listar(_fecha));
     });
-    if (datos == null) return false;
+    if (datos == null) {
+      await _refrescarHistorial();
+      return false;
+    }
     final (aprobada, historial) = datos;
     _actual = aprobada;
     _historial = historial;
@@ -129,9 +142,16 @@ class ProgramacionControlador extends ControladorBase {
     return true;
   }
 
-  void _sustituir(Programacion programacion) {
-    _historial = [for (final p in _historial) p.id == programacion.id ? programacion : p];
-    _actual = programacion;
+  /// Tras un rechazo (por ejemplo, otro usuario ya ajustó o aprobó esta
+  /// versión: 409) muestra las versiones vigentes sin borrar el mensaje de
+  /// error.
+  Future<void> _refrescarHistorial() async {
+    try {
+      _historial = await _programaciones.listar(_fecha);
+      notificar();
+    } on Exception {
+      // El error original ya está a la vista.
+    }
   }
 }
 

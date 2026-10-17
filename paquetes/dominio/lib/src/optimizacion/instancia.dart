@@ -30,6 +30,16 @@ class Alternativa {
 
   int get fin => salida + duracion;
 
+  Map<String, Object?> toJson() =>
+      {'vehiculoId': vehiculoId, 'conductorId': conductorId, 'salida': salida, 'duracion': duracion};
+
+  factory Alternativa.fromJson(Map<String, Object?> json) => Alternativa(
+        vehiculoId: json['vehiculoId'] as int,
+        conductorId: json['conductorId'] as int,
+        salida: json['salida'] as int,
+        duracion: json['duracion'] as int,
+      );
+
   bool mismaQue(Alternativa? otra) =>
       otra != null &&
       otra.vehiculoId == vehiculoId &&

@@ -12,6 +12,7 @@ class DatosIndicadores {
     required this.asignacionesGeneradas,
     required this.asignacionesSinConflicto,
     required this.tiempoGeneracionPromedioMs,
+    this.tiempoNucleoPromedioMs = 0,
     required this.incidenciasPorTipo,
     this.reemplazos = 0,
     this.saltosCola = 0,
@@ -30,6 +31,7 @@ class DatosIndicadores {
   final int asignacionesGeneradas;
   final int asignacionesSinConflicto;
   final double tiempoGeneracionPromedioMs;
+  final double tiempoNucleoPromedioMs;
   final Map<String, int> incidenciasPorTipo;
 
   /// Indicadores operativos de las programaciones aprobadas (Tabla 24).
@@ -74,16 +76,18 @@ class RepositorioReportesMysql implements RepositorioReportes {
     ))
         .single;
 
-    // Todas las programaciones generadas en el periodo: PAV y tiempo medio.
+    // Todas las ejecuciones del método en el periodo (versión 1; los ajustes
+    // no son ejecuciones): PAV y tiempos medios.
     final generadas = (await _bd.consultar(
       'SELECT COUNT(DISTINCT p.id) AS programaciones, COUNT(a.id) AS asignaciones, '
       "COALESCE(SUM(a.estado = 'asignado'), 0) AS sin_conflicto FROM programacion p "
-      'LEFT JOIN asignacion a ON a.programacion_id = p.id WHERE p.fecha BETWEEN :desde AND :hasta',
+      'LEFT JOIN asignacion a ON a.programacion_id = p.id WHERE p.fecha BETWEEN :desde AND :hasta AND p.version = 1',
       periodo,
     ))
         .single;
     final tiempo = (await _bd.consultar(
-      'SELECT COALESCE(AVG(tiempo_ms), 0) AS ms FROM programacion WHERE fecha BETWEEN :desde AND :hasta',
+      'SELECT COALESCE(AVG(tiempo_ms), 0) AS ms, COALESCE(AVG(tiempo_nucleo_ms), 0) AS nucleo FROM programacion '
+      'WHERE fecha BETWEEN :desde AND :hasta AND version = 1',
       periodo,
     ))
         .single;
@@ -103,6 +107,7 @@ class RepositorioReportesMysql implements RepositorioReportes {
       asignacionesGeneradas: generadas.entero('asignaciones'),
       asignacionesSinConflicto: double.parse(generadas.texto('sin_conflicto')).round(),
       tiempoGeneracionPromedioMs: tiempo.decimal('ms'),
+      tiempoNucleoPromedioMs: tiempo.decimal('nucleo'),
       incidenciasPorTipo: {for (final f in incidencias) f.texto('tipo'): f.entero('n')},
       reemplazos: _suma(servicios, 'reemplazos'),
       saltosCola: _suma(servicios, 'saltos'),
