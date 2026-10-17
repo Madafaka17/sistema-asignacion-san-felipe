@@ -10,14 +10,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'apoyo/servidor_simulado.dart';
 
 /// HU-06 en la interfaz con un servidor simulado: el formulario envía el
-/// payload del contrato, el botón no permite un segundo envío mientras la
-/// solicitud está en curso y la tabla se actualiza con la respuesta 201 sin
-/// volver a pedir la lista.
+/// payload del contrato —con el turno de la unidad que corresponde en la
+/// cola—, el botón no permite un segundo envío mientras la solicitud está en
+/// curso y la tabla se actualiza con la respuesta 201 sin volver a pedir la
+/// lista.
 void main() {
   late ServidorSimulado servidor;
   late Completer<void> liberarRespuesta;
 
-  const ruta = Ruta(id: 3, codigo: 'R-03', origen: 'Soritor', destino: 'Rioja', duracionMin: 95);
+  const ruta = Ruta(id: 3, codigo: 'R-01', origen: 'Soritor', destino: 'Moyobamba', duracionMin: 90, idaMin: 30);
+  EntradaCola entrada(int id, int posicion, String vehiculo, int llegada, {String? servicio}) => EntradaCola(
+        id: id,
+        rutaId: 3,
+        fecha: DateTime.utc(2026, 11, 12),
+        vehiculoId: id,
+        posicion: posicion,
+        llegada: llegada,
+        codigoVehiculo: vehiculo,
+        servicioId: servicio == null ? null : 1,
+        codigoServicio: servicio,
+      );
 
   setUp(() {
     servidor = ServidorSimulado()..conSesion(usuarioDespacho);
@@ -28,6 +40,13 @@ void main() {
       ..en('GET', '/api/rutas', (_) => ServidorSimulado.json([ruta.toJson()]))
       ..en('GET', '/api/rutas/3/salidas', (_) => ServidorSimulado.json([
             const SalidaAutorizada(id: 9, rutaId: 3, hora: 450).toJson(),
+          ]))
+      // V-01 ya tiene servicio, V-02 es la que corresponde y V-03 llega
+      // después de la salida de las 07:30.
+      ..en('GET', '/api/cola', (_) => ServidorSimulado.json([
+            entrada(21, 1, 'V-01', 320, servicio: 'S-0001').toJson(),
+            entrada(22, 2, 'V-02', 325).toJson(),
+            entrada(23, 3, 'V-03', 480).toJson(),
           ]))
       ..en('POST', '/api/servicios', (s) async {
         await liberarRespuesta.future; // la solicitud queda «en curso»
@@ -41,7 +60,10 @@ void main() {
             horaSolicitada: datos.horaSolicitada,
             prioridad: datos.prioridad,
             capacidadRequerida: datos.capacidadRequerida,
-            codigoRuta: 'R-03',
+            entradaColaId: datos.entradaColaId,
+            codigoRuta: 'R-01',
+            codigoVehiculoCola: 'V-02',
+            posicionCola: 2,
           ).toJson(),
           201,
         );
@@ -83,12 +105,15 @@ void main() {
     await tester.enterText(find.byKey(const Key('campo_codigo_servicio')), 's-115');
     await tester.tap(find.byKey(const Key('campo_ruta_servicio')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('R-03 · Soritor – Rioja').last);
+    await tester.tap(find.text('R-01 · Soritor – Moyobamba').last);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('campo_hora_servicio_3')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('07:30').last);
     await tester.pumpAndSettle();
+    // El turno por defecto es el de la unidad que corresponde: V-02.
+    expect(find.text('Posición 2 · V-02 (llegó 05:25)'), findsOneWidget);
+    expect(find.textContaining('V-03'), findsNothing, reason: 'V-03 llega después de la salida');
     await tester.tap(find.byKey(const Key('campo_prioridad_servicio')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Alta (3)').last);
@@ -111,7 +136,7 @@ void main() {
     // Payload con la estructura y los tipos del contrato.
     final envio = servidor.de('POST', '/api/servicios').single;
     expect(envio.cabeceras['authorization'], 'Bearer token-de-prueba');
-    expect(envio.cabeceras['x-version-cliente'], '1.0.0');
+    expect(envio.cabeceras['x-version-cliente'], versionApi);
     expect(envio.cuerpo, {
       'codigo': 'S-115',
       'fecha': isA<String>().having((f) => intentarTextoAFecha(f), 'fecha válida', isNotNull),
@@ -119,6 +144,7 @@ void main() {
       'horaSolicitada': 450,
       'prioridad': 3,
       'capacidadRequerida': 10,
+      'entradaColaId': 22,
     });
 
     // El servidor responde 201: el diálogo se cierra y la fila aparece.
@@ -126,6 +152,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.byKey(const ValueKey('servicio_S-115')), findsOneWidget);
+    expect(find.text('V-02 · posición 2'), findsOneWidget);
     expect(find.text('Servicio registrado'), findsOneWidget);
     expect(servidor.de('GET', '/api/servicios').length, listasAntes, reason: 'actualización reactiva, sin recargar la lista');
   });
@@ -153,7 +180,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('campo_codigo_servicio')), 'S-115');
     await tester.tap(find.byKey(const Key('campo_ruta_servicio')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('R-03 · Soritor – Rioja').last);
+    await tester.tap(find.text('R-01 · Soritor – Moyobamba').last);
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('campo_hora_servicio_3')));
     await tester.pumpAndSettle();

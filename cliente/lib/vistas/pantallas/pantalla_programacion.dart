@@ -153,6 +153,12 @@ class _Resumen extends StatelessWidget {
           detalle: 'Cruces y excesos',
           color: p.phiValidador == 0 ? esquema.primary : esquema.error,
         ),
+        IndicadorKpi(
+          key: const Key('kpi_excepciones'),
+          titulo: 'Saltos · reemplazos',
+          valor: '${p.saltosCola} · ${p.reemplazos}',
+          detalle: '${p.salidasDemoradas} salidas demoradas (${p.minutosDemora} min)',
+        ),
         IndicadorKpi(titulo: 'Aptitud F(X)', valor: p.aptitud.toStringAsFixed(4), detalle: 'J = ${k.perdida.toStringAsFixed(4)}'),
         IndicadorKpi(titulo: 'Tiempo muerto', valor: '${k.tiempoMuertoMin} min', detalle: 'Retraso ${k.retrasoMin} min'),
         IndicadorKpi(titulo: 'Desequilibrio D', valor: '${k.desviacionCarga.toStringAsFixed(1)} min', detalle: '${k.reprogramados} reprogramados'),
@@ -187,6 +193,7 @@ class _TablaAsignaciones extends StatelessWidget {
         ColumnaTabla('Conductor', (a) => Text(a.codigoConductor ?? '—')),
         ColumnaTabla('Salida', (a) => Text(hora(a.salida))),
         ColumnaTabla('Término', (a) => Text(hora(a.fin))),
+        ColumnaTabla('Excepciones', (a) => _Excepciones(a, key: ValueKey('excepciones_${a.codigoServicio}'))),
         ColumnaTabla('Estado', (a) => ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 320),
               child: Text(
@@ -210,6 +217,42 @@ class _TablaAsignaciones extends StatelessWidget {
   }
 }
 
+/// `σ(s)`, `η(s)` y `Δt(s)` de la asignación, con su motivo (sección 3.6).
+class _Excepciones extends StatelessWidget {
+  const _Excepciones(this.a, {super.key});
+
+  final Asignacion a;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!a.tieneRecursos || (!a.saltoCola && !a.reemplazo && a.demoraMin == 0)) return const Text('—');
+    final partes = [
+      if (a.saltoCola) 'Salto de cola (${a.codigoVehiculoCola})',
+      if (a.reemplazo) 'Reemplazo de ${a.codigoConductorHabitual}',
+      if (a.demoraMin > 0) '+${a.demoraMin} min',
+    ].join(' · ');
+    final color = Theme.of(context).colorScheme.tertiary;
+    // Una sola línea que se recorta: la celda tiene alto y ancho acotados;
+    // el detalle completo y el motivo van en el tooltip.
+    return Tooltip(
+      message: a.justificacion == null ? partes : '$partes\n${a.justificacion}',
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(a.saltoCola || a.reemplazo ? Icons.swap_horiz : Icons.schedule, size: 18, color: color),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            partes,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: color, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
 class _FormularioAjuste extends StatefulWidget {
   const _FormularioAjuste(this.asignacion);
 
@@ -223,10 +266,12 @@ class _FormularioAjusteState extends State<_FormularioAjuste> {
   late int? _vehiculo = widget.asignacion.vehiculoId;
   late int? _conductor = widget.asignacion.conductorId;
   late final _salida = TextEditingController(text: widget.asignacion.salida == null ? '' : minutosAHora(widget.asignacion.salida!));
+  final _justificacion = TextEditingController();
 
   @override
   void dispose() {
     _salida.dispose();
+    _justificacion.dispose();
     super.dispose();
   }
 
@@ -237,11 +282,20 @@ class _FormularioAjusteState extends State<_FormularioAjuste> {
     return DialogoFormulario<ProgramacionControlador>(
       titulo: 'Ajustar ${a.codigoServicio} (${a.codigoRuta})',
       claveGuardar: const Key('boton_guardar_ajuste'),
-      alGuardar: () => c.ajustar(a, AjusteAsignacion(vehiculoId: _vehiculo!, conductorId: _conductor!, salida: horaAMinutos(_salida.text)!)),
+      alGuardar: () => c.ajustar(
+        a,
+        AjusteAsignacion(
+          vehiculoId: _vehiculo!,
+          conductorId: _conductor!,
+          salida: horaAMinutos(_salida.text)!,
+          justificacion: _justificacion.text.trim().isEmpty ? null : _justificacion.text.trim(),
+        ),
+      ),
       campos: (e) => [
         Text(
-          'El ajuste debe ser una alternativa admisible: vehículo compatible con la ruta, conductor '
-          'habilitado y en su turno, y una salida autorizada. El validador marca los cruces que genere.',
+          'El ajuste debe ser una alternativa admisible: la unidad que corresponde en la cola o la siguiente, '
+          'su conductor habitual o un reemplazo autorizado en su turno, y una salida autorizada. El validador '
+          'marca los cruces que genere.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         DropdownButtonFormField<int>(
@@ -270,6 +324,15 @@ class _FormularioAjusteState extends State<_FormularioAjuste> {
           ayuda: 'HH:MM, una salida autorizada de la ruta',
           errorServidor: e['salida'],
           validar: (t) => horaAMinutos(t) == null ? 'Hora HH:MM' : null,
+        ),
+        campoTexto(
+          key: const Key('campo_justificacion_ajuste'),
+          controlador: _justificacion,
+          etiqueta: 'Motivo del ajuste',
+          ayuda: 'Obligatorio si salta la cola o reemplaza al conductor habitual',
+          errorServidor: e['justificacion'],
+          obligatorio: false,
+          validar: (t) => t.length > 255 ? 'Máximo 255 caracteres' : null,
         ),
       ],
     );

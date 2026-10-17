@@ -6,7 +6,9 @@ import '../configuracion/parametros_sistema.dart';
 import '../infraestructura/base_datos.dart';
 import '../infraestructura/reloj.dart';
 import '../repositorios/repositorio_bitacora.dart';
+import '../repositorios/repositorio_cola.dart';
 import '../repositorios/repositorio_conductores.dart';
+import '../repositorios/repositorio_pares.dart';
 import '../repositorios/repositorio_programaciones.dart';
 import '../repositorios/repositorio_rutas.dart';
 import '../repositorios/repositorio_servicios.dart';
@@ -23,6 +25,8 @@ class ProgramacionServicio {
     required this.vehiculos,
     required this.conductores,
     required this.rutas,
+    required this.cola,
+    required this.pares,
     required this.programaciones,
     required this.bitacora,
     required this.parametros,
@@ -34,6 +38,8 @@ class ProgramacionServicio {
   final RepositorioVehiculos vehiculos;
   final RepositorioConductores conductores;
   final RepositorioRutas rutas;
+  final RepositorioCola cola;
+  final RepositorioPares pares;
   final RepositorioProgramaciones programaciones;
   final RepositorioBitacora bitacora;
   final ParametrosSistema parametros;
@@ -67,6 +73,10 @@ class ProgramacionServicio {
 
     final decodificado = Decodificador(instancia).decodificar(resultado.cromosoma);
     final asignadas = [for (final r in decodificado) if (r.asignado) r];
+    // σ(s), η(s) y Δt(s): no entran en F(X); se registran para la revisión.
+    final excepciones = {
+      for (final r in asignadas) r.servicio.servicioId: ExcepcionesAsignacion.de(instancia, r.servicio, r.alternativa!),
+    };
     final validacion = Validador(holguraMinima: instancia.holguraMinima).validar(
       [for (final r in asignadas) _validable(r.servicio.servicioId, r.alternativa!)],
       _limites(instancia),
@@ -100,6 +110,8 @@ class ProgramacionServicio {
                       salida: r.alternativa!.salida,
                       fin: r.alternativa!.fin,
                       estado: EstadoAsignacion.asignado,
+                      excepciones: excepciones[r.servicio.servicioId]!,
+                      justificacion: excepciones[r.servicio.servicioId]!.explicacion,
                     )
                   : NuevaAsignacion(
                       servicioId: r.servicio.servicioId,
@@ -124,6 +136,10 @@ class ProgramacionServicio {
           'phiValidador': validacion.phi,
           'asignados': asignadas.length,
           'incidencias': decodificado.length - asignadas.length,
+          'saltosCola': excepciones.values.where((x) => x.saltoCola).length,
+          'reemplazos': excepciones.values.where((x) => x.reemplazo).length,
+          'salidasDemoradas': excepciones.values.where((x) => x.demoraMin > 0).length,
+          'minutosDemora': excepciones.values.fold<int>(0, (suma, x) => suma + x.demoraMin),
           'tiempoMs': tiempoMs,
         },
         fechaHora: reloj.ahora(),
@@ -158,8 +174,21 @@ class ProgramacionServicio {
     if (alternativa == null) {
       throw ExcepcionApi(
         CodigoError.reglaNegocio,
-        await _motivoInadmisible(servicio, ajuste, programacion.fecha),
+        await _motivoInadmisible(instancia, servicio, ajuste, programacion.fecha),
       );
+    }
+    // Un salto de cola o un reemplazo introducido a mano exige su motivo
+    // (sección 3.6).
+    final excepciones = ExcepcionesAsignacion.de(instancia, servicio, alternativa);
+    if (excepciones.requiereJustificacion && ajuste.justificacion == null) {
+      final que = [
+        if (excepciones.saltoCola)
+          'salta la cola (correspondía ${instancia.codigosVehiculo[excepciones.vehiculoCola] ?? excepciones.vehiculoCola})',
+        if (excepciones.reemplazo)
+          'reemplaza al conductor habitual '
+              '${instancia.codigosConductor[excepciones.conductorHabitual] ?? excepciones.conductorHabitual}',
+      ];
+      reglaIncumplida('justificacion', 'Indique el motivo: el ajuste ${que.join(' y ')}');
     }
 
     // Programación resultante: la vigente con la alternativa ajustada.
@@ -180,19 +209,25 @@ class ProgramacionServicio {
     await bd.transaccion((tx) async {
       for (final entrada in elegidas.entries) {
         final (estado, motivo) = estados[entrada.key]!;
+        if (entrada.key != servicioId) {
+          await programaciones.actualizarEstado(tx, programacionId, entrada.key, estado, motivo);
+          continue;
+        }
         await programaciones.actualizarAsignacion(
           tx,
           programacionId,
           NuevaAsignacion(
-            servicioId: entrada.key,
-            vehiculoId: entrada.value.vehiculoId,
-            conductorId: entrada.value.conductorId,
-            salida: entrada.value.salida,
-            fin: entrada.value.fin,
+            servicioId: servicioId,
+            vehiculoId: alternativa.vehiculoId,
+            conductorId: alternativa.conductorId,
+            salida: alternativa.salida,
+            fin: alternativa.fin,
             estado: estado,
             motivo: motivo,
+            excepciones: excepciones,
+            justificacion: ajuste.justificacion,
           ),
-          ajustada: entrada.key == servicioId,
+          ajustada: true,
         );
       }
       await programaciones.actualizarMetricas(
@@ -211,6 +246,9 @@ class ProgramacionServicio {
           'servicio': anterior.codigoServicio,
           'antes': {'vehiculoId': anterior.vehiculoId, 'conductorId': anterior.conductorId, 'salida': anterior.salida},
           'despues': ajuste.toJson(),
+          'saltoCola': excepciones.saltoCola,
+          'reemplazo': excepciones.reemplazo,
+          'demoraMin': excepciones.demoraMin,
           'conflictos': [for (final e in estados.entries) if (e.value.$1 == EstadoAsignacion.conflicto) e.key],
         },
         fechaHora: reloj.ahora(),
@@ -279,6 +317,19 @@ class ProgramacionServicio {
           'fecha': fechaATexto(programacion.fecha),
           'asignados': programacion.asignados,
           'incidencias': programacion.pendientes,
+          // Sección 3.6: cada salto de cola, reemplazo o demora aprobado
+          // queda en la bitácora con su motivo.
+          'excepciones': [
+            for (final a in programacion.asignaciones)
+              if (a.tieneRecursos && (a.saltoCola || a.reemplazo || a.demoraMin > 0))
+                {
+                  'servicio': a.codigoServicio,
+                  if (a.saltoCola) 'saltoCola': a.codigoVehiculoCola,
+                  if (a.reemplazo) 'reemplazo': a.codigoConductorHabitual,
+                  if (a.demoraMin > 0) 'demoraMin': a.demoraMin,
+                  'justificacion': a.justificacion,
+                },
+          ],
         },
         fechaHora: ahora,
       );
@@ -300,6 +351,8 @@ class ProgramacionServicio {
       conductores: await conductores.todos(),
       rutas: await rutas.todas(),
       salidas: await rutas.salidas(),
+      entradas: await cola.entradas(fecha),
+      pares: await pares.todos(),
       comprometidas: await programaciones.comprometidas(fecha),
     );
     return (
@@ -345,7 +398,12 @@ class ProgramacionServicio {
   }
 
   /// Explica qué condición de la ecuación (1) incumple un ajuste.
-  Future<String> _motivoInadmisible(ServicioTurno servicio, AjusteAsignacion ajuste, DateTime fecha) async {
+  Future<String> _motivoInadmisible(
+    InstanciaTurno instancia,
+    ServicioTurno servicio,
+    AjusteAsignacion ajuste,
+    DateTime fecha,
+  ) async {
     final vehiculo = await vehiculos.buscar(ajuste.vehiculoId);
     final conductor = await conductores.buscar(ajuste.conductorId);
     final detalle = await servicios.buscar(servicio.servicioId);
@@ -359,12 +417,25 @@ class ProgramacionServicio {
     if (vehiculo.capacidad < servicio.capacidadRequerida) {
       return 'El vehículo ${vehiculo.codigo} no tiene ${servicio.capacidadRequerida} asientos';
     }
+    final v0 = servicio.vehiculoCola;
+    if (v0 != null && vehiculo.id != v0 && vehiculo.id != servicio.vehiculoSiguiente) {
+      String codigo(int? id) => id == null ? '—' : instancia.codigosVehiculo[id] ?? '$id';
+      return 'Por la regla de cola el servicio sale con la unidad que corresponde (${codigo(v0)})'
+          '${servicio.vehiculoSiguiente == null ? '' : ' o con la siguiente elegible (${codigo(servicio.vehiculoSiguiente)})'}';
+    }
+    if (v0 == vehiculo.id && !servicio.alternativas.any((a) => a.vehiculoId == v0) && servicio.vehiculoSiguiente != null) {
+      return 'La unidad ${vehiculo.codigo} dejó la cola o no tiene un conductor autorizado disponible: '
+          'el servicio sale con la siguiente elegible';
+    }
     if (!conductor.disponible || !conductor.licenciaVigente(fecha)) {
       return 'El conductor ${conductor.codigo} no está disponible o su licencia no está vigente';
     }
     if (!parametros.modelo.habilita(conductor.categoriaLicencia, vehiculo.categoria)) {
       return 'La licencia ${conductor.categoriaLicencia.valor} de ${conductor.codigo} no habilita '
           'la categoría ${vehiculo.categoria.valor}';
+    }
+    if (parametros.modelo.exigirParAutorizado && !(await pares.deVehiculo(vehiculo.id)).todos.contains(conductor.id)) {
+      return 'El conductor ${conductor.codigo} no es el habitual ni un reemplazo autorizado de ${vehiculo.codigo}';
     }
     if (!servicio.alternativas.any((a) => a.salida == ajuste.salida)) {
       return 'Las ${minutosAHora(ajuste.salida)} no es una salida autorizada para el servicio';

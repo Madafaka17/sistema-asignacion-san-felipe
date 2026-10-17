@@ -11,21 +11,42 @@ List<T> _reemplazar<T>(List<T> lista, T elemento, int Function(T) id) {
   return i < 0 ? [...lista, elemento] : ([...lista]..[i] = elemento);
 }
 
-/// HU-02.
+/// HU-02 y conductores autorizados de cada unidad (sección 3.1.2).
 class VehiculosControlador extends ControladorBase {
-  VehiculosControlador(this._repositorio);
+  VehiculosControlador(this._repositorio, this._conductores);
 
   final RepositorioVehiculos _repositorio;
+  final RepositorioConductores _conductores;
 
   List<Vehiculo> _vehiculos = const [];
+  List<Conductor> _plantilla = const [];
+  Map<int, ConductoresAutorizados> _autorizados = const {};
+
   List<Vehiculo> get vehiculos => _vehiculos;
+  List<Conductor> get conductores => _plantilla;
+
+  /// `chab(v)` y `C_v^R` de la unidad.
+  ConductoresAutorizados autorizadosDe(int vehiculoId) =>
+      _autorizados[vehiculoId] ?? ConductoresAutorizados(vehiculoId: vehiculoId);
+
+  String codigoConductor(int id) => _plantilla.where((c) => c.id == id).firstOrNull?.codigo ?? '$id';
 
   Future<void> cargar() async {
-    final lista = await ejecutar(_repositorio.listar);
-    if (lista != null) {
-      _vehiculos = lista;
-      notificar();
-    }
+    final datos = await ejecutar(() async => (await _repositorio.listar(), await _conductores.listar(), await _repositorio.pares()));
+    if (datos == null) return;
+    final (vehiculos, plantilla, pares) = datos;
+    _vehiculos = vehiculos;
+    _plantilla = plantilla;
+    _autorizados = ConductoresAutorizados.porVehiculo(pares);
+    notificar();
+  }
+
+  Future<bool> asignarConductores(ConductoresAutorizados autorizados) async {
+    final guardado = await ejecutar(() => _repositorio.asignarConductores(autorizados));
+    if (guardado == null) return false;
+    _autorizados = {..._autorizados, guardado.vehiculoId: guardado};
+    notificar();
+    return true;
   }
 
   Future<bool> guardar(Vehiculo vehiculo) async {
@@ -147,16 +168,18 @@ class RutasControlador extends ControladorBase {
 
 /// HU-06.
 class ServiciosControlador extends ControladorBase {
-  ServiciosControlador(this._servicios, this._rutas, {DateTime? hoy})
+  ServiciosControlador(this._servicios, this._rutas, this._cola, {DateTime? hoy})
       : _fecha = _manana(hoy ?? DateTime.now());
 
   final RepositorioServicios _servicios;
   final RepositorioRutas _rutas;
+  final RepositorioCola _cola;
 
   DateTime _fecha;
   List<ServicioProgramado> _lista = const [];
   List<Ruta> _rutasActivas = const [];
   final Map<int, List<SalidaAutorizada>> _salidas = {};
+  final Map<int, List<EntradaCola>> _entradas = {};
 
   static DateTime _manana(DateTime hoy) => DateTime.utc(hoy.year, hoy.month, hoy.day + 1);
 
@@ -176,16 +199,33 @@ class ServiciosControlador extends ControladorBase {
 
   Future<void> cambiarFecha(DateTime fecha) async {
     _fecha = DateTime.utc(fecha.year, fecha.month, fecha.day);
+    _entradas.clear();
     await cargar();
   }
 
-  /// Salidas autorizadas de la ruta, para ofrecer solo horas permitidas
-  /// (HU-05).
-  Future<void> cargarSalidas(int rutaId) async {
-    if (_salidas.containsKey(rutaId)) return;
-    final salidas = await ejecutar(() => _rutas.salidas(rutaId));
-    if (salidas != null) {
-      _salidas[rutaId] = salidas;
+  /// Turnos de la cola de la ruta en la fecha que pueden corresponder a un
+  /// servicio que sale a la [hora]: la unidad sigue en la cola, llegó antes
+  /// y su turno no es de otro servicio. Están en orden de llegada, así que el
+  /// primero es la unidad que corresponde (`v0(s)`).
+  List<EntradaCola> turnosDisponibles(int rutaId, int hora, {int? servicioId}) => [
+        for (final e in _entradas[rutaId] ?? const <EntradaCola>[])
+          if (e.activa && e.llegada <= hora && (e.servicioId == null || e.servicioId == servicioId)) e,
+      ];
+
+  /// Salidas autorizadas (HU-05) y cola de la ruta, para ofrecer solo
+  /// horas permitidas y turnos de la cola. Con [forzar] se vuelve a pedir la
+  /// cola, por ejemplo después de que un servicio tomó un turno.
+  Future<void> cargarRuta(int rutaId, {bool forzar = false}) async {
+    final pedirSalidas = !_salidas.containsKey(rutaId);
+    final pedirCola = forzar || !_entradas.containsKey(rutaId);
+    if (!pedirSalidas && !pedirCola) return;
+    final datos = await ejecutar(() async => (
+          pedirSalidas ? await _rutas.salidas(rutaId) : _salidas[rutaId]!,
+          pedirCola ? await _cola.entradas(_fecha, rutaId: rutaId) : _entradas[rutaId]!,
+        ));
+    if (datos != null) {
+      _salidas[rutaId] = datos.$1;
+      _entradas[rutaId] = datos.$2;
       notificar();
     }
   }
@@ -197,6 +237,8 @@ class ServiciosControlador extends ControladorBase {
     if (guardado == null) return false;
     if (guardado.fecha == _fecha) _lista = _reemplazar(_lista, guardado, (s) => s.id);
     notificar();
+    // El turno tomado deja de estar disponible.
+    if (_entradas.containsKey(guardado.rutaId)) await cargarRuta(guardado.rutaId, forzar: true);
     return true;
   }
 
@@ -204,6 +246,92 @@ class ServiciosControlador extends ControladorBase {
     final cancelado = await ejecutar(() => _servicios.cancelar(servicio.id));
     if (cancelado == null) return false;
     _lista = _reemplazar(_lista, cancelado, (s) => s.id);
+    notificar();
+    return true;
+  }
+}
+
+/// Cola de despacho de cada ruta (sección 3.1.2): llegadas al terminal y
+/// retiro de unidades.
+class ColaControlador extends ControladorBase {
+  ColaControlador(this._cola, this._rutas, this._vehiculos, {DateTime? hoy})
+      : _fecha = ServiciosControlador._manana(hoy ?? DateTime.now());
+
+  final RepositorioCola _cola;
+  final RepositorioRutas _rutas;
+  final RepositorioVehiculos _vehiculos;
+
+  DateTime _fecha;
+  List<Ruta> _rutasActivas = const [];
+  List<Vehiculo> _flota = const [];
+  int? _rutaId;
+  List<EntradaCola> _entradas = const [];
+
+  DateTime get fecha => _fecha;
+  List<Ruta> get rutas => _rutasActivas;
+  Ruta? get ruta => _rutasActivas.where((r) => r.id == _rutaId).firstOrNull;
+
+  /// Entradas de la ruta elegida, por orden de llegada.
+  List<EntradaCola> get entradas => _entradas;
+
+  int get enEspera => _entradas.where((e) => e.libre).length;
+
+  /// Unidades operativas compatibles con la ruta elegida.
+  List<Vehiculo> get unidadesElegibles => [
+        for (final v in _flota)
+          if (v.disponible && (ruta?.vehiculosCompatibles.contains(v.id) ?? false)) v,
+      ];
+
+  Future<void> cargar() async {
+    final datos = await ejecutar(() async => (await _rutas.listar(), await _vehiculos.listar()));
+    if (datos == null) return;
+    _rutasActivas = [for (final r in datos.$1) if (r.activa) r];
+    _flota = datos.$2;
+    if (ruta == null) _rutaId = _rutasActivas.firstOrNull?.id;
+    await _cargarEntradas();
+  }
+
+  Future<void> cambiarFecha(DateTime fecha) async {
+    _fecha = DateTime.utc(fecha.year, fecha.month, fecha.day);
+    await _cargarEntradas();
+  }
+
+  Future<void> seleccionarRuta(int rutaId) async {
+    _rutaId = rutaId;
+    _entradas = const [];
+    notificar();
+    await _cargarEntradas();
+  }
+
+  Future<void> _cargarEntradas() async {
+    final rutaId = _rutaId;
+    if (rutaId == null) {
+      notificar();
+      return;
+    }
+    final entradas = await ejecutar(() => _cola.entradas(_fecha, rutaId: rutaId));
+    if (entradas != null) {
+      _entradas = entradas;
+      notificar();
+    }
+  }
+
+  Future<bool> registrarLlegada(int vehiculoId, int llegada) async {
+    final rutaId = _rutaId;
+    if (rutaId == null) return false;
+    final entrada = await ejecutar(() => _cola.registrar(
+          SolicitudEntradaCola(rutaId: rutaId, fecha: _fecha, vehiculoId: vehiculoId, llegada: llegada),
+        ));
+    if (entrada == null) return false;
+    _entradas = [..._entradas, entrada];
+    notificar();
+    return true;
+  }
+
+  Future<bool> retirar(EntradaCola entrada) async {
+    final retirada = await ejecutar(() => _cola.retirar(entrada.id));
+    if (retirada == null) return false;
+    _entradas = _reemplazar(_entradas, retirada, (e) => e.id);
     notificar();
     return true;
   }

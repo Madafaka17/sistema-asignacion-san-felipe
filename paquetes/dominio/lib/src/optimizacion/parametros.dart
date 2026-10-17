@@ -13,6 +13,8 @@ class ParametrosModelo {
     this.referenciaTiempoMuertoPorVehiculoMin = 60,
     this.referenciaDesequilibrioMin = 60,
     this.habilitacion = habilitacionPorDefecto,
+    this.exigirParAutorizado = true,
+    this.permitirSiguienteUnidad = true,
   });
 
   /// `t_mín`, en minutos.
@@ -51,6 +53,18 @@ class ParametrosModelo {
     CategoriaLicencia.aIIIc: {CategoriaVehiculo.m1, CategoriaVehiculo.m2, CategoriaVehiculo.m3},
   };
 
+  /// Reglas de despacho declaradas por la empresa (sección 3.1.2),
+  /// pendientes de confirmación con E-01 y O-01.
+  ///
+  /// `c ∈ {chab(v)} ∪ C_v^R`: solo el conductor habitual o un reemplazo
+  /// autorizado pueden conducir la unidad. Con `false` se admite cualquier
+  /// conductor habilitado y los pares solo sirven para medir `η(s)`.
+  final bool exigirParAutorizado;
+
+  /// `v1(s)`: la siguiente unidad elegible de la cola es una alternativa
+  /// excepcional. Con `false`, `v ∈ {v0(s)}`.
+  final bool permitirSiguienteUnidad;
+
   bool habilita(CategoriaLicencia licencia, CategoriaVehiculo vehiculo) =>
       habilitacion[licencia]?.contains(vehiculo) ?? false;
 
@@ -58,6 +72,7 @@ class ParametrosModelo {
     final pesos = _mapa(mapa['pesos']);
     final referencias = _mapa(mapa['referencias']);
     final habilitacion = _mapa(mapa['habilitacion_licencias']);
+    final reglas = _mapa(mapa['reglas_despacho']);
     return ParametrosModelo(
       holguraMinima: _entero(mapa['holgura_minima_min'], 10),
       toleranciaSalidaMin: _entero(mapa['tolerancia_salida_min'], 60),
@@ -80,6 +95,8 @@ class ParametrosModelo {
                   for (final v in (e.value as List)) CategoriaVehiculo.desdeValor(v.toString()),
                 },
             },
+      exigirParAutorizado: _booleano(reglas['exigir_par_autorizado'], true),
+      permitirSiguienteUnidad: _booleano(reglas['permitir_siguiente_unidad'], true),
     );
   }
 
@@ -101,6 +118,10 @@ class ParametrosModelo {
         },
         'habilitacion_licencias': {
           for (final e in habilitacion.entries) e.key.valor: [for (final v in e.value) v.valor],
+        },
+        'reglas_despacho': {
+          'exigir_par_autorizado': exigirParAutorizado,
+          'permitir_siguiente_unidad': permitirSiguienteUnidad,
         },
       };
 
@@ -226,3 +247,5 @@ Map<String, Object?> _mapa(Object? valor) =>
 int _entero(Object? valor, int porDefecto) => valor is int ? valor : porDefecto;
 
 double _decimal(Object? valor, double porDefecto) => valor is num ? valor.toDouble() : porDefecto;
+
+bool _booleano(Object? valor, bool porDefecto) => valor is bool ? valor : porDefecto;

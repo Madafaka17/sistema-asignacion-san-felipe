@@ -51,6 +51,10 @@ class ServicioTurno {
     required List<Alternativa> alternativas,
     this.comprometida,
     this.motivoSinAlternativas,
+    this.nominal,
+    this.vehiculoCola,
+    this.posicionCola,
+    this.vehiculoSiguiente,
   }) : alternativas = List.unmodifiable(alternativas);
 
   final int servicioId;
@@ -74,6 +78,17 @@ class ServicioTurno {
 
   /// Explicación para el operador cuando `A_s = ∅`.
   final String? motivoSinAlternativas;
+
+  /// Salida nominal del servicio, desde la que se mide `Δt(s)`.
+  final int? nominal;
+
+  /// `v0(s)` y `π(s)`: unidad que corresponde según su turno en la cola y su
+  /// posición; `null` si el servicio no tiene turno en la cola.
+  final int? vehiculoCola;
+  final int? posicionCola;
+
+  /// `v1(s)`: siguiente unidad elegible de la cola, si existe.
+  final int? vehiculoSiguiente;
 
   /// `s ∈ S'`.
   bool get tieneAlternativas => alternativas.isNotEmpty;
@@ -133,6 +148,8 @@ class InstanciaTurno {
     required List<ServicioTurno> servicios,
     required Map<int, ConductorTurno> conductores,
     required Map<int, String> codigosVehiculo,
+    Map<int, String> codigosConductor = const {},
+    Map<int, int> habituales = const {},
     required this.holguraMinima,
     required this.pesos,
     required this.referencias,
@@ -140,7 +157,9 @@ class InstanciaTurno {
   })  : servicios = List.unmodifiable(servicios),
         admisibles = List.unmodifiable(servicios.where((s) => s.tieneAlternativas)),
         conductores = Map.unmodifiable(conductores),
-        codigosVehiculo = Map.unmodifiable(codigosVehiculo);
+        codigosVehiculo = Map.unmodifiable(codigosVehiculo),
+        codigosConductor = Map.unmodifiable(codigosConductor),
+        habituales = Map.unmodifiable(habituales);
 
   final DateTime fecha;
 
@@ -153,8 +172,12 @@ class InstanciaTurno {
   /// `C` con `H_c0` y `H_cmáx`.
   final Map<int, ConductorTurno> conductores;
 
-  /// Códigos de los vehículos disponibles, para los mensajes.
+  /// Códigos de los vehículos y conductores registrados, para los mensajes.
   final Map<int, String> codigosVehiculo;
+  final Map<int, String> codigosConductor;
+
+  /// `chab(v)`: unidad → conductor habitual.
+  final Map<int, int> habituales;
 
   /// `t_mín`: holgura mínima entre servicios del mismo vehículo o conductor.
   final int holguraMinima;

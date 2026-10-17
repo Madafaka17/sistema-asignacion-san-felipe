@@ -77,6 +77,7 @@ extension Escenario on Entorno {
     String fecha = Entorno.turno,
     int prioridad = 2,
     int capacidad = 1,
+    int? entrada,
   }) async =>
       (await _crear('/api/servicios', {
         'codigo': codigo,
@@ -85,7 +86,39 @@ extension Escenario on Entorno {
         'horaSolicitada': horaAMinutos(hora),
         'prioridad': prioridad,
         'capacidadRequerida': capacidad,
+        'entradaColaId': entrada,
       }))['id'] as int;
+
+  /// Llegada de una unidad a la cola de la ruta (sección 3.1.2); devuelve el
+  /// id de la entrada.
+  Future<int> llegada(int rutaId, int vehiculoId, String hora, {String fecha = Entorno.turno}) async =>
+      (await _crear('/api/cola', {
+        'rutaId': rutaId,
+        'fecha': fecha,
+        'vehiculoId': vehiculoId,
+        'llegada': horaAMinutos(hora),
+      }))['id'] as int;
+
+  /// `chab(v)` y `C_v^R` de una unidad.
+  Future<Respuesta> autorizar(int vehiculoId, {int? habitual, List<int> reemplazos = const []}) => put(
+        '/api/vehiculos/$vehiculoId/conductores',
+        {'conductorHabitualId': habitual, 'reemplazos': reemplazos},
+        como: 'jdespacho',
+      );
+
+  /// Todos los conductores registrados quedan como reemplazos autorizados de
+  /// todas las unidades: para los escenarios que no ejercen la regla de
+  /// pares de la sección 3.1.2.
+  Future<void> autorizarTodos() async {
+    final conductores = [
+      for (final c in (await get('/api/conductores?tamano=200', como: 'jdespacho')).mapa['elementos'] as List<Object?>)
+        (c as Map<String, Object?>)['id'] as int,
+    ];
+    for (final v in (await get('/api/vehiculos?tamano=200', como: 'jdespacho')).mapa['elementos'] as List<Object?>) {
+      final r = await autorizar((v as Map<String, Object?>)['id'] as int, reemplazos: conductores);
+      expect(r.estado, 200, reason: 'pares de ${v['codigo']}: $r');
+    }
+  }
 
   Future<Respuesta> generar([String fecha = Entorno.turno]) =>
       post('/api/programaciones', {'fecha': fecha}, como: 'operaciones');
@@ -116,6 +149,7 @@ extension Escenario on Entorno {
     await servicio('S-105', r[1], '09:00');
     await servicio('S-106', r[2], '10:00', prioridad: 1);
     await servicio('S-107', r[0], '12:00', prioridad: 1);
+    await autorizarTodos();
     return (vehiculos: v, conductores: c, rutas: r);
   }
 }

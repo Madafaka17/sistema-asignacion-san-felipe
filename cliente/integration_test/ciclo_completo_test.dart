@@ -18,7 +18,9 @@ import 'cliente_grabador.dart';
 ///   MySQL → actualización reactiva de la interfaz,
 ///
 /// y, a continuación, el caso de uso principal: generar y aprobar la
-/// programación del turno con el servicio recién registrado.
+/// programación del turno con el servicio recién registrado. El servicio toma
+/// el turno de la unidad que corresponde en la cola de Moyobamba (sección
+/// 3.1.2), si queda alguno libre en la base de demostración.
 ///
 /// Requiere el servidor y la base de demostración en marcha (`docker compose
 /// up` o `herramientas/e2e.sh`). Configuración con `--dart-define`:
@@ -105,9 +107,21 @@ void main() {
     await tester.tap(find.byKey(const Key('boton_nuevo_servicio')));
     await asentar(tester);
     await tester.enterText(find.byKey(const Key('campo_codigo_servicio')), codigo);
-    await elegir(tester, find.byKey(const Key('campo_ruta_servicio')), 'R-03 · Soritor – Rioja');
-    final rutaR03 = _entero((await bd.execute("SELECT id FROM ruta WHERE codigo = 'R-03'")).rows.single, 'id');
-    await elegir(tester, find.byKey(ValueKey('campo_hora_servicio_$rutaR03')), '07:30');
+    await elegir(tester, find.byKey(const Key('campo_ruta_servicio')), 'R-01 · Soritor – Moyobamba');
+    final rutaR01 = _entero((await bd.execute("SELECT id FROM ruta WHERE codigo = 'R-01'")).rows.single, 'id');
+    await elegir(tester, find.byKey(ValueKey('campo_hora_servicio_$rutaR01')), '11:00');
+    // Turno que el formulario propone: el primero libre de la cola que llegó
+    // antes de la salida (v0(s)).
+    final turnos = (await bd.execute(
+      'SELECT e.id, v.codigo FROM entrada_cola e JOIN cola c ON c.id = e.cola_id '
+      'JOIN vehiculo v ON v.id = e.vehiculo_id LEFT JOIN servicio s ON s.entrada_vigente = e.id '
+      'WHERE c.ruta_id = :r AND c.fecha = :f AND e.activa AND s.id IS NULL AND e.llegada <= 660 '
+      'ORDER BY e.posicion LIMIT 1',
+      {'r': rutaR01, 'f': fechaATexto(turno)},
+    ))
+        .rows;
+    final turnoEsperado = turnos.isEmpty ? null : _entero(turnos.single, 'id');
+    final unidadEnTurno = turnos.isEmpty ? null : turnos.single.colByName('codigo');
     await elegir(tester, find.byKey(const Key('campo_prioridad_servicio')), 'Alta (3)');
     await tester.enterText(find.byKey(const Key('campo_capacidad_servicio')), '4');
     await capturar('02_formulario_servicio');
@@ -130,10 +144,11 @@ void main() {
     expect(envio.cuerpoEnviado, {
       'codigo': codigo,
       'fecha': fechaATexto(turno),
-      'rutaId': rutaR03,
-      'horaSolicitada': 450,
+      'rutaId': rutaR01,
+      'horaSolicitada': 660,
       'prioridad': 3,
       'capacidadRequerida': 4,
+      'entradaColaId': turnoEsperado,
     });
 
     liberar.complete();
@@ -147,7 +162,8 @@ void main() {
 
     // d) MySQL guardó el registro con los mismos valores.
     final fila = (await bd.execute(
-      'SELECT s.id, s.fecha, s.hora_solicitada, s.prioridad, s.capacidad_requerida, s.estado, u.nombre_usuario '
+      'SELECT s.id, s.fecha, s.hora_solicitada, s.prioridad, s.capacidad_requerida, s.estado, s.entrada_cola_id, '
+      'u.nombre_usuario '
       'FROM servicio s JOIN usuario u ON u.id = s.creado_por WHERE s.codigo = :c',
       {'c': codigo},
     ))
@@ -155,7 +171,8 @@ void main() {
         .single;
     expect(_entero(fila, 'id'), creado.id);
     expect(fila.colByName('fecha'), startsWith(fechaATexto(turno)));
-    expect(_entero(fila, 'hora_solicitada'), 450);
+    expect(_entero(fila, 'hora_solicitada'), 660);
+    expect(fila.colByName('entrada_cola_id'), turnoEsperado?.toString());
     expect(_entero(fila, 'prioridad'), 3);
     expect(_entero(fila, 'capacidad_requerida'), 4);
     expect(fila.colByName('estado'), 'pendiente');
@@ -183,7 +200,13 @@ void main() {
     expect(propuesta.phiValidador, 0, reason: 'RNF-01: el validador independiente confirma Φ = 0');
     final asignacion = propuesta.asignaciones.singleWhere((a) => a.codigoServicio == codigo);
     expect(asignacion.estado, EstadoAsignacion.asignado);
-    expect(asignacion.salida, 450);
+    // H_s: salidas autorizadas desde las 11:00 dentro de la tolerancia; Δt(s)
+    // mide la demora respecto de la salida nominal.
+    expect(asignacion.salida, inInclusiveRange(660, 720));
+    expect(asignacion.demoraMin, asignacion.salida! - 660);
+    // σ(s): la unidad es la que corresponde en la cola o la siguiente.
+    expect(asignacion.codigoVehiculoCola, unidadEnTurno);
+    expect(asignacion.saltoCola, unidadEnTurno != null && asignacion.codigoVehiculo != unidadEnTurno);
 
     await tester.tap(find.text('Gantt'));
     await asentar(tester);

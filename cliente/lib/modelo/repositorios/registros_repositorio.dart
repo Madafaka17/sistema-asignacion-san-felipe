@@ -9,6 +9,10 @@ abstract interface class RepositorioVehiculos {
   Future<List<Vehiculo>> listar();
   Future<Vehiculo> crear(Vehiculo vehiculo);
   Future<Vehiculo> actualizar(Vehiculo vehiculo);
+
+  /// `chab(v)` y `C_v^R` de todas las unidades.
+  Future<List<ParAutorizado>> pares();
+  Future<ConductoresAutorizados> asignarConductores(ConductoresAutorizados autorizados);
 }
 
 abstract interface class RepositorioConductores {
@@ -32,6 +36,13 @@ abstract interface class RepositorioServicios {
   Future<ServicioProgramado> crear(ServicioProgramado servicio);
   Future<ServicioProgramado> actualizar(ServicioProgramado servicio);
   Future<ServicioProgramado> cancelar(int id);
+}
+
+/// Cola de despacho de cada ruta y fecha (sección 3.1.2).
+abstract interface class RepositorioCola {
+  Future<List<EntradaCola>> entradas(DateTime fecha, {int? rutaId});
+  Future<EntradaCola> registrar(SolicitudEntradaCola solicitud);
+  Future<EntradaCola> retirar(int id);
 }
 
 abstract interface class RepositorioUsuarios {
@@ -63,6 +74,14 @@ class RepositorioVehiculosApi implements RepositorioVehiculos {
   @override
   Future<Vehiculo> actualizar(Vehiculo vehiculo) async =>
       Vehiculo.fromJson(await _api.put('/vehiculos/${vehiculo.id}', vehiculo.toJson()));
+
+  @override
+  Future<List<ParAutorizado>> pares() async => _lista(await _api.get('/pares'), ParAutorizado.fromJson);
+
+  @override
+  Future<ConductoresAutorizados> asignarConductores(ConductoresAutorizados a) async => ConductoresAutorizados.fromJson(
+        await _api.put('/vehiculos/${a.vehiculoId}/conductores', a.toJson()..remove('vehiculoId')),
+      );
 }
 
 class RepositorioConductoresApi implements RepositorioConductores {
@@ -136,6 +155,25 @@ class RepositorioServiciosApi implements RepositorioServicios {
   @override
   Future<ServicioProgramado> cancelar(int id) async =>
       ServicioProgramado.fromJson(await _api.post('/servicios/$id/cancelar'));
+}
+
+class RepositorioColaApi implements RepositorioCola {
+  const RepositorioColaApi(this._api);
+
+  final ApiCliente _api;
+
+  @override
+  Future<List<EntradaCola>> entradas(DateTime fecha, {int? rutaId}) async => _lista(
+        await _api.get('/cola', consulta: {'fecha': fechaATexto(fecha), if (rutaId != null) 'rutaId': '$rutaId'}),
+        EntradaCola.fromJson,
+      );
+
+  @override
+  Future<EntradaCola> registrar(SolicitudEntradaCola solicitud) async =>
+      EntradaCola.fromJson(await _api.post('/cola', solicitud.toJson()));
+
+  @override
+  Future<EntradaCola> retirar(int id) async => EntradaCola.fromJson(await _api.post('/cola/$id/retirar'));
 }
 
 class RepositorioUsuariosApi implements RepositorioUsuarios {

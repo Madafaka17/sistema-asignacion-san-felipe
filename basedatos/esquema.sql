@@ -22,6 +22,9 @@ DROP TABLE IF EXISTS historial_aptitud;
 DROP TABLE IF EXISTS asignacion;
 DROP TABLE IF EXISTS programacion;
 DROP TABLE IF EXISTS servicio;
+DROP TABLE IF EXISTS entrada_cola;
+DROP TABLE IF EXISTS cola;
+DROP TABLE IF EXISTS par_autorizado;
 DROP TABLE IF EXISTS salida_autorizada;
 DROP TABLE IF EXISTS ruta_vehiculo;
 DROP TABLE IF EXISTS ruta;
@@ -108,18 +111,44 @@ CREATE TABLE conductor (
 ) ENGINE = InnoDB;
 
 -- ---------------------------------------------------------------------
--- R: rutas autorizadas (HU-04) y compatibilidad κ(v, r) (relación N:M)
+-- Pares autorizados unidad–conductor (sección 3.1.2): chab(v) y C_v^R.
+-- Las columnas generadas garantizan que cada unidad tenga a lo sumo un
+-- conductor habitual y que cada conductor sea habitual de una sola unidad.
+-- ---------------------------------------------------------------------
+CREATE TABLE par_autorizado (
+    vehiculo_id         INT UNSIGNED NOT NULL,
+    conductor_id        INT UNSIGNED NOT NULL,
+    tipo                ENUM('habitual', 'reemplazo') NOT NULL,
+    creado_en           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    habitual_vehiculo   INT UNSIGNED AS (IF(tipo = 'habitual', vehiculo_id, NULL)) STORED,
+    habitual_conductor  INT UNSIGNED AS (IF(tipo = 'habitual', conductor_id, NULL)) STORED,
+    PRIMARY KEY (vehiculo_id, conductor_id),
+    UNIQUE KEY uq_par_habitual_vehiculo (habitual_vehiculo),
+    UNIQUE KEY uq_par_habitual_conductor (habitual_conductor),
+    -- Sin ON DELETE CASCADE: MySQL no lo admite sobre columnas base de una
+    -- columna generada; las unidades y los conductores no se eliminan.
+    CONSTRAINT fk_par_vehiculo  FOREIGN KEY (vehiculo_id)  REFERENCES vehiculo (id),
+    CONSTRAINT fk_par_conductor FOREIGN KEY (conductor_id) REFERENCES conductor (id)
+) ENGINE = InnoDB;
+
+-- ---------------------------------------------------------------------
+-- R: rutas autorizadas (HU-04) y compatibilidad κ(v, r) (relación N:M).
+-- Cada servicio es un viaje redondo desde el terminal: duracion_min es la
+-- duración del ciclo (ida, estancia y retorno), d_{s,h}; ida_min es el
+-- tiempo de ida declarado por la empresa, que se conserva como referencia.
 -- ---------------------------------------------------------------------
 CREATE TABLE ruta (
     id            INT UNSIGNED      NOT NULL AUTO_INCREMENT,
     codigo        VARCHAR(10)       NOT NULL,
     origen        VARCHAR(80)       NOT NULL,
     destino       VARCHAR(80)       NOT NULL,
-    duracion_min  SMALLINT UNSIGNED NOT NULL,
+    duracion_min  SMALLINT UNSIGNED NOT NULL COMMENT 'Duración del ciclo d_{s,h}',
+    ida_min       SMALLINT UNSIGNED NULL     COMMENT 'Ida declarada (referencia por validar)',
     activa        BOOLEAN           NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id),
     UNIQUE KEY uq_ruta_codigo (codigo),
-    CONSTRAINT ck_ruta_duracion CHECK (duracion_min > 0)
+    CONSTRAINT ck_ruta_duracion CHECK (duracion_min > 0),
+    CONSTRAINT ck_ruta_ida CHECK (ida_min IS NULL OR (ida_min > 0 AND 2 * ida_min <= duracion_min))
 ) ENGINE = InnoDB;
 
 CREATE TABLE ruta_vehiculo (
@@ -147,9 +176,50 @@ CREATE TABLE salida_autorizada (
 ) ENGINE = InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Cola de despacho de cada ruta y fecha (sección 3.1.2). Las unidades salen
+-- por orden de llegada: posicion = π. Las entradas no se borran ni se
+-- reordenan; cada llegada recibe la posición siguiente a la última (bajo
+-- bloqueo de la fila de la cola) y una unidad que deja la cola queda con
+-- activa = FALSE, de modo que se conserva el orden en que se formó.
+-- El terminal es el origen de la ruta.
+-- ---------------------------------------------------------------------
+CREATE TABLE cola (
+    id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    ruta_id    INT UNSIGNED NOT NULL,
+    fecha      DATE         NOT NULL,
+    creado_en  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_cola_ruta_fecha (ruta_id, fecha),
+    CONSTRAINT fk_cola_ruta FOREIGN KEY (ruta_id) REFERENCES ruta (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE entrada_cola (
+    id              INT UNSIGNED      NOT NULL AUTO_INCREMENT,
+    cola_id         INT UNSIGNED      NOT NULL,
+    vehiculo_id     INT UNSIGNED      NOT NULL,
+    posicion        SMALLINT UNSIGNED NOT NULL,
+    llegada         SMALLINT UNSIGNED NOT NULL COMMENT 'Minutos desde la medianoche',
+    activa          BOOLEAN           NOT NULL DEFAULT TRUE,
+    registrado_por  INT UNSIGNED      NULL,
+    creado_en       DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    retirada_en     DATETIME          NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_entrada_posicion (cola_id, posicion),
+    KEY ix_entrada_vehiculo (vehiculo_id),
+    CONSTRAINT fk_entrada_cola     FOREIGN KEY (cola_id)        REFERENCES cola (id),
+    CONSTRAINT fk_entrada_vehiculo FOREIGN KEY (vehiculo_id)    REFERENCES vehiculo (id),
+    CONSTRAINT fk_entrada_usuario  FOREIGN KEY (registrado_por) REFERENCES usuario (id) ON DELETE SET NULL,
+    CONSTRAINT ck_entrada_posicion CHECK (posicion > 0),
+    CONSTRAINT ck_entrada_llegada  CHECK (llegada < 1440)
+) ENGINE = InnoDB;
+
+-- ---------------------------------------------------------------------
 -- S: servicios programados (HU-06). r(s) = ruta_id, p_s = prioridad,
 -- q_s = capacidad_requerida. La clave foránea compuesta garantiza que la
--- hora solicitada sea una salida autorizada de la ruta.
+-- hora solicitada sea una salida autorizada de la ruta; esa hora es la
+-- salida nominal desde la que se mide Δt(s).
+-- entrada_cola_id es el turno en la cola: su unidad es v0(s) y su posición,
+-- π(s). Un turno solo puede corresponder a un servicio no cancelado.
 -- ---------------------------------------------------------------------
 CREATE TABLE servicio (
     id                   INT UNSIGNED      NOT NULL AUTO_INCREMENT,
@@ -160,13 +230,17 @@ CREATE TABLE servicio (
     prioridad            TINYINT UNSIGNED  NOT NULL,
     capacidad_requerida  SMALLINT UNSIGNED NOT NULL,
     estado               ENUM('pendiente', 'programado', 'cancelado') NOT NULL DEFAULT 'pendiente',
+    entrada_cola_id      INT UNSIGNED      NULL,
     creado_por           INT UNSIGNED      NULL,
     creado_en            DATETIME          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    entrada_vigente      INT UNSIGNED AS (IF(estado <> 'cancelado', entrada_cola_id, NULL)) STORED,
     PRIMARY KEY (id),
     UNIQUE KEY uq_servicio_codigo (codigo),
+    UNIQUE KEY uq_servicio_entrada (entrada_vigente),
     KEY ix_servicio_fecha_estado (fecha, estado),
     CONSTRAINT fk_servicio_salida FOREIGN KEY (ruta_id, hora_solicitada)
         REFERENCES salida_autorizada (ruta_id, hora),
+    CONSTRAINT fk_servicio_entrada FOREIGN KEY (entrada_cola_id) REFERENCES entrada_cola (id),
     CONSTRAINT fk_servicio_usuario FOREIGN KEY (creado_por) REFERENCES usuario (id) ON DELETE SET NULL,
     CONSTRAINT ck_servicio_prioridad CHECK (prioridad BETWEEN 1 AND 3),
     CONSTRAINT ck_servicio_capacidad CHECK (capacidad_requerida > 0)
@@ -214,6 +288,9 @@ CREATE TABLE programacion (
 -- x_{s,a} = 1: alternativa (vehículo, conductor, salida) elegida para cada
 -- servicio. Los servicios sin cobertura (u_s = 1) quedan con estado
 -- 'incidencia', sin recursos y con su motivo.
+-- salto_cola = σ(s), reemplazo = η(s) y demora_min = Δt(s) (Tabla 11), con
+-- v0(s) y chab(v) del momento en que se generó o ajustó y la justificación
+-- del salto o del reemplazo (sección 3.6).
 CREATE TABLE asignacion (
     id               INT UNSIGNED      NOT NULL AUTO_INCREMENT,
     programacion_id  INT UNSIGNED      NOT NULL,
@@ -225,6 +302,12 @@ CREATE TABLE asignacion (
     estado           ENUM('asignado', 'incidencia', 'conflicto') NOT NULL,
     motivo           VARCHAR(255)      NULL,
     ajustada         BOOLEAN           NOT NULL DEFAULT FALSE,
+    salto_cola       BOOLEAN           NOT NULL DEFAULT FALSE,
+    reemplazo        BOOLEAN           NOT NULL DEFAULT FALSE,
+    demora_min       SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    vehiculo_cola_id       INT UNSIGNED NULL,
+    conductor_habitual_id  INT UNSIGNED NULL,
+    justificacion    VARCHAR(500)      NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_asignacion_servicio (programacion_id, servicio_id),
     KEY ix_asignacion_vehiculo (vehiculo_id),
@@ -233,6 +316,8 @@ CREATE TABLE asignacion (
     CONSTRAINT fk_asignacion_servicio  FOREIGN KEY (servicio_id)  REFERENCES servicio (id),
     CONSTRAINT fk_asignacion_vehiculo  FOREIGN KEY (vehiculo_id)  REFERENCES vehiculo (id),
     CONSTRAINT fk_asignacion_conductor FOREIGN KEY (conductor_id) REFERENCES conductor (id),
+    CONSTRAINT fk_asignacion_vehiculo_cola FOREIGN KEY (vehiculo_cola_id) REFERENCES vehiculo (id),
+    CONSTRAINT fk_asignacion_habitual FOREIGN KEY (conductor_habitual_id) REFERENCES conductor (id),
     CONSTRAINT ck_asignacion_recursos CHECK (
         (estado = 'incidencia' AND vehiculo_id IS NULL AND conductor_id IS NULL AND salida IS NULL)
         OR (estado <> 'incidencia' AND vehiculo_id IS NOT NULL AND conductor_id IS NOT NULL
@@ -306,10 +391,18 @@ SELECT
     c.codigo                                        AS conductor,
     TIME_FORMAT(SEC_TO_TIME(a.salida * 60), '%H:%i') AS hora_salida,
     TIME_FORMAT(SEC_TO_TIME(a.fin * 60), '%H:%i')    AS hora_termino,
+    a.demora_min,
+    a.salto_cola,
+    vc.codigo                                       AS vehiculo_cola,
+    a.reemplazo,
+    ch.codigo                                       AS conductor_habitual,
+    a.justificacion,
     a.motivo
 FROM asignacion a
 JOIN programacion p ON p.id = a.programacion_id
 JOIN servicio     s ON s.id = a.servicio_id
 JOIN ruta         r ON r.id = s.ruta_id
 LEFT JOIN vehiculo  v ON v.id = a.vehiculo_id
-LEFT JOIN conductor c ON c.id = a.conductor_id;
+LEFT JOIN conductor c ON c.id = a.conductor_id
+LEFT JOIN vehiculo  vc ON vc.id = a.vehiculo_cola_id
+LEFT JOIN conductor ch ON ch.id = a.conductor_habitual_id;

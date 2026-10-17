@@ -35,6 +35,11 @@ modelo:
     A-IIIa: [M1, M2, M3]
     A-IIIb: [M1, M2]
     A-IIIc: [M1, M2, M3]
+  # Reglas de despacho declaradas por la empresa (sección 3.1.2), pendientes
+  # de confirmación con la entrevista E-01 y la observación O-01.
+  reglas_despacho:
+    exigir_par_autorizado: true      # c ∈ {chab(v)} ∪ C_v^R: habitual o reemplazo autorizado
+    permitir_siguiente_unidad: true  # v1(s): la siguiente unidad elegible de la cola
 
 # Algoritmo genético (Tabla 23 de la tesis)
 algoritmo_genetico:

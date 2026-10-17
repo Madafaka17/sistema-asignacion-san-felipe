@@ -71,16 +71,26 @@ void main() {
     List<Vehiculo>? vehiculos,
     List<Conductor>? conductores,
     Map<int, Alternativa> comprometidas = const {},
-  }) =>
-      const ConstructorInstancia(parametros).construir(DatosTurno(
-        fecha: fecha,
-        servicios: servicios ?? [servicio(115, '07:30')],
-        vehiculos: vehiculos ?? [vehiculo(1), vehiculo(2)],
-        conductores: conductores ?? [conductor(12), conductor(8)],
-        rutas: [ruta],
-        salidas: salidas,
-        comprometidas: comprometidas,
-      ));
+  }) {
+    final flota = vehiculos ?? [vehiculo(1), vehiculo(2)];
+    final plantilla = conductores ?? [conductor(12), conductor(8)];
+    return const ConstructorInstancia(parametros).construir(DatosTurno(
+      fecha: fecha,
+      servicios: servicios ?? [servicio(115, '07:30')],
+      vehiculos: flota,
+      conductores: plantilla,
+      rutas: [ruta],
+      salidas: salidas,
+      // Todos los conductores son reemplazos autorizados de todas las
+      // unidades: estas pruebas no ejercen la regla de pares (ver
+      // cola_pares_test.dart).
+      pares: [
+        for (final v in flota)
+          for (final c in plantilla) ParAutorizado(vehiculoId: v.id, conductorId: c.id, tipo: TipoPar.reemplazo),
+      ],
+      comprometidas: comprometidas,
+    ));
+  }
 
   test('A_s combina vehículos compatibles, conductores y salidas de H_s', () {
     final s = construir().servicios.single;

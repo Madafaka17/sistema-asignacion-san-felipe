@@ -24,7 +24,7 @@ class UsuarioControlador {
   }
 }
 
-/// `/api/vehiculos` (HU-02).
+/// `/api/vehiculos` (HU-02) y sus conductores autorizados (sección 3.1.2).
 class VehiculoControlador {
   VehiculoControlador(this._servicio);
 
@@ -53,6 +53,19 @@ class VehiculoControlador {
       final autor = autorizar(s, Modulo.vehiculos, escritura: true);
       final vehiculo = Vehiculo.fromJson(await leerJson(s));
       return respuestaJson((await _servicio.actualizar(parametroEntero(s, 'id'), vehiculo, autor)).toJson());
+    });
+    r.get('/api/pares', (Request s) async {
+      autorizar(s, Modulo.vehiculos);
+      return respuestaJson([for (final p in await _servicio.paresAutorizados()) p.toJson()]);
+    });
+    r.get('/api/vehiculos/<id|[0-9]+>/conductores', (Request s) async {
+      autorizar(s, Modulo.vehiculos);
+      return respuestaJson((await _servicio.conductoresDe(parametroEntero(s, 'id'))).toJson());
+    });
+    r.put('/api/vehiculos/<id|[0-9]+>/conductores', (Request s) async {
+      final autor = autorizar(s, Modulo.vehiculos, escritura: true);
+      final solicitud = ConductoresAutorizados.fromJson(await leerJson(s));
+      return respuestaJson((await _servicio.asignarConductores(parametroEntero(s, 'id'), solicitud, autor)).toJson());
     });
   }
 }
@@ -130,6 +143,32 @@ class RutaControlador {
       final autor = autorizar(s, Modulo.rutas, escritura: true);
       await _servicio.eliminarSalida(parametroEntero(s, 'id'), autor);
       return Response(204);
+    });
+  }
+}
+
+/// `/api/cola`: cola de despacho de cada ruta y fecha (sección 3.1.2).
+class ColaControlador {
+  ColaControlador(this._servicio);
+
+  final ColaServicio _servicio;
+
+  void registrar(Router r) {
+    r.get('/api/cola', (Request s) async {
+      autorizar(s, Modulo.cola);
+      final fecha = fechaConsulta(s, 'fecha', obligatoria: true)!;
+      final ruta = s.url.queryParameters['rutaId'];
+      final entradas = await _servicio.listar(fecha, rutaId: ruta == null ? null : int.tryParse(ruta) ?? -1);
+      return respuestaJson([for (final e in entradas) e.toJson()]);
+    });
+    r.post('/api/cola', (Request s) async {
+      final autor = autorizar(s, Modulo.cola, escritura: true);
+      final solicitud = SolicitudEntradaCola.fromJson(await leerJson(s));
+      return creado((await _servicio.registrarLlegada(solicitud, autor)).toJson());
+    });
+    r.post('/api/cola/<id|[0-9]+>/retirar', (Request s) async {
+      final autor = autorizar(s, Modulo.cola, escritura: true);
+      return respuestaJson((await _servicio.retirar(parametroEntero(s, 'id'), autor)).toJson());
     });
   }
 }

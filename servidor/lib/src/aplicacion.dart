@@ -12,8 +12,10 @@ import 'http/middleware.dart';
 import 'infraestructura/base_datos.dart';
 import 'infraestructura/reloj.dart';
 import 'repositorios/repositorio_bitacora.dart';
+import 'repositorios/repositorio_cola.dart';
 import 'repositorios/repositorio_conductores.dart';
 import 'repositorios/repositorio_incidencias.dart';
+import 'repositorios/repositorio_pares.dart';
 import 'repositorios/repositorio_programaciones.dart';
 import 'repositorios/repositorio_reportes.dart';
 import 'repositorios/repositorio_rutas.dart';
@@ -29,7 +31,7 @@ import 'servicios/programacion_servicio.dart';
 import 'servicios/registros_servicio.dart';
 
 /// Versión del ejecutable del servidor (independiente de la del contrato).
-const versionServidor = '1.0.0';
+const versionServidor = '1.1.0';
 
 /// Raíz de composición: el único lugar donde se crean y conectan las capas
 /// (inyección de dependencias manual).
@@ -56,6 +58,8 @@ Handler crearAplicacion({
   final repoVehiculos = RepositorioVehiculosMysql(bd);
   final repoConductores = RepositorioConductoresMysql(bd);
   final repoRutas = RepositorioRutasMysql(bd);
+  final repoCola = RepositorioColaMysql(bd);
+  final repoPares = RepositorioParesMysql(bd);
   final repoServicios = RepositorioServiciosMysql(bd);
   final repoProgramaciones = RepositorioProgramacionesMysql(bd);
   final repoIncidencias = RepositorioIncidenciasMysql(bd);
@@ -87,8 +91,14 @@ Handler crearAplicacion({
     usuarios: repoUsuarios,
     contrasenas: contrasenas,
   );
-  final servicioVehiculos =
-      VehiculoServicio(bd: bd, bitacora: repoBitacora, reloj: relojEfectivo, vehiculos: repoVehiculos);
+  final servicioVehiculos = VehiculoServicio(
+    baseDatos: bd,
+    bitacora: repoBitacora,
+    reloj: relojEfectivo,
+    vehiculos: repoVehiculos,
+    conductores: repoConductores,
+    pares: repoPares,
+  );
   final servicioConductores =
       ConductorServicio(bd: bd, bitacora: repoBitacora, reloj: relojEfectivo, conductores: repoConductores);
   final servicioRutas = RutaServicio(
@@ -104,6 +114,15 @@ Handler crearAplicacion({
     reloj: relojEfectivo,
     servicios: repoServicios,
     rutas: repoRutas,
+    cola: repoCola,
+  );
+  final servicioCola = ColaServicio(
+    baseDatos: bd,
+    bitacora: repoBitacora,
+    reloj: relojEfectivo,
+    cola: repoCola,
+    rutas: repoRutas,
+    vehiculos: repoVehiculos,
   );
   final servicioProgramacion = ProgramacionServicio(
     bd: bd,
@@ -111,6 +130,8 @@ Handler crearAplicacion({
     vehiculos: repoVehiculos,
     conductores: repoConductores,
     rutas: repoRutas,
+    cola: repoCola,
+    pares: repoPares,
     programaciones: repoProgramaciones,
     bitacora: repoBitacora,
     parametros: parametros,
@@ -138,6 +159,7 @@ Handler crearAplicacion({
   ConductorControlador(servicioConductores).registrar(enrutador);
   RutaControlador(servicioRutas).registrar(enrutador);
   ServicioProgramadoControlador(servicioServicios).registrar(enrutador);
+  ColaControlador(servicioCola).registrar(enrutador);
   ProgramacionControlador(servicioProgramacion).registrar(enrutador);
   IncidenciaControlador(servicioIncidencias).registrar(enrutador);
   ReporteControlador(

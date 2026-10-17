@@ -51,6 +51,12 @@ class ReporteIndicadores {
     this.desviacionCarga = 0,
     this.tiempoGeneracionPromedioS = 0,
     this.programacionesGeneradas = 0,
+    this.reemplazos = 0,
+    this.saltosCola = 0,
+    this.salidasDemoradas = 0,
+    this.minutosDemora = 0,
+    this.retrasoAcumuladoMin = 0,
+    this.tiempoMuertoMin = 0,
   });
 
   /// Reporte de un periodo en el que no hay programaciones aprobadas.
@@ -68,7 +74,13 @@ class ReporteIndicadores {
         pav = 0,
         desviacionCarga = 0,
         tiempoGeneracionPromedioS = 0,
-        programacionesGeneradas = 0;
+        programacionesGeneradas = 0,
+        reemplazos = 0,
+        saltosCola = 0,
+        salidasDemoradas = 0,
+        minutosDemora = 0,
+        retrasoAcumuladoMin = 0,
+        tiempoMuertoMin = 0;
 
   static const mensajeSinDatos = 'Sin datos para el periodo';
 
@@ -91,6 +103,16 @@ class ReporteIndicadores {
   final double tiempoGeneracionPromedioS;
   final int programacionesGeneradas;
 
+  /// Indicadores operativos de la Tabla 24 sobre las programaciones
+  /// aprobadas: `Ση(s)`, `Σσ(s)`, servicios con `Δt(s) > 0`, `ΣΔt(s)`,
+  /// `Ret(X)` y `Tm(X)` acumulados.
+  final int reemplazos;
+  final int saltosCola;
+  final int salidasDemoradas;
+  final int minutosDemora;
+  final int retrasoAcumuladoMin;
+  final int tiempoMuertoMin;
+
   Map<String, Object?> toJson() => {
         'desde': fechaATexto(desde),
         'hasta': fechaATexto(hasta),
@@ -109,6 +131,12 @@ class ReporteIndicadores {
         'desviacionCarga': desviacionCarga,
         'tiempoGeneracionPromedioS': tiempoGeneracionPromedioS,
         'programacionesGeneradas': programacionesGeneradas,
+        'reemplazos': reemplazos,
+        'saltosCola': saltosCola,
+        'salidasDemoradas': salidasDemoradas,
+        'minutosDemora': minutosDemora,
+        'retrasoAcumuladoMin': retrasoAcumuladoMin,
+        'tiempoMuertoMin': tiempoMuertoMin,
       };
 
   factory ReporteIndicadores.fromJson(Map<String, Object?> json) {
@@ -130,6 +158,12 @@ class ReporteIndicadores {
       desviacionCarga: d('desviacionCarga'),
       tiempoGeneracionPromedioS: d('tiempoGeneracionPromedioS'),
       programacionesGeneradas: json['programacionesGeneradas'] as int,
+      reemplazos: json['reemplazos'] as int,
+      saltosCola: json['saltosCola'] as int,
+      salidasDemoradas: json['salidasDemoradas'] as int,
+      minutosDemora: json['minutosDemora'] as int,
+      retrasoAcumuladoMin: json['retrasoAcumuladoMin'] as int,
+      tiempoMuertoMin: json['tiempoMuertoMin'] as int,
     );
   }
 }

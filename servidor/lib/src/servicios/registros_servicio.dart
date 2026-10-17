@@ -4,7 +4,9 @@ import '../configuracion/parametros_sistema.dart';
 import '../infraestructura/base_datos.dart';
 import '../infraestructura/reloj.dart';
 import '../repositorios/repositorio_bitacora.dart';
+import '../repositorios/repositorio_cola.dart';
 import '../repositorios/repositorio_conductores.dart';
+import '../repositorios/repositorio_pares.dart';
 import '../repositorios/repositorio_rutas.dart';
 import '../repositorios/repositorio_servicios.dart';
 import '../repositorios/repositorio_usuarios.dart';
@@ -80,11 +82,21 @@ class UsuarioServicio extends ServicioConBitacora {
   }
 }
 
-/// HU-02: registro de vehículos.
+/// HU-02: registro de vehículos y de sus conductores autorizados.
 class VehiculoServicio extends ServicioConBitacora {
-  VehiculoServicio({required super.bd, required super.bitacora, required super.reloj, required this.vehiculos});
+  VehiculoServicio({
+    required this.baseDatos,
+    required super.bitacora,
+    required super.reloj,
+    required this.vehiculos,
+    required this.conductores,
+    required this.pares,
+  }) : super(bd: baseDatos);
 
+  final BaseDatos baseDatos;
   final RepositorioVehiculos vehiculos;
+  final RepositorioConductores conductores;
+  final RepositorioPares pares;
 
   Future<Pagina<Vehiculo>> listar(ParametrosPagina pagina, {EstadoVehiculo? estado}) =>
       vehiculos.listar(pagina, estado: estado);
@@ -105,6 +117,65 @@ class VehiculoServicio extends ServicioConBitacora {
     await vehiculos.actualizar(nuevo);
     await registrar(autor, 'actualizar_vehiculo', 'vehiculo', id, {'antes': anterior.toJson(), 'despues': nuevo.toJson()});
     return obtener(id);
+  }
+
+  /// `chab(v)` y `C_v^R` de todas las unidades.
+  Future<List<ParAutorizado>> paresAutorizados() => pares.todos();
+
+  Future<ConductoresAutorizados> conductoresDe(int id) async {
+    await obtener(id);
+    return pares.deVehiculo(id);
+  }
+
+  /// Reemplaza el conductor habitual y los reemplazos autorizados de la
+  /// unidad (sección 3.1.2). Cada unidad tiene a lo sumo un habitual y cada
+  /// conductor es habitual de una sola unidad; el cambio queda en la
+  /// bitácora con el conjunto anterior y el nuevo.
+  Future<ConductoresAutorizados> asignarConductores(
+    int id,
+    ConductoresAutorizados solicitud,
+    UsuarioAutenticado autor,
+  ) async {
+    final vehiculo = await obtener(id);
+    final habitual = solicitud.conductorHabitualId;
+    final reemplazos = solicitud.reemplazos.toSet();
+    if (habitual != null && reemplazos.contains(habitual)) {
+      reglaIncumplida('reemplazos', 'El conductor habitual no puede figurar también como reemplazo');
+    }
+    final plantilla = {for (final c in await conductores.todos()) c.id: c};
+    if (habitual != null && !plantilla.containsKey(habitual)) {
+      reglaIncumplida('conductorHabitualId', 'El conductor habitual no existe');
+    }
+    if (!plantilla.keys.toSet().containsAll(reemplazos)) reglaIncumplida('reemplazos', 'Algún reemplazo no existe');
+    if (habitual != null) {
+      final otra = await pares.unidadHabitual(habitual);
+      if (otra != null && otra != id) {
+        final unidad = await vehiculos.buscar(otra);
+        duplicado(
+          'conductorHabitualId',
+          '${plantilla[habitual]!.codigo} ya es conductor habitual de ${unidad?.codigo ?? 'otra unidad'}',
+        );
+      }
+    }
+    final nuevo = ConductoresAutorizados(
+      vehiculoId: id,
+      conductorHabitualId: habitual,
+      reemplazos: reemplazos.toList()..sort(),
+    );
+    final anterior = await pares.deVehiculo(id);
+    await baseDatos.transaccion((tx) async {
+      await pares.reemplazar(tx, nuevo);
+      await bitacora.registrar(
+        tx,
+        usuarioId: autor.id,
+        accion: 'asignar_conductores',
+        entidad: 'vehiculo',
+        entidadId: id,
+        detalle: {'vehiculo': vehiculo.codigo, 'antes': anterior.toJson(), 'despues': nuevo.toJson()},
+        fechaHora: reloj.ahora(),
+      );
+    });
+    return pares.deVehiculo(id);
   }
 
   Future<void> _validar(Vehiculo v, {int? excepto}) async {
@@ -198,6 +269,7 @@ class RutaServicio extends ServicioConBitacora {
       origen: ruta.origen,
       destino: ruta.destino,
       duracionMin: ruta.duracionMin,
+      idaMin: ruta.idaMin,
       activa: ruta.activa,
       vehiculosCompatibles: ruta.vehiculosCompatibles,
     );
@@ -236,6 +308,9 @@ class RutaServicio extends ServicioConBitacora {
   Future<void> _validar(Ruta r, {int? excepto}) async {
     if (r.duracionMin <= 0) reglaIncumplida('duracionMin', 'La duración debe ser mayor que cero');
     if (r.duracionMin >= minutosPorDia) reglaIncumplida('duracionMin', 'La duración debe ser menor de 24 horas');
+    if (r.idaMin case final ida? when ida <= 0 || 2 * ida > r.duracionMin) {
+      reglaIncumplida('idaMin', 'La duración del viaje redondo debe cubrir la ida y el retorno (al menos ${2 * ida} min)');
+    }
     final existentes = {for (final v in await vehiculos.todos()) v.id};
     if (!existentes.containsAll(r.vehiculosCompatibles)) {
       reglaIncumplida('vehiculosCompatibles', 'Algún vehículo compatible no existe');
@@ -244,7 +319,7 @@ class RutaServicio extends ServicioConBitacora {
   }
 }
 
-/// HU-06: servicios del turno con su ruta y prioridad.
+/// HU-06: servicios del turno con su ruta, prioridad y turno en la cola.
 class ServicioProgramadoServicio extends ServicioConBitacora {
   ServicioProgramadoServicio({
     required super.bd,
@@ -252,10 +327,12 @@ class ServicioProgramadoServicio extends ServicioConBitacora {
     required super.reloj,
     required this.servicios,
     required this.rutas,
+    required this.cola,
   });
 
   final RepositorioServicios servicios;
   final RepositorioRutas rutas;
+  final RepositorioCola cola;
 
   Future<Pagina<ServicioProgramado>> listar(ParametrosPagina pagina, {DateTime? fecha, EstadoServicio? estado}) =>
       servicios.listar(pagina, fecha: fecha, estado: estado);
@@ -283,6 +360,7 @@ class ServicioProgramadoServicio extends ServicioConBitacora {
       horaSolicitada: servicio.horaSolicitada,
       prioridad: servicio.prioridad,
       capacidadRequerida: servicio.capacidadRequerida,
+      entradaColaId: servicio.entradaColaId,
     );
     await _validar(nuevo, excepto: id);
     await servicios.actualizar(nuevo);
@@ -306,6 +384,119 @@ class ServicioProgramadoServicio extends ServicioConBitacora {
     if (s.prioridad < 1 || s.prioridad > 3) reglaIncumplida('prioridad', 'La prioridad debe ser 1, 2 o 3');
     if (s.capacidadRequerida < 1) reglaIncumplida('capacidadRequerida', 'La capacidad requerida debe ser al menos 1');
     if (await servicios.existeCodigo(s.codigo, excepto: excepto)) duplicado('codigo', 'El código de servicio ya está registrado');
+    if (s.entradaColaId case final entradaId?) {
+      // v0(s): el turno debe ser de la misma cola, seguir activo, no estar
+      // tomado por otro servicio y la unidad debe llegar antes de la salida.
+      final entrada = await cola.buscar(entradaId) ?? reglaIncumplida('entradaColaId', 'El turno de cola no existe');
+      final unidad = entrada.codigoVehiculo ?? '${entrada.vehiculoId}';
+      if (entrada.rutaId != s.rutaId || entrada.fecha != soloFecha(s.fecha)) {
+        reglaIncumplida('entradaColaId', 'El turno elegido es de la cola de otra ruta o de otra fecha');
+      }
+      if (!entrada.activa) reglaIncumplida('entradaColaId', 'La unidad $unidad dejó la cola');
+      if (s.horaSolicitada < entrada.llegada) {
+        reglaIncumplida(
+          'entradaColaId',
+          'La unidad $unidad llega a la cola a las ${minutosAHora(entrada.llegada)}, después de la salida solicitada',
+        );
+      }
+      final otro = await servicios.conEntrada(entradaId, excepto: excepto);
+      if (otro != null) {
+        duplicado('entradaColaId', 'El turno de $unidad (posición ${entrada.posicion}) ya corresponde al servicio ${otro.codigo}');
+      }
+    }
+  }
+}
+
+/// Cola de despacho (sección 3.1.2): llegada de las unidades al terminal y
+/// su retiro. Las unidades salen por orden de llegada.
+class ColaServicio extends ServicioConBitacora {
+  ColaServicio({
+    required this.baseDatos,
+    required super.bitacora,
+    required super.reloj,
+    required this.cola,
+    required this.rutas,
+    required this.vehiculos,
+  }) : super(bd: baseDatos);
+
+  final BaseDatos baseDatos;
+  final RepositorioCola cola;
+  final RepositorioRutas rutas;
+  final RepositorioVehiculos vehiculos;
+
+  Future<List<EntradaCola>> listar(DateTime fecha, {int? rutaId}) => cola.entradas(fecha, rutaId: rutaId);
+
+  /// Registra la llegada de una unidad: recibe la posición siguiente a la
+  /// última de la cola, bajo bloqueo de la cola.
+  Future<EntradaCola> registrarLlegada(SolicitudEntradaCola s, UsuarioAutenticado autor) async {
+    final ruta = await rutas.buscar(s.rutaId);
+    if (ruta == null || !ruta.activa) reglaIncumplida('rutaId', 'Seleccione una ruta activa');
+    final vehiculo = await vehiculos.buscar(s.vehiculoId) ?? reglaIncumplida('vehiculoId', 'El vehículo no existe');
+    if (!vehiculo.disponible) reglaIncumplida('vehiculoId', 'La unidad ${vehiculo.codigo} no está operativa');
+    if (!ruta.vehiculosCompatibles.contains(vehiculo.id)) {
+      reglaIncumplida('vehiculoId', 'La unidad ${vehiculo.codigo} no es compatible con la ruta ${ruta.codigo}');
+    }
+    if (!esMinutoDelDia(s.llegada)) reglaIncumplida('llegada', 'La hora debe estar entre 00:00 y 23:59');
+    final id = await baseDatos.transaccion((tx) async {
+      final colaId = await cola.bloquearCola(tx, ruta.id, s.fecha);
+      final ultima = await cola.ultima(tx, colaId);
+      if (ultima != null && s.llegada < ultima.llegada) {
+        reglaIncumplida(
+          'llegada',
+          'La cola es por orden de llegada: la última unidad llegó a las ${minutosAHora(ultima.llegada)}',
+        );
+      }
+      final enEspera = await cola.enEspera(tx, vehiculo.id, s.fecha);
+      if (enEspera != null) {
+        final otra = enEspera.rutaId == ruta.id ? ruta : await rutas.buscar(enEspera.rutaId);
+        duplicado(
+          'vehiculoId',
+          'La unidad ${vehiculo.codigo} ya espera turno en la posición ${enEspera.posicion} de la cola de '
+              '${otra?.codigo ?? 'otra ruta'}',
+        );
+      }
+      final posicion = (ultima?.posicion ?? 0) + 1;
+      final id = await cola.insertar(
+        tx,
+        colaId: colaId,
+        vehiculoId: vehiculo.id,
+        posicion: posicion,
+        llegada: s.llegada,
+        usuarioId: autor.id,
+      );
+      await bitacora.registrar(
+        tx,
+        usuarioId: autor.id,
+        accion: 'registrar_llegada',
+        entidad: 'entrada_cola',
+        entidadId: id,
+        detalle: {
+          'ruta': ruta.codigo,
+          'fecha': fechaATexto(s.fecha),
+          'vehiculo': vehiculo.codigo,
+          'posicion': posicion,
+          'llegada': minutosAHora(s.llegada),
+        },
+        fechaHora: reloj.ahora(),
+      );
+      return id;
+    });
+    return (await cola.buscar(id))!;
+  }
+
+  /// La unidad deja la cola: la entrada queda inactiva y conserva su
+  /// posición; si correspondía a un servicio, la generación usará la
+  /// siguiente unidad elegible (salto de cola).
+  Future<EntradaCola> retirar(int id, UsuarioAutenticado autor) async {
+    final entrada = await cola.buscar(id) ?? noEncontrado('Turno de cola no encontrado');
+    if (!entrada.activa) reglaIncumplida('activa', 'La unidad ${entrada.codigoVehiculo} ya dejó la cola');
+    await cola.retirar(id, reloj.ahora());
+    await registrar(autor, 'retirar_de_cola', 'entrada_cola', id, {
+      'vehiculo': entrada.codigoVehiculo,
+      'posicion': entrada.posicion,
+      'servicio': entrada.codigoServicio,
+    });
+    return (await cola.buscar(id))!;
   }
 }
 

@@ -9,7 +9,8 @@ import '../componentes/selector_fecha.dart';
 import '../componentes/tabla_datos.dart';
 import '../formato.dart';
 
-/// HU-06: servicios del turno con su ruta y prioridad (wireframe W-06).
+/// HU-06: servicios del turno con su ruta, prioridad y turno en la cola
+/// (wireframe W-06).
 class PantallaServicios extends StatelessWidget {
   const PantallaServicios({super.key, this.editable = true});
 
@@ -52,6 +53,9 @@ class PantallaServicios extends StatelessWidget {
                 ColumnaTabla('Código', (s) => Text(s.codigo)),
                 ColumnaTabla('Ruta', (s) => Text(s.codigoRuta ?? rutas[s.rutaId]?.codigo ?? '${s.rutaId}')),
                 ColumnaTabla('Hora', (s) => Text(minutosAHora(s.horaSolicitada))),
+                ColumnaTabla('Turno en la cola', (s) => Text(
+                      s.codigoVehiculoCola == null ? '—' : '${s.codigoVehiculoCola} · posición ${s.posicionCola}',
+                    )),
                 ColumnaTabla('Prioridad', (s) => Text(_prioridades[s.prioridad] ?? '${s.prioridad}')),
                 ColumnaTabla('Asientos', (s) => Text('${s.capacidadRequerida}'), numerica: true),
                 ColumnaTabla('Estado', (s) => Chip(label: Text(s.estado.etiqueta))),
@@ -105,11 +109,16 @@ class _FormularioServicioState extends State<_FormularioServicio> {
   late int? _rutaId = widget.servicio?.rutaId;
   late int? _hora = widget.servicio?.horaSolicitada;
   late int _prioridad = widget.servicio?.prioridad ?? 2;
+  late int? _entrada = widget.servicio?.entradaColaId;
+
+  /// En un servicio nuevo, mientras no se elija otro, el turno es el de la
+  /// unidad que corresponde por orden de llegada.
+  late bool _entradaElegida = widget.servicio != null;
 
   @override
   void initState() {
     super.initState();
-    if (_rutaId != null) context.read<ServiciosControlador>().cargarSalidas(_rutaId!);
+    if (_rutaId != null) context.read<ServiciosControlador>().cargarRuta(_rutaId!);
   }
 
   @override
@@ -123,6 +132,12 @@ class _FormularioServicioState extends State<_FormularioServicio> {
   Widget build(BuildContext context) {
     final c = context.watch<ServiciosControlador>();
     final salidas = _rutaId == null ? const <SalidaAutorizada>[] : c.salidasDe(_rutaId!);
+    final turnos = _rutaId == null || _hora == null
+        ? const <EntradaCola>[]
+        : c.turnosDisponibles(_rutaId!, _hora!, servicioId: widget.servicio?.id);
+    final entrada = _entradaElegida
+        ? (turnos.any((e) => e.id == _entrada) ? _entrada : null)
+        : turnos.firstOrNull?.id;
     return DialogoFormulario<ServiciosControlador>(
       titulo: widget.servicio == null ? 'Nuevo servicio · ${fechaCorta(c.fecha)}' : 'Editar ${widget.servicio!.codigo}',
       claveGuardar: const Key('boton_guardar_servicio'),
@@ -134,6 +149,7 @@ class _FormularioServicioState extends State<_FormularioServicio> {
         horaSolicitada: _hora!,
         prioridad: _prioridad,
         capacidadRequerida: int.parse(_capacidad.text.trim()),
+        entradaColaId: entrada,
       )),
       campos: (errores) => [
         campoTexto(
@@ -157,7 +173,7 @@ class _FormularioServicioState extends State<_FormularioServicio> {
               _rutaId = v;
               _hora = null;
             });
-            if (v != null) c.cargarSalidas(v);
+            if (v != null) c.cargarRuta(v);
           },
         ),
         DropdownButtonFormField<int>(
@@ -173,6 +189,29 @@ class _FormularioServicioState extends State<_FormularioServicio> {
           ],
           validator: (v) => v == null ? 'Seleccione una hora autorizada' : null,
           onChanged: (v) => setState(() => _hora = v),
+        ),
+        DropdownButtonFormField<int?>(
+          key: ValueKey('campo_cola_servicio_${_rutaId}_$_hora'),
+          initialValue: entrada,
+          decoration: InputDecoration(
+            labelText: 'Turno en la cola',
+            errorText: errores['entradaColaId'],
+            helperText: turnos.isEmpty
+                ? 'Ninguna unidad espera turno antes de esta salida'
+                : 'Unidad que corresponde por orden de llegada; la generación puede usar la siguiente',
+          ),
+          items: [
+            const DropdownMenuItem<int?>(value: null, child: Text('Sin turno de cola')),
+            for (final e in turnos)
+              DropdownMenuItem<int?>(
+                value: e.id,
+                child: Text('Posición ${e.posicion} · ${e.codigoVehiculo} (llegó ${minutosAHora(e.llegada)})'),
+              ),
+          ],
+          onChanged: (v) => setState(() {
+            _entrada = v;
+            _entradaElegida = true;
+          }),
         ),
         DropdownButtonFormField<int>(
           key: const Key('campo_prioridad_servicio'),

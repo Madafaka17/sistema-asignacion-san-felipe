@@ -35,7 +35,7 @@ class RepositorioRutasMysql implements RepositorioRutas {
 
   @override
   Future<List<Ruta>> todas() async {
-    final filas = await _bd.consultar('SELECT id, codigo, origen, destino, duracion_min, activa FROM ruta ORDER BY codigo');
+    final filas = await _bd.consultar('SELECT $_columnas FROM ruta ORDER BY codigo');
     final compatibles = <int, List<int>>{};
     for (final f in await _bd.consultar('SELECT ruta_id, vehiculo_id FROM ruta_vehiculo ORDER BY vehiculo_id')) {
       compatibles.putIfAbsent(f.entero('ruta_id'), () => []).add(f.entero('vehiculo_id'));
@@ -46,7 +46,7 @@ class RepositorioRutasMysql implements RepositorioRutas {
   @override
   Future<Ruta?> buscar(int id) async {
     final filas = await _bd.consultar(
-      'SELECT id, codigo, origen, destino, duracion_min, activa FROM ruta WHERE id = :id',
+      'SELECT $_columnas FROM ruta WHERE id = :id',
       {'id': id},
     );
     if (filas.isEmpty) return null;
@@ -57,12 +57,15 @@ class RepositorioRutasMysql implements RepositorioRutas {
     return _ruta(filas.single, [for (final f in compatibles) f.entero('vehiculo_id')]);
   }
 
+  static const _columnas = 'id, codigo, origen, destino, duracion_min, ida_min, activa';
+
   static Ruta _ruta(Fila f, List<int> compatibles) => Ruta(
         id: f.entero('id'),
         codigo: f.texto('codigo'),
         origen: f.texto('origen'),
         destino: f.texto('destino'),
         duracionMin: f.entero('duracion_min'),
+        idaMin: f.enteroNulo('ida_min'),
         activa: f.booleano('activa'),
         vehiculosCompatibles: compatibles,
       );
@@ -77,8 +80,8 @@ class RepositorioRutasMysql implements RepositorioRutas {
   @override
   Future<int> crear(Ruta ruta) => _bd.transaccion((tx) async {
         final id = (await tx.ejecutar(
-          'INSERT INTO ruta (codigo, origen, destino, duracion_min, activa) '
-          'VALUES (:codigo, :origen, :destino, :duracion, :activa)',
+          'INSERT INTO ruta (codigo, origen, destino, duracion_min, ida_min, activa) '
+          'VALUES (:codigo, :origen, :destino, :duracion, :ida, :activa)',
           _parametros(ruta),
         ))
             .idInsertado;
@@ -90,7 +93,7 @@ class RepositorioRutasMysql implements RepositorioRutas {
   Future<void> actualizar(Ruta ruta) => _bd.transaccion((tx) async {
         await tx.ejecutar(
           'UPDATE ruta SET codigo = :codigo, origen = :origen, destino = :destino, '
-          'duracion_min = :duracion, activa = :activa WHERE id = :id',
+          'duracion_min = :duracion, ida_min = :ida, activa = :activa WHERE id = :id',
           {..._parametros(ruta), 'id': ruta.id},
         );
         await tx.ejecutar('DELETE FROM ruta_vehiculo WHERE ruta_id = :id', {'id': ruta.id});
@@ -111,6 +114,7 @@ class RepositorioRutasMysql implements RepositorioRutas {
         'origen': r.origen,
         'destino': r.destino,
         'duracion': r.duracionMin,
+        'ida': r.idaMin,
         'activa': r.activa,
       };
 

@@ -3,7 +3,7 @@
 /// Sigue el esquema MAYOR.MENOR.PARCHE de las etiquetas de lanzamiento del
 /// repositorio (`v1.0.0`). Un cliente `vX.Y.*` solo opera con un servidor
 /// `vX.Y.*`: un cambio de MAYOR o MENOR cambia la forma de los datos.
-const String versionApi = '1.0.0';
+const String versionApi = '1.1.0';
 
 /// Indica si dos versiones del contrato pueden operar juntas: deben coincidir
 /// en MAYOR y MENOR. Devuelve `false` si alguna versión está mal formada.

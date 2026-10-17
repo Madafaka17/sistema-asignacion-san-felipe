@@ -26,7 +26,8 @@ void main() {
     final antiguo = await entorno.solicitar('GET', '/api/version', cabeceras: {'x-version-cliente': '0.9.0'});
     expect(antiguo.estado, 426);
     expect(antiguo.error['codigo'], CodigoError.versionIncompatible.valor);
-    final compatible = await entorno.solicitar('GET', '/api/version', cabeceras: {'x-version-cliente': '1.0.7'});
+    final mismoMenor = '${versionApi.split('.').take(2).join('.')}.7';
+    final compatible = await entorno.solicitar('GET', '/api/version', cabeceras: {'x-version-cliente': mismoMenor});
     expect(compatible.estado, 200);
   });
 

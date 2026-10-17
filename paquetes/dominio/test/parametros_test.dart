@@ -37,6 +37,17 @@ void main() {
       expect(ParametrosModelo.desdeMapa(p.toJson()).toJson(), p.toJson());
     });
 
+    test('las reglas de despacho se exigen por defecto y pueden desactivarse (sección 3.1.2)', () {
+      expect(const ParametrosModelo().exigirParAutorizado, isTrue);
+      expect(const ParametrosModelo().permitirSiguienteUnidad, isTrue);
+      final p = ParametrosModelo.desdeMapa(const {
+        'reglas_despacho': {'exigir_par_autorizado': false, 'permitir_siguiente_unidad': false},
+      });
+      expect(p.exigirParAutorizado, isFalse);
+      expect(p.permitirSiguienteUnidad, isFalse);
+      expect(p.toJson()['reglas_despacho'], {'exigir_par_autorizado': false, 'permitir_siguiente_unidad': false});
+    });
+
     test('un mapa vacío usa los valores por defecto y la matriz de licencias por defecto', () {
       final p = ParametrosModelo.desdeMapa(const {});
       expect(p.toJson(), const ParametrosModelo().toJson());

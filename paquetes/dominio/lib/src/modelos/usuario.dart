@@ -20,6 +20,7 @@ enum Modulo {
   conductores('Conductores'),
   rutas('Rutas y salidas'),
   servicios('Servicios'),
+  cola('Cola de despacho'),
   incidencias('Incidencias'),
   programacion('Programación'),
   reportes('Reportes'),
@@ -41,6 +42,7 @@ class Permisos {
     Modulo.conductores: {Rol.despacho, Rol.operaciones},
     Modulo.rutas: {Rol.despacho, Rol.operaciones},
     Modulo.servicios: {Rol.despacho, Rol.operaciones},
+    Modulo.cola: {Rol.despacho, Rol.operaciones},
     Modulo.incidencias: {Rol.despacho, Rol.operaciones},
     Modulo.programacion: {Rol.operaciones},
     Modulo.reportes: {Rol.operaciones},
@@ -54,6 +56,7 @@ class Permisos {
     Modulo.conductores: {Rol.despacho},
     Modulo.rutas: {Rol.despacho},
     Modulo.servicios: {Rol.despacho},
+    Modulo.cola: {Rol.despacho},
     Modulo.incidencias: {Rol.despacho},
     Modulo.programacion: {Rol.operaciones},
     Modulo.reportes: {},
@@ -72,6 +75,7 @@ class Permisos {
   static List<Modulo> modulosNavegacion(Rol rol) => switch (rol) {
         Rol.despacho => const [
             Modulo.servicios,
+            Modulo.cola,
             Modulo.vehiculos,
             Modulo.conductores,
             Modulo.rutas,

@@ -14,6 +14,9 @@ abstract interface class RepositorioServicios {
 
   Future<bool> existeCodigo(String codigo, {int? excepto});
 
+  /// Servicio no cancelado que ya usa el turno de cola [entradaId].
+  Future<ServicioProgramado?> conEntrada(int entradaId, {int? excepto});
+
   Future<int> crear(ServicioProgramado servicio, int? usuarioId);
 
   Future<void> actualizar(ServicioProgramado servicio);
@@ -27,8 +30,10 @@ class RepositorioServiciosMysql implements RepositorioServicios {
   final BaseDatos _bd;
 
   static const _columnas = 's.id, s.codigo, s.fecha, s.ruta_id, s.hora_solicitada, s.prioridad, '
-      's.capacidad_requerida, s.estado, r.codigo AS codigo_ruta';
-  static const _desde = 'FROM servicio s JOIN ruta r ON r.id = s.ruta_id';
+      's.capacidad_requerida, s.estado, s.entrada_cola_id, r.codigo AS codigo_ruta, '
+      'e.posicion AS posicion_cola, ve.codigo AS vehiculo_cola';
+  static const _desde = 'FROM servicio s JOIN ruta r ON r.id = s.ruta_id '
+      'LEFT JOIN entrada_cola e ON e.id = s.entrada_cola_id LEFT JOIN vehiculo ve ON ve.id = e.vehiculo_id';
 
   static ServicioProgramado _servicio(Fila f) => ServicioProgramado(
         id: f.entero('id'),
@@ -39,7 +44,10 @@ class RepositorioServiciosMysql implements RepositorioServicios {
         prioridad: f.entero('prioridad'),
         capacidadRequerida: f.entero('capacidad_requerida'),
         estado: EstadoServicio.desdeValor(f.texto('estado')),
+        entradaColaId: f.enteroNulo('entrada_cola_id'),
         codigoRuta: f.texto('codigo_ruta'),
+        codigoVehiculoCola: f.textoNulo('vehiculo_cola'),
+        posicionCola: f.enteroNulo('posicion_cola'),
       );
 
   @override
@@ -54,7 +62,7 @@ class RepositorioServiciosMysql implements RepositorioServicios {
     ];
     final donde = condiciones.isEmpty ? '' : 'WHERE ${condiciones.join(' AND ')}';
     final parametros = {'fecha': fecha == null ? null : formatoFecha(fecha), 'estado': estado?.valor};
-    final total = (await _bd.consultar('SELECT COUNT(*) AS n $_desde $donde', parametros)).single.entero('n');
+    final total = (await _bd.consultar('SELECT COUNT(*) AS n FROM servicio s $donde', parametros)).single.entero('n');
     final filas = await _bd.consultar(
       'SELECT $_columnas $_desde $donde ORDER BY s.fecha, s.hora_solicitada, s.codigo '
       'LIMIT :limite OFFSET :desplazamiento',
@@ -98,9 +106,18 @@ class RepositorioServiciosMysql implements RepositorioServicios {
           .isNotEmpty;
 
   @override
+  Future<ServicioProgramado?> conEntrada(int entradaId, {int? excepto}) async {
+    final filas = await _bd.consultar(
+      'SELECT $_columnas $_desde WHERE s.entrada_vigente = :entrada AND s.id <> :excepto',
+      {'entrada': entradaId, 'excepto': excepto ?? 0},
+    );
+    return filas.isEmpty ? null : _servicio(filas.single);
+  }
+
+  @override
   Future<int> crear(ServicioProgramado s, int? usuarioId) async => (await _bd.ejecutar(
-        'INSERT INTO servicio (codigo, fecha, ruta_id, hora_solicitada, prioridad, capacidad_requerida, creado_por) '
-        'VALUES (:codigo, :fecha, :ruta, :hora, :prioridad, :capacidad, :usuario)',
+        'INSERT INTO servicio (codigo, fecha, ruta_id, hora_solicitada, prioridad, capacidad_requerida, '
+        'entrada_cola_id, creado_por) VALUES (:codigo, :fecha, :ruta, :hora, :prioridad, :capacidad, :entrada, :usuario)',
         {..._parametros(s), 'usuario': usuarioId},
       ))
           .idInsertado;
@@ -108,7 +125,8 @@ class RepositorioServiciosMysql implements RepositorioServicios {
   @override
   Future<void> actualizar(ServicioProgramado s) => _bd.ejecutar(
         'UPDATE servicio SET codigo = :codigo, fecha = :fecha, ruta_id = :ruta, hora_solicitada = :hora, '
-        'prioridad = :prioridad, capacidad_requerida = :capacidad, estado = :estado WHERE id = :id',
+        'prioridad = :prioridad, capacidad_requerida = :capacidad, entrada_cola_id = :entrada, estado = :estado '
+        'WHERE id = :id',
         {..._parametros(s), 'estado': s.estado.valor, 'id': s.id},
       );
 
@@ -130,5 +148,6 @@ class RepositorioServiciosMysql implements RepositorioServicios {
         'hora': s.horaSolicitada,
         'prioridad': s.prioridad,
         'capacidad': s.capacidadRequerida,
+        'entrada': s.entradaColaId,
       };
 }

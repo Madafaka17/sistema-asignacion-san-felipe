@@ -18,6 +18,7 @@ void main() {
       final c12 = await entorno.conductor('C-12', '70000012');
       final ruta = await entorno.ruta('R-03', 95, [v07], salidas: ['07:30']);
       await entorno.servicio('S-115', ruta, '07:30', prioridad: 3);
+      await entorno.autorizarTodos();
       final propuesta = await entorno.generar();
       expect((await entorno.post('/api/programaciones/${propuesta.mapa['id']}/aprobar', null, como: 'operaciones')).estado, 200);
 
@@ -62,6 +63,7 @@ void main() {
       await entorno.conductor('C-12', '70000012');
       final ruta = await entorno.ruta('R-03', 95, [v07], salidas: ['07:30']);
       await entorno.servicio('S-115', ruta, '07:30');
+      await entorno.autorizarTodos();
       final propuesta = await entorno.generar();
       await entorno.post('/api/programaciones/${propuesta.mapa['id']}/aprobar', null, como: 'operaciones');
 

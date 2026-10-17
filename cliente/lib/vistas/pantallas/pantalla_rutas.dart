@@ -27,7 +27,8 @@ class PantallaRutas extends StatelessWidget {
       columnas: [
         ColumnaTabla('Código', (r) => Text(r.codigo, style: TextStyle(fontWeight: r.id == c.seleccionada?.id ? FontWeight.bold : null))),
         ColumnaTabla('Origen – destino', (r) => Text(r.nombre)),
-        ColumnaTabla('Duración', (r) => Text('${r.duracionMin} min'), numerica: true),
+        ColumnaTabla('Viaje redondo', (r) => Text('${r.duracionMin} min'), numerica: true),
+        ColumnaTabla('Ida declarada', (r) => Text(r.idaMin == null ? '—' : '${r.idaMin} min'), numerica: true),
         ColumnaTabla('Compatibles', (r) => Text([for (final id in r.vehiculosCompatibles) flota[id] ?? '$id'].join(', '))),
         ColumnaTabla('Activa', (r) => Icon(r.activa ? Icons.check : Icons.block)),
         if (editable)
@@ -170,12 +171,13 @@ class _FormularioRutaState extends State<_FormularioRuta> {
   late final _origen = TextEditingController(text: widget.ruta?.origen ?? 'Soritor');
   late final _destino = TextEditingController(text: widget.ruta?.destino);
   late final _duracion = TextEditingController(text: widget.ruta == null ? '' : '${widget.ruta!.duracionMin}');
+  late final _ida = TextEditingController(text: widget.ruta?.idaMin == null ? '' : '${widget.ruta!.idaMin}');
   late bool _activa = widget.ruta?.activa ?? true;
   late final Set<int> _compatibles = {...?widget.ruta?.vehiculosCompatibles};
 
   @override
   void dispose() {
-    for (final t in [_codigo, _origen, _destino, _duracion]) {
+    for (final t in [_codigo, _origen, _destino, _duracion, _ida]) {
       t.dispose();
     }
     super.dispose();
@@ -193,6 +195,7 @@ class _FormularioRutaState extends State<_FormularioRuta> {
         origen: _origen.text.trim(),
         destino: _destino.text.trim(),
         duracionMin: int.parse(_duracion.text.trim()),
+        idaMin: int.tryParse(_ida.text.trim()),
         activa: _activa,
         vehiculosCompatibles: _compatibles.toList()..sort(),
       )),
@@ -203,11 +206,22 @@ class _FormularioRutaState extends State<_FormularioRuta> {
         campoTexto(
           key: const Key('campo_duracion_ruta'),
           controlador: _duracion,
-          etiqueta: 'Duración estimada (min)',
+          etiqueta: 'Duración del viaje redondo (min)',
+          ayuda: 'Ida, estancia en destino y retorno: tiempo que la unidad y el conductor quedan ocupados',
           teclado: TextInputType.number,
           errorServidor: e['duracionMin'],
           // La misma regla que valida el servidor (HU-04, escenario de error).
           validar: (t) => (int.tryParse(t) ?? 0) <= 0 ? 'La duración debe ser mayor que cero' : null,
+        ),
+        campoTexto(
+          key: const Key('campo_ida_ruta'),
+          controlador: _ida,
+          etiqueta: 'Ida declarada (min, opcional)',
+          ayuda: 'Referencia de la empresa; no reemplaza la duración del viaje redondo',
+          teclado: TextInputType.number,
+          errorServidor: e['idaMin'],
+          obligatorio: false,
+          validar: (t) => t.isEmpty || (int.tryParse(t) ?? 0) > 0 ? null : 'Ingrese minutos mayores que cero',
         ),
         Text('Vehículos compatibles', style: Theme.of(context).textTheme.labelLarge),
         Wrap(spacing: 8, children: [

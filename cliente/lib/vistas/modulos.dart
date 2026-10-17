@@ -8,6 +8,7 @@ import '../controladores/sesion_controlador.dart';
 import '../modelo/repositorios/operacion_repositorio.dart';
 import '../modelo/repositorios/registros_repositorio.dart';
 import 'pantallas/pantalla_administracion.dart';
+import 'pantallas/pantalla_cola.dart';
 import 'pantallas/pantalla_conductores.dart';
 import 'pantallas/pantalla_incidencias.dart';
 import 'pantallas/pantalla_programacion.dart';
@@ -23,7 +24,7 @@ Widget construirModulo(Modulo modulo) => Builder(builder: (context) {
       T leer<T>() => context.read<T>();
       return switch (modulo) {
         Modulo.vehiculos => ChangeNotifierProvider(
-            create: (_) => VehiculosControlador(leer<RepositorioVehiculos>())..cargar(),
+            create: (_) => VehiculosControlador(leer<RepositorioVehiculos>(), leer<RepositorioConductores>())..cargar(),
             child: PantallaVehiculos(editable: escribe),
           ),
         Modulo.conductores => ChangeNotifierProvider(
@@ -35,8 +36,14 @@ Widget construirModulo(Modulo modulo) => Builder(builder: (context) {
             child: PantallaRutas(editable: escribe),
           ),
         Modulo.servicios => ChangeNotifierProvider(
-            create: (_) => ServiciosControlador(leer<RepositorioServicios>(), leer<RepositorioRutas>())..cargar(),
+            create: (_) =>
+                ServiciosControlador(leer<RepositorioServicios>(), leer<RepositorioRutas>(), leer<RepositorioCola>())..cargar(),
             child: PantallaServicios(editable: escribe),
+          ),
+        Modulo.cola => ChangeNotifierProvider(
+            create: (_) =>
+                ColaControlador(leer<RepositorioCola>(), leer<RepositorioRutas>(), leer<RepositorioVehiculos>())..cargar(),
+            child: PantallaCola(editable: escribe),
           ),
         Modulo.incidencias => ChangeNotifierProvider(
             create: (_) => IncidenciasControlador(leer<RepositorioIncidencias>())..cargar(),

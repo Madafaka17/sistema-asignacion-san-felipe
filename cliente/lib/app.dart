@@ -33,6 +33,7 @@ class AplicacionSanFelipe extends StatelessWidget {
         Provider<RepositorioConductores>(create: (_) => RepositorioConductoresApi(api)),
         Provider<RepositorioRutas>(create: (_) => RepositorioRutasApi(api)),
         Provider<RepositorioServicios>(create: (_) => RepositorioServiciosApi(api)),
+        Provider<RepositorioCola>(create: (_) => RepositorioColaApi(api)),
         Provider<RepositorioUsuarios>(create: (_) => RepositorioUsuariosApi(api)),
         Provider<RepositorioProgramaciones>(create: (_) => RepositorioProgramacionesApi(api)),
         Provider<RepositorioIncidencias>(create: (_) => RepositorioIncidenciasApi(api)),

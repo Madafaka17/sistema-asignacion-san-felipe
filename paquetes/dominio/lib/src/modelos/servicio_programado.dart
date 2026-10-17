@@ -25,6 +25,10 @@ enum EstadoServicio {
 ///   candidatas `H_s` son las autorizadas entre esa hora y la tolerancia
 ///   configurada.
 /// * `prioridad` es `p_s` (3 = más alta) y `capacidadRequerida` es `q_s`.
+/// * `entradaColaId` es el turno en la cola de su destino: la unidad de esa
+///   entrada es `v0(s)` y su posición, `π(s)`. La hora solicitada es la
+///   salida nominal, desde la que se mide la demora `Δt(s)`. Un servicio sin
+///   entrada no está sujeto a la regla de cola.
 class ServicioProgramado {
   const ServicioProgramado({
     this.id = 0,
@@ -35,7 +39,10 @@ class ServicioProgramado {
     required this.prioridad,
     required this.capacidadRequerida,
     this.estado = EstadoServicio.pendiente,
+    this.entradaColaId,
     this.codigoRuta,
+    this.codigoVehiculoCola,
+    this.posicionCola,
   });
 
   final int id;
@@ -48,9 +55,12 @@ class ServicioProgramado {
   final int prioridad;
   final int capacidadRequerida;
   final EstadoServicio estado;
+  final int? entradaColaId;
 
-  /// Solo informativo en las respuestas.
+  /// Solo informativos en las respuestas.
   final String? codigoRuta;
+  final String? codigoVehiculoCola;
+  final int? posicionCola;
 
   Map<String, Object?> toJson() => {
         'id': id,
@@ -61,10 +71,13 @@ class ServicioProgramado {
         'prioridad': prioridad,
         'capacidadRequerida': capacidadRequerida,
         'estado': estado.valor,
+        'entradaColaId': entradaColaId,
         if (codigoRuta != null) 'codigoRuta': codigoRuta,
+        if (codigoVehiculoCola != null) 'codigoVehiculoCola': codigoVehiculoCola,
+        if (posicionCola != null) 'posicionCola': posicionCola,
       };
 
-  /// Cuerpo de alta o edición: sin `id`, `estado` ni `codigoRuta`.
+  /// Cuerpo de alta o edición: sin `id`, `estado` ni los campos informativos.
   Map<String, Object?> toJsonSolicitud() => {
         'codigo': codigo,
         'fecha': fechaATexto(fecha),
@@ -72,6 +85,7 @@ class ServicioProgramado {
         'horaSolicitada': horaSolicitada,
         'prioridad': prioridad,
         'capacidadRequerida': capacidadRequerida,
+        'entradaColaId': entradaColaId,
       };
 
   factory ServicioProgramado.fromJson(Object? json) {
@@ -87,7 +101,10 @@ class ServicioProgramado {
       estado: l.contiene('estado')
           ? l.enumeracion('estado', EstadoServicio.values, (e) => e.valor)
           : EstadoServicio.pendiente,
+      entradaColaId: l.enteroOpcional('entradaColaId'),
       codigoRuta: l.textoOpcional('codigoRuta'),
+      codigoVehiculoCola: l.textoOpcional('codigoVehiculoCola'),
+      posicionCola: l.enteroOpcional('posicionCola'),
     );
     l.verificar();
     return servicio;

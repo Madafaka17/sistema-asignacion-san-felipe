@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 /// Versión del cliente; viaja en `X-Version-Cliente` y debe coincidir en
 /// MAYOR.MENOR con la versión del contrato del servidor.
-const versionCliente = '1.0.0';
+const versionCliente = '1.1.0';
 
 /// URL base de la API.
 ///

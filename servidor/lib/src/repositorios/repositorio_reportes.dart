@@ -13,6 +13,12 @@ class DatosIndicadores {
     required this.asignacionesSinConflicto,
     required this.tiempoGeneracionPromedioMs,
     required this.incidenciasPorTipo,
+    this.reemplazos = 0,
+    this.saltosCola = 0,
+    this.salidasDemoradas = 0,
+    this.minutosDemora = 0,
+    this.retrasoMin = 0,
+    this.tiempoMuertoMin = 0,
   });
 
   final int programacionesAprobadas;
@@ -25,6 +31,14 @@ class DatosIndicadores {
   final int asignacionesSinConflicto;
   final double tiempoGeneracionPromedioMs;
   final Map<String, int> incidenciasPorTipo;
+
+  /// Indicadores operativos de las programaciones aprobadas (Tabla 24).
+  final int reemplazos;
+  final int saltosCola;
+  final int salidasDemoradas;
+  final int minutosDemora;
+  final int retrasoMin;
+  final int tiempoMuertoMin;
 }
 
 abstract interface class RepositorioReportes {
@@ -44,13 +58,16 @@ class RepositorioReportesMysql implements RepositorioReportes {
     // tiempo de servicio de los vehículos y tiempo disponible.
     final aprobadas = (await _bd.consultar(
       'SELECT COUNT(*) AS programaciones, COALESCE(SUM(vehiculos_disponibles * :disponible), 0) AS disponibles, '
-      'COALESCE(AVG(desviacion_carga), 0) AS desviacion FROM programacion '
+      'COALESCE(AVG(desviacion_carga), 0) AS desviacion, COALESCE(SUM(retraso_min), 0) AS retraso, '
+      'COALESCE(SUM(tiempo_muerto_min), 0) AS tiempo_muerto FROM programacion '
       "WHERE fecha BETWEEN :desde AND :hasta AND estado = 'aprobada'",
       periodo,
     ))
         .single;
     final servicios = (await _bd.consultar(
-      'SELECT COUNT(*) AS servicios, COALESCE(SUM(a.fin - a.salida), 0) AS minutos FROM asignacion a '
+      'SELECT COUNT(*) AS servicios, COALESCE(SUM(a.fin - a.salida), 0) AS minutos, '
+      'COALESCE(SUM(a.reemplazo), 0) AS reemplazos, COALESCE(SUM(a.salto_cola), 0) AS saltos, '
+      'COALESCE(SUM(a.demora_min > 0), 0) AS demoradas, COALESCE(SUM(a.demora_min), 0) AS demora FROM asignacion a '
       'JOIN programacion p ON p.id = a.programacion_id '
       "WHERE p.fecha BETWEEN :desde AND :hasta AND p.estado = 'aprobada' AND a.estado = 'asignado'",
       periodo,
@@ -87,6 +104,15 @@ class RepositorioReportesMysql implements RepositorioReportes {
       asignacionesSinConflicto: double.parse(generadas.texto('sin_conflicto')).round(),
       tiempoGeneracionPromedioMs: tiempo.decimal('ms'),
       incidenciasPorTipo: {for (final f in incidencias) f.texto('tipo'): f.entero('n')},
+      reemplazos: _suma(servicios, 'reemplazos'),
+      saltosCola: _suma(servicios, 'saltos'),
+      salidasDemoradas: _suma(servicios, 'demoradas'),
+      minutosDemora: _suma(servicios, 'demora'),
+      retrasoMin: _suma(aprobadas, 'retraso'),
+      tiempoMuertoMin: _suma(aprobadas, 'tiempo_muerto'),
     );
   }
+
+  /// `SUM` de MySQL devuelve DECIMAL.
+  static int _suma(Fila f, String columna) => double.parse(f.texto(columna)).round();
 }

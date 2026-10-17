@@ -132,6 +132,12 @@ class Asignacion {
     required this.estado,
     this.motivo,
     this.ajustada = false,
+    this.saltoCola = false,
+    this.reemplazo = false,
+    this.demoraMin = 0,
+    this.codigoVehiculoCola,
+    this.codigoConductorHabitual,
+    this.justificacion,
   });
 
   final int servicioId;
@@ -154,6 +160,23 @@ class Asignacion {
   /// Modificada a mano por el encargado de operaciones (HU-09).
   final bool ajustada;
 
+  /// `σ(s)`: la unidad no es la que correspondía en la cola.
+  final bool saltoCola;
+
+  /// `η(s)`: el conductor no es el habitual de la unidad.
+  final bool reemplazo;
+
+  /// `Δt(s)`: minutos de la salida después de la salida nominal.
+  final int demoraMin;
+
+  /// `v0(s)` y `chab(v)` al generar o ajustar, para mostrar la excepción.
+  final String? codigoVehiculoCola;
+  final String? codigoConductorHabitual;
+
+  /// Motivo del salto de cola o del reemplazo: la explicación del sistema
+  /// o la que escribe el encargado al ajustar (sección 3.6).
+  final String? justificacion;
+
   bool get tieneRecursos => vehiculoId != null && conductorId != null && salida != null;
 
   Map<String, Object?> toJson() => {
@@ -170,6 +193,12 @@ class Asignacion {
         'estado': estado.valor,
         'motivo': motivo,
         'ajustada': ajustada,
+        'saltoCola': saltoCola,
+        'reemplazo': reemplazo,
+        'demoraMin': demoraMin,
+        'codigoVehiculoCola': codigoVehiculoCola,
+        'codigoConductorHabitual': codigoConductorHabitual,
+        'justificacion': justificacion,
       };
 
   factory Asignacion.fromJson(Map<String, Object?> json) => Asignacion(
@@ -186,6 +215,12 @@ class Asignacion {
         estado: EstadoAsignacion.desdeValor(json['estado'] as String),
         motivo: json['motivo'] as String?,
         ajustada: json['ajustada'] as bool,
+        saltoCola: json['saltoCola'] as bool,
+        reemplazo: json['reemplazo'] as bool,
+        demoraMin: json['demoraMin'] as int,
+        codigoVehiculoCola: json['codigoVehiculoCola'] as String?,
+        codigoConductorHabitual: json['codigoConductorHabitual'] as String?,
+        justificacion: json['justificacion'] as String?,
       );
 
   /// Orden de la vista de HU-08: primero las incidencias y cruces, luego las
@@ -251,6 +286,17 @@ class Programacion {
   int get asignados => asignaciones.where((a) => a.estado == EstadoAsignacion.asignado).length;
 
   int get pendientes => asignaciones.length - asignados;
+
+  /// Salidas operativas de la sección 3.5 sobre las asignaciones con
+  /// recursos: `Σσ(s)`, `Ση(s)`, servicios con `Δt(s) > 0` y `ΣΔt(s)`.
+  int get saltosCola => asignaciones.where((a) => a.tieneRecursos && a.saltoCola).length;
+
+  int get reemplazos => asignaciones.where((a) => a.tieneRecursos && a.reemplazo).length;
+
+  int get salidasDemoradas => asignaciones.where((a) => a.tieneRecursos && a.demoraMin > 0).length;
+
+  int get minutosDemora =>
+      asignaciones.where((a) => a.tieneRecursos).fold(0, (suma, a) => suma + a.demoraMin);
 
   Map<String, Object?> toJson() => {
         'id': id,
@@ -318,26 +364,37 @@ class SolicitudProgramacion {
 
 /// Cuerpo de `PUT /api/programaciones/{id}/asignaciones/{servicioId}`
 /// (ajuste manual de HU-09).
+///
+/// `justificacion` es obligatoria cuando el ajuste salta la cola o usa un
+/// reemplazo del conductor habitual (sección 3.6 de la tesis).
 class AjusteAsignacion {
   const AjusteAsignacion({
     required this.vehiculoId,
     required this.conductorId,
     required this.salida,
+    this.justificacion,
   });
 
   final int vehiculoId;
   final int conductorId;
   final int salida;
+  final String? justificacion;
 
-  Map<String, Object?> toJson() =>
-      {'vehiculoId': vehiculoId, 'conductorId': conductorId, 'salida': salida};
+  Map<String, Object?> toJson() => {
+        'vehiculoId': vehiculoId,
+        'conductorId': conductorId,
+        'salida': salida,
+        if (justificacion != null) 'justificacion': justificacion,
+      };
 
   factory AjusteAsignacion.fromJson(Object? json) {
     final l = LectorJson(json);
+    final texto = l.textoOpcional('justificacion');
     final ajuste = AjusteAsignacion(
       vehiculoId: l.entero('vehiculoId'),
       conductorId: l.entero('conductorId'),
       salida: l.entero('salida'),
+      justificacion: texto == null || texto.isEmpty ? null : texto,
     );
     l.verificar();
     return ajuste;

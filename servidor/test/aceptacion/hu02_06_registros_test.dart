@@ -48,6 +48,7 @@ void main() {
       final ruta = await entorno.ruta('R-05', 60, [v07], salidas: ['07:00']);
       await entorno.servicio('S-201', ruta, '07:00');
 
+      await entorno.autorizarTodos();
       final antes = await entorno.generar();
       expect(antes.estado, 201);
       expect(asignacionDe(antes, 'S-201')['codigoVehiculo'], 'V-07');
@@ -87,6 +88,7 @@ void main() {
       // 17:00 queda fuera del turno de C-12 (06:00–16:00).
       await entorno.servicio('S-302', ruta, '17:00');
 
+      await entorno.autorizarTodos();
       final r = await entorno.generar();
       expect(r.estado, 201);
       expect(asignacionDe(r, 'S-301')['conductorId'], c12);
@@ -109,6 +111,7 @@ void main() {
       final ruta = await entorno.ruta('R-02', 90, [v], salidas: ['08:00']);
       await entorno.servicio('S-303', ruta, '08:00');
 
+      await entorno.autorizarTodos();
       final r = await entorno.generar();
       expect(r.estado, 201);
       final s = asignacionDe(r, 'S-303');
@@ -163,6 +166,7 @@ void main() {
       await entorno.salida(ruta, '07:30');
       await entorno.servicio('S-115', ruta, '07:30', prioridad: 3);
 
+      await entorno.autorizarTodos();
       final p = await entorno.generar();
       final s = asignacionDe(p, 'S-115');
       expect(s['salida'], 450); // 07:30

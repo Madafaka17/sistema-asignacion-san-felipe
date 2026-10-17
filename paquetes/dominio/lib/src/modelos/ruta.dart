@@ -1,7 +1,13 @@
 import '../contrato/lector_json.dart';
 
-/// Ruta autorizada (HU-04). `duracionMin` es la duración estimada del
-/// servicio; `vehiculosCompatibles` es la relación `κ(v, r)`.
+/// Ruta autorizada (HU-04); `vehiculosCompatibles` es la relación `κ(v, r)`.
+///
+/// Cada servicio es un viaje redondo desde el terminal: la unidad y el
+/// conductor quedan ocupados durante la ida, la estancia en destino y el
+/// retorno. `duracionMin` es esa duración completa `d_{s,h}`; `idaMin` es
+/// el tiempo de ida declarado por la empresa (30 min a Moyobamba y 150 min a
+/// Tarapoto), que se conserva como referencia y no sustituye a la duración
+/// del ciclo.
 class Ruta {
   const Ruta({
     this.id = 0,
@@ -9,6 +15,7 @@ class Ruta {
     required this.origen,
     required this.destino,
     required this.duracionMin,
+    this.idaMin,
     this.activa = true,
     this.vehiculosCompatibles = const [],
   });
@@ -20,6 +27,9 @@ class Ruta {
   final String origen;
   final String destino;
   final int duracionMin;
+
+  /// Tiempo de ida declarado, en minutos; `null` si no se registró.
+  final int? idaMin;
   final bool activa;
   final List<int> vehiculosCompatibles;
 
@@ -31,6 +41,7 @@ class Ruta {
         'origen': origen,
         'destino': destino,
         'duracionMin': duracionMin,
+        'idaMin': idaMin,
         'activa': activa,
         'vehiculosCompatibles': vehiculosCompatibles,
       };
@@ -43,6 +54,7 @@ class Ruta {
       origen: l.texto('origen', maximo: 80),
       destino: l.texto('destino', maximo: 80),
       duracionMin: l.entero('duracionMin'),
+      idaMin: l.enteroOpcional('idaMin'),
       activa: l.booleano('activa'),
       vehiculosCompatibles: l.listaEnteros('vehiculosCompatibles'),
     );

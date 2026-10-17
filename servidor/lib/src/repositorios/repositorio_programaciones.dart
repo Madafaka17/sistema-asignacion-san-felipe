@@ -12,6 +12,8 @@ class NuevaAsignacion {
     this.fin,
     required this.estado,
     this.motivo,
+    this.excepciones = const ExcepcionesAsignacion(),
+    this.justificacion,
   });
 
   final int servicioId;
@@ -21,6 +23,10 @@ class NuevaAsignacion {
   final int? fin;
   final EstadoAsignacion estado;
   final String? motivo;
+
+  /// `σ(s)`, `η(s)`, `Δt(s)`, `v0(s)` y `chab(v)` de la alternativa.
+  final ExcepcionesAsignacion excepciones;
+  final String? justificacion;
 }
 
 /// Programación propuesta por el módulo de optimización, lista para guardar.
@@ -74,6 +80,9 @@ abstract interface class RepositorioProgramaciones {
 
   Future<void> actualizarAsignacion(Ejecutor ejecutor, int programacionId, NuevaAsignacion asignacion, {bool ajustada});
 
+  /// Cambia solo el estado y el motivo (cruces que deja un ajuste).
+  Future<void> actualizarEstado(Ejecutor ejecutor, int programacionId, int servicioId, EstadoAsignacion estado, String? motivo);
+
   Future<void> actualizarMetricas(Ejecutor ejecutor, int id, {required int phiValidador, required ComponentesAptitud componentes});
 
   Future<void> reemplazarAprobada(Ejecutor ejecutor, DateTime fecha);
@@ -125,7 +134,7 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
       final valores = <String>[];
       final parametros = <String, Object?>{'programacion': id};
       for (final (i, a) in lote.indexed) {
-        valores.add('(:programacion, :s$i, :v$i, :c$i, :h$i, :f$i, :e$i, :m$i)');
+        valores.add('(:programacion, :s$i, :v$i, :c$i, :h$i, :f$i, :e$i, :m$i, :sc$i, :re$i, :dt$i, :v0$i, :ch$i, :j$i)');
         parametros.addAll({
           's$i': a.servicioId,
           'v$i': a.vehiculoId,
@@ -134,10 +143,17 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
           'f$i': a.fin,
           'e$i': a.estado.valor,
           'm$i': a.motivo,
+          'sc$i': a.excepciones.saltoCola,
+          're$i': a.excepciones.reemplazo,
+          'dt$i': a.excepciones.demoraMin,
+          'v0$i': a.excepciones.vehiculoCola,
+          'ch$i': a.excepciones.conductorHabitual,
+          'j$i': a.justificacion,
         });
       }
       await tx.ejecutar(
-        'INSERT INTO asignacion (programacion_id, servicio_id, vehiculo_id, conductor_id, salida, fin, estado, motivo) '
+        'INSERT INTO asignacion (programacion_id, servicio_id, vehiculo_id, conductor_id, salida, fin, estado, motivo, '
+        'salto_cola, reemplazo, demora_min, vehiculo_cola_id, conductor_habitual_id, justificacion) '
         'VALUES ${valores.join(', ')}',
         parametros,
       );
@@ -203,9 +219,11 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
     if (filas.isEmpty) return null;
     final asignaciones = await _bd.consultar(
       'SELECT a.servicio_id, s.codigo AS servicio, r.codigo AS ruta, s.prioridad, a.vehiculo_id, '
-      'v.codigo AS vehiculo, a.conductor_id, c.codigo AS conductor, a.salida, a.fin, a.estado, a.motivo, a.ajustada '
-      'FROM asignacion a JOIN servicio s ON s.id = a.servicio_id JOIN ruta r ON r.id = s.ruta_id '
+      'v.codigo AS vehiculo, a.conductor_id, c.codigo AS conductor, a.salida, a.fin, a.estado, a.motivo, a.ajustada, '
+      'a.salto_cola, a.reemplazo, a.demora_min, vc.codigo AS vehiculo_cola, ch.codigo AS conductor_habitual, '
+      'a.justificacion FROM asignacion a JOIN servicio s ON s.id = a.servicio_id JOIN ruta r ON r.id = s.ruta_id '
       'LEFT JOIN vehiculo v ON v.id = a.vehiculo_id LEFT JOIN conductor c ON c.id = a.conductor_id '
+      'LEFT JOIN vehiculo vc ON vc.id = a.vehiculo_cola_id LEFT JOIN conductor ch ON ch.id = a.conductor_habitual_id '
       'WHERE a.programacion_id = :id',
       {'id': id},
     );
@@ -231,6 +249,12 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
             estado: EstadoAsignacion.desdeValor(a.texto('estado')),
             motivo: a.textoNulo('motivo'),
             ajustada: a.booleano('ajustada'),
+            saltoCola: a.booleano('salto_cola'),
+            reemplazo: a.booleano('reemplazo'),
+            demoraMin: a.entero('demora_min'),
+            codigoVehiculoCola: a.textoNulo('vehiculo_cola'),
+            codigoConductorHabitual: a.textoNulo('conductor_habitual'),
+            justificacion: a.textoNulo('justificacion'),
           ),
       ]..sort(Asignacion.compararParaVista),
       historial: [
@@ -285,7 +309,9 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
   }) =>
       tx.ejecutar(
         'UPDATE asignacion SET vehiculo_id = :v, conductor_id = :c, salida = :h, fin = :f, estado = :e, '
-        'motivo = :m, ajustada = ajustada OR :ajustada WHERE programacion_id = :p AND servicio_id = :s',
+        'motivo = :m, ajustada = ajustada OR :ajustada, salto_cola = :sc, reemplazo = :re, demora_min = :dt, '
+        'vehiculo_cola_id = :v0, conductor_habitual_id = :ch, justificacion = :j '
+        'WHERE programacion_id = :p AND servicio_id = :s',
         {
           'p': programacionId,
           's': a.servicioId,
@@ -296,7 +322,26 @@ class RepositorioProgramacionesMysql implements RepositorioProgramaciones {
           'e': a.estado.valor,
           'm': a.motivo,
           'ajustada': ajustada,
+          'sc': a.excepciones.saltoCola,
+          're': a.excepciones.reemplazo,
+          'dt': a.excepciones.demoraMin,
+          'v0': a.excepciones.vehiculoCola,
+          'ch': a.excepciones.conductorHabitual,
+          'j': a.justificacion,
         },
+      );
+
+  @override
+  Future<void> actualizarEstado(
+    Ejecutor tx,
+    int programacionId,
+    int servicioId,
+    EstadoAsignacion estado,
+    String? motivo,
+  ) =>
+      tx.ejecutar(
+        'UPDATE asignacion SET estado = :e, motivo = :m WHERE programacion_id = :p AND servicio_id = :s',
+        {'p': programacionId, 's': servicioId, 'e': estado.valor, 'm': motivo},
       );
 
   @override

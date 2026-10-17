@@ -91,6 +91,7 @@ IconData iconoModulo(Modulo m) => switch (m) {
       Modulo.conductores => Icons.badge,
       Modulo.rutas => Icons.alt_route,
       Modulo.servicios => Icons.event_note,
+      Modulo.cola => Icons.format_list_numbered,
       Modulo.incidencias => Icons.report_problem,
       Modulo.programacion => Icons.auto_awesome,
       Modulo.reportes => Icons.insights,

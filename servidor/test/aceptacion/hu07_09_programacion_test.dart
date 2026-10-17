@@ -59,6 +59,7 @@ void main() {
     });
 
     test('(error) turno sin servicios pendientes: no ejecuta el método', () async {
+      await entorno.autorizarTodos();
       final r = await entorno.generar();
       expect(r.estado, 422);
       expect(r.mensajeError, 'No hay servicios pendientes para el turno seleccionado');
@@ -144,15 +145,31 @@ void main() {
       final c12 = await entorno.conductor('C-12', '70000012');
       final ruta = await entorno.ruta('R-03', 95, [v07], salidas: ['07:30']);
       await entorno.servicio('S-115', ruta, '07:30', prioridad: 3);
+      expect((await entorno.autorizar(v07, habitual: c12)).estado, 200);
       final propuesta = Programacion.fromJson((await entorno.generar()).mapa);
       final s115 = propuesta.asignaciones.single;
       expect(s115.conductorId, c12);
+      expect(s115.reemplazo, isFalse);
 
-      // C-08 se registra después y está libre en ese horario.
+      // C-08 se registra después, como reemplazo autorizado de V-07, y está
+      // libre en ese horario.
       final c08 = await entorno.conductor('C-08', '70000008');
-      final r = await entorno.put(
-        '/api/programaciones/${propuesta.id}/asignaciones/${s115.servicioId}',
+      expect((await entorno.autorizar(v07, habitual: c12, reemplazos: [c08])).estado, 200);
+      final ruta115 = '/api/programaciones/${propuesta.id}/asignaciones/${s115.servicioId}';
+
+      // Un reemplazo introducido a mano exige su motivo (sección 3.6).
+      final sinMotivo = await entorno.put(
+        ruta115,
         AjusteAsignacion(vehiculoId: v07, conductorId: c08, salida: 450).toJson(),
+        como: 'operaciones',
+      );
+      expect(sinMotivo.estado, 422);
+      expect(sinMotivo.camposError['justificacion'], 'Indique el motivo: el ajuste reemplaza al conductor habitual C-12');
+
+      final r = await entorno.put(
+        ruta115,
+        AjusteAsignacion(vehiculoId: v07, conductorId: c08, salida: 450, justificacion: 'C-12 con descanso médico')
+            .toJson(),
         como: 'operaciones',
       );
       expect(r.estado, 200, reason: '$r');
@@ -160,9 +177,13 @@ void main() {
       expect(ajustada.conductorId, c08);
       expect(ajustada.ajustada, isTrue);
       expect(ajustada.estado, EstadoAsignacion.asignado);
+      expect(ajustada.reemplazo, isTrue);
+      expect(ajustada.codigoConductorHabitual, 'C-12');
+      expect(ajustada.justificacion, 'C-12 con descanso médico');
 
       final evento = (await entorno.consultar("SELECT detalle FROM bitacora WHERE accion = 'ajustar_asignacion'")).single;
       expect(evento.texto('detalle'), contains('S-115'));
+      expect(evento.texto('detalle'), contains('C-12 con descanso médico'));
       expect((await entorno.post('/api/programaciones/${propuesta.id}/aprobar', null, como: 'operaciones')).estado, 200);
     });
 
@@ -174,6 +195,7 @@ void main() {
       final ruta = await entorno.ruta('R-03', 95, [v07, v08], salidas: ['07:30', '08:00']);
       await entorno.servicio('S-115', ruta, '07:30', prioridad: 3);
       await entorno.servicio('S-120', ruta, '08:00');
+      await entorno.autorizarTodos();
       final propuesta = Programacion.fromJson((await entorno.generar()).mapa);
       expect(propuesta.phiValidador, 0);
       final s115 = propuesta.asignaciones.singleWhere((a) => a.codigoServicio == 'S-115');

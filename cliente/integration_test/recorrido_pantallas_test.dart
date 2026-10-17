@@ -72,8 +72,21 @@ void main() {
 
         switch (modulo) {
           case Modulo.rutas:
-            await tester.tap(find.byKey(const ValueKey('ruta_R-03')));
+            await tester.tap(find.byKey(const ValueKey('ruta_R-01')));
             await esperar(tester, find.byKey(const Key('salida_07:30')));
+            await asentar(tester);
+          case Modulo.cola:
+            // Cola de Moyobamba de la base de demostración (sección 3.1.2).
+            await esperar(tester, find.byKey(const ValueKey('entrada_1')));
+            await asentar(tester);
+          case Modulo.vehiculos:
+            // La columna de acciones puede quedar fuera de la vista en la tabla ancha.
+            await tester.ensureVisible(find.byKey(const ValueKey('conductores_V-01')));
+            await asentar(tester);
+            await tester.tap(find.byKey(const ValueKey('conductores_V-01')));
+            await asentar(tester);
+            await capturar('despacho_conductores_autorizados');
+            await tester.tap(find.text('Cancelar'));
             await asentar(tester);
           case Modulo.reportes:
             await tester.tap(find.byKey(const Key('boton_generar_reporte')));

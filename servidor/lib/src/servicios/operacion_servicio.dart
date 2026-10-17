@@ -112,6 +112,12 @@ class ReporteServicio {
       desviacionCarga: d.desviacionPromedio,
       tiempoGeneracionPromedioS: d.tiempoGeneracionPromedioMs / 1000,
       programacionesGeneradas: d.programacionesGeneradas,
+      reemplazos: d.reemplazos,
+      saltosCola: d.saltosCola,
+      salidasDemoradas: d.salidasDemoradas,
+      minutosDemora: d.minutosDemora,
+      retrasoAcumuladoMin: d.retrasoMin,
+      tiempoMuertoMin: d.tiempoMuertoMin,
     );
   }
 
@@ -133,6 +139,12 @@ class ReporteServicio {
         ['Porcentaje de asignaciones válidas (PAV)', p(r.pav), '%'],
         ['Equilibrio de la carga laboral D(X)', r.desviacionCarga.toStringAsFixed(1), 'min'],
         ['Tiempo medio de generación', r.tiempoGeneracionPromedioS.toStringAsFixed(3), 's'],
+        ['Reemplazos autorizados Ση(s)', '${r.reemplazos}', 'servicios'],
+        ['Saltos de cola Σσ(s)', '${r.saltosCola}', 'servicios'],
+        ['Salidas demoradas (Δt(s) > 0)', '${r.salidasDemoradas}', 'servicios'],
+        ['Minutos de demora ΣΔt(s)', '${r.minutosDemora}', 'min'],
+        ['Retraso acumulado Ret(X)', '${r.retrasoAcumuladoMin}', 'min'],
+        ['Tiempo muerto de la flota Tm(X)', '${r.tiempoMuertoMin}', 'min'],
       ],
     ];
     return '${filas.map((f) => f.map(_celda).join(';')).join('\r\n')}\r\n';
