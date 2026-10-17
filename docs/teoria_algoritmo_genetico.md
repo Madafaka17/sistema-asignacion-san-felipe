@@ -20,7 +20,7 @@ estándar `D`, tiempo muerto `Tm`).
 
 | Componente | Subsección | Diseño | Código |
 |---|---|---|---|
-| Representación | 3.4.1, ec. (15) | un gen por servicio de `S′`; `α_s` = índice de la alternativa en `A_s`. Cumple la asignación única (3) por construcción y nunca usa recursos no disponibles, porque `A_s` ya los excluye | `List<int>` |
+| Representación | 3.4.1, ec. (15) | un gen por servicio de `S′`; `α_s` = índice de la alternativa en `A_s`. Cumple la asignación única (3) por construcción y nunca usa recursos no disponibles, unidades ajenas a la cola ni conductores no autorizados, porque `A_s` ya los excluye (sección 3.1.2); los saltos de cola y los reemplazos se identifican al decodificar (`σ(s)`, `η(s)`) | `List<int>` |
 | Población inicial | 3.4.2 | `P` cromosomas con genes uniformes en `{0, …, |A_s| − 1}`, cada uno reparado | `resolver`, líneas 49–56 |
 | Aptitud | 3.4.3, ec. (7)–(8) | `F = −[M·Φ + E + J]` con `M = 10⁶`: toda solución factible supera a cualquier infactible | `Evaluador` |
 | Selección | 3.4.4 | torneo de tamaño `k = 3` con reemplazo: presión selectiva baja, conserva diversidad | `_torneo` |
@@ -51,7 +51,8 @@ valida al iniciar y guarda los efectivos con cada programación.
 Pesos y referencias de `J` (sección `modelo:`): `w_j = 0,25` cada uno (pesos
 iguales de las pruebas de concepto, a calibrar con la empresa) y
 `b_Ret = 60 min`, `b_R` = servicios comprometidos, `b_Tm = 60 min · |V|`,
-`b_D = 60 min`.
+`b_D = 60 min`. `J` no penaliza `σ`, `η` ni `Δt` (sección 3.1.2); si la
+empresa decide minimizarlos, se agregaría un término con su peso (E-01).
 
 ## 4. Reproducibilidad
 

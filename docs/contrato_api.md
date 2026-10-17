@@ -1,4 +1,4 @@
-# Contrato de la API REST (versión 1.0.0)
+# Contrato de la API REST (versión 1.1.0)
 
 El contrato vive en código, en `paquetes/dominio/lib/src/contrato/` y
 `paquetes/dominio/lib/src/modelos/`: el servidor y el cliente importan **los
@@ -19,13 +19,15 @@ sobre la forma de los datos. Este documento lo resume.
 
 ## Versionado y compatibilidad cliente–servidor
 
-* `versionApi = '1.0.0'` (`contrato/version.dart`) sigue las etiquetas del
-  repositorio (`v1.0.0`).
+* `versionApi = '1.1.0'` (`contrato/version.dart`) sigue las etiquetas del
+  repositorio (`v1.1.0`). La 1.1.0 agrega la cola de despacho, los pares
+  autorizados y las salidas `σ`, `η` y `Δt` (sección 3.1.2 de la tesis): un
+  cliente 1.0 recibe 426 y debe actualizarse.
 * Toda respuesta lleva **`X-Version-Api`**; el cliente la compara con la suya
   y, si no coincide en MAYOR.MENOR, muestra «actualice la aplicación».
 * El cliente envía **`X-Version-Cliente`**; si es incompatible el servidor
   responde **426** antes de procesar la solicitud.
-* `GET /api/version` → `{"versionApi": "1.0.0", "versionServidor": "1.0.0"}`.
+* `GET /api/version` → `{"versionApi": "1.1.0", "versionServidor": "1.1.0"}`.
 
 ## Autenticación
 
@@ -70,6 +72,8 @@ L = lectura, E = escritura; D = despacho, O = operaciones, A = administrador.
 | `GET /api/usuarios` · `POST /api/usuarios` | A | 200 `Pagina<Usuario>` · 201 `Usuario` | HU-01 |
 | `GET /api/vehiculos[?estado=operativo]` · `GET /api/vehiculos/{id}` | L: D, O | 200 | HU-02 |
 | `POST /api/vehiculos` · `PUT /api/vehiculos/{id}` | E: D | 201 · 200 `Vehiculo` | HU-02 |
+| `GET /api/pares` · `GET /api/vehiculos/{id}/conductores` | L: D, O | 200 lista de `ParAutorizado` · `ConductoresAutorizados` | HU-02, HU-03 |
+| `PUT /api/vehiculos/{id}/conductores {conductorHabitualId?, reemplazos}` | E: D | 200 `ConductoresAutorizados` · 409 si el habitual ya lo es de otra unidad · 422 | HU-02, HU-03 |
 | `GET /api/conductores` · `GET /api/conductores/{id}` | L: D, O | 200 | HU-03 |
 | `POST /api/conductores` · `PUT /api/conductores/{id}` | E: D | 201 · 200 `Conductor` | HU-03 |
 | `PUT /api/conductores/{id}/disponibilidad {disponible}` | E: D | 200 · 422 «Licencia vencida» | HU-03 |
@@ -77,16 +81,19 @@ L = lectura, E = escritura; D = despacho, O = operaciones, A = administrador.
 | `POST /api/rutas` · `PUT /api/rutas/{id}` | E: D | 201 · 200 | HU-04 |
 | `GET /api/rutas/{id}/salidas` · `POST /api/rutas/{id}/salidas {hora, duracionMin?}` | L/E: D | 200 · 201 `SalidaAutorizada` | HU-05 |
 | `DELETE /api/salidas/{id}` | E: D | 204 · 409 si tiene servicios | HU-05 |
-| `GET /api/servicios?fecha=&estado=` · `GET /api/servicios/{id}` | L: D, O | 200 `Pagina<ServicioProgramado>` | HU-06 |
-| `POST /api/servicios` · `PUT /api/servicios/{id}` | E: D | 201 · 200 | HU-06 |
+| `GET /api/cola?fecha=&rutaId=` | L: D, O | 200 lista de `EntradaCola` por orden de llegada · 400 sin fecha | HU-02, HU-06 |
+| `POST /api/cola {rutaId, fecha, vehiculoId, llegada}` | E: D | 201 `EntradaCola` con la posición siguiente · 409 si la unidad ya espera turno · 422 | HU-02, HU-06 |
+| `POST /api/cola/{id}/retirar` | E: D | 200 `EntradaCola` inactiva | HU-02 |
+| `GET /api/servicios?fecha=&estado=` · `GET /api/servicios/{id}` | L: D, O | 200 `Pagina<ServicioProgramado>` (con `codigoVehiculoCola` y `posicionCola`) | HU-06 |
+| `POST /api/servicios` · `PUT /api/servicios/{id}` (`entradaColaId?`) | E: D | 201 · 200 · 409 turno ya tomado · 422 turno de otra cola, retirado o posterior a la salida | HU-06 |
 | `POST /api/servicios/{id}/cancelar` | E: D | 200 | HU-06 |
 | `POST /api/programaciones {fecha}` | E: O | 201 `Programacion` · 422 sin pendientes | HU-07 |
 | `GET /api/programaciones?fecha=` | L: O | 200 lista de resúmenes (sin asignaciones) | HU-08 |
 | `GET /api/programaciones/{id}` | L: O | 200 `Programacion` con asignaciones e historial | HU-08 |
-| `PUT /api/programaciones/{id}/asignaciones/{servicioId} {vehiculoId, conductorId, salida}` | E: O | 200 (cruces marcados como `conflicto`) · 422 si no es admisible | HU-09 |
+| `PUT /api/programaciones/{id}/asignaciones/{servicioId} {vehiculoId, conductorId, salida, justificacion?}` | E: O | 200 (cruces marcados como `conflicto`) · 422 si no es admisible o si salta la cola o reemplaza al habitual sin `justificacion` | HU-09 |
 | `POST /api/programaciones/{id}/aprobar` | E: O | 200 · 409 con cruces sin resolver | HU-09 |
 | `GET /api/incidencias?desde=&hasta=` · `POST /api/incidencias` | L/E: D (L: O) | 200 · 201 `Incidencia` · 404 servicio | HU-10 |
-| `GET /api/reportes/indicadores?desde=&hasta=` | O | 200 `ReporteIndicadores` | HU-11 |
+| `GET /api/reportes/indicadores?desde=&hasta=` | O | 200 `ReporteIndicadores` (PIO…PAV y los operativos: `reemplazos`, `saltosCola`, `salidasDemoradas`, `minutosDemora`, `retrasoAcumuladoMin`, `tiempoMuertoMin`) | HU-11 |
 | `GET /api/reportes/indicadores.csv?desde=&hasta=` | O | 200 `text/csv` (adjunto) | HU-11 |
 | `GET /api/bitacora?pagina=&accion=&entidad=&entidadId=` | A | 200 `Pagina<EntradaBitacora>` | RNF-06 |
 | `GET /api/parametros` | A | 200 parámetros efectivos | RNF-07 |
@@ -96,18 +103,33 @@ L = lectura, E = escritura; D = despacho, O = operaciones, A = administrador.
 ```http
 POST /api/servicios HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs…
-X-Version-Cliente: 1.0.0
+X-Version-Cliente: 1.1.0
 Content-Type: application/json
 
-{"codigo":"S-115","fecha":"2026-11-12","rutaId":3,"horaSolicitada":450,"prioridad":3,"capacidadRequerida":10}
+{"codigo":"S-115","fecha":"2026-11-12","rutaId":1,"horaSolicitada":660,"prioridad":3,"capacidadRequerida":10,
+ "entradaColaId":8}
 ```
 
 ```http
 HTTP/1.1 201 Created
-X-Version-Api: 1.0.0
+X-Version-Api: 1.1.0
 
-{"id":115,"codigo":"S-115","fecha":"2026-11-12","rutaId":3,"horaSolicitada":450,"prioridad":3,
- "capacidadRequerida":10,"estado":"pendiente","codigoRuta":"R-03"}
+{"id":115,"codigo":"S-115","fecha":"2026-11-12","rutaId":1,"horaSolicitada":660,"prioridad":3,
+ "capacidadRequerida":10,"estado":"pendiente","entradaColaId":8,"codigoRuta":"R-01",
+ "codigoVehiculoCola":"V-04","posicionCola":8}
+```
+
+### Ejemplo: llegada a la cola
+
+```http
+POST /api/cola HTTP/1.1
+
+{"rutaId":1,"fecha":"2026-11-12","vehiculoId":4,"llegada":540}
+```
+
+```json
+{"id":8,"rutaId":1,"fecha":"2026-11-12","vehiculoId":4,"posicion":8,"llegada":540,"activa":true,
+ "codigoVehiculo":"V-04","servicioId":null}
 ```
 
 ### Ejemplo: programación generada (HU-07)
@@ -121,9 +143,12 @@ X-Version-Api: 1.0.0
                   "desviacionCarga": 21.9, "perdida": 0.4206},
   "generaciones": 59, "tiempoMs": 142, "semilla": 1,
   "asignaciones": [
-    {"servicioId": 2, "codigoServicio": "S-0002", "codigoRuta": "R-02", "prioridad": 3,
-     "vehiculoId": 2, "codigoVehiculo": "V-02", "conductorId": 3, "codigoConductor": "C-03",
-     "salida": 300, "fin": 480, "estado": "asignado", "motivo": null, "ajustada": false}
+    {"servicioId": 5, "codigoServicio": "S-0005", "codigoRuta": "R-02", "prioridad": 2,
+     "vehiculoId": 6, "codigoVehiculo": "V-06", "conductorId": 6, "codigoConductor": "C-06",
+     "salida": 360, "fin": 690, "estado": "asignado", "motivo": null, "ajustada": false,
+     "saltoCola": true, "reemplazo": false, "demoraMin": 0,
+     "codigoVehiculoCola": "V-10", "codigoConductorHabitual": "C-06",
+     "justificacion": "Propuesta del sistema — salto de cola: la unidad que corresponde (V-10) no está disponible, dejó la cola o no tiene un conductor autorizado para el servicio"}
   ],
   "historial": [{"generacion": 0, "mejor": -0.61, "promedio": -2400000.5}]
 }

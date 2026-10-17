@@ -98,8 +98,8 @@ servicio está en los diagramas de secuencia de [`uml.md`](uml.md) (§6–§8).
 | Servicio | Imagen | Puerto publicado | Notas |
 |---|---|---|---|
 | `basedatos` | `mysql:8.4.11` | `127.0.0.1:3306` | carga `esquema.sql`, `datos_ejemplo.sql` y crea `<DB_NAME>_pruebas` en el primer arranque; volumen `datos_mysql` |
-| `servidor` | `sanfelipe/servidor:1.0.0` (Dart AOT sobre `scratch`, ~20 MB) | `127.0.0.1:8080` | usuario sin privilegios; `config/parametros.yaml` montado; verificación de salud `servidor --salud` |
-| `cliente` | `sanfelipe/cliente:1.0.0` (Flutter web + nginx 1.28) | `127.0.0.1:3000` | sin CDN: funciona en la red local sin internet |
+| `servidor` | `sanfelipe/servidor:1.1.0` (Dart AOT sobre `scratch`, ~20 MB) | `127.0.0.1:8080` | usuario sin privilegios; `config/parametros.yaml` montado; verificación de salud `servidor --salud` |
+| `cliente` | `sanfelipe/cliente:1.1.0` (Flutter web + nginx 1.28) | `127.0.0.1:3000` | sin CDN: funciona en la red local sin internet |
 
 ## 6. Configuración y secretos
 

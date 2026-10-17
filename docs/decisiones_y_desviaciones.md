@@ -63,6 +63,28 @@ Consecuencias para el sistema:
 | Ajuste manual (HU-09) | Solo se acepta una alternativa de `A_s`; los cruces que genere se guardan marcados como `conflicto` y bloquean la aprobación | `programacion_servicio.dart` |
 | Prioridad | `p_s ∈ {1, 2, 3}`, 3 = más alta (Tabla 11 de la tesis); el cliente la muestra como Baja, Media y Alta | `servicio_programado.dart` |
 | Hora local | Desfase fijo UTC−5 (Perú no usa horario de verano); las marcas de tiempo se guardan en hora local | `infraestructura/reloj.dart`, `docker-compose.yml` |
+| Reglas de cola y de pares (sección 3.1.2) | Se aplican como condiciones de `A_s` (ecuación 1) y se pueden desactivar en `modelo.reglas_despacho` porque la tesis las declara pendientes de confirmación con E-01 y O-01 | `constructor_instancia.dart`, `config/parametros.yaml` |
+| `v0(s)` | Es la unidad del **turno de cola** que se asocia al servicio al registrarlo (HU-06); el formulario propone el primer turno libre que llegó antes de la salida. Un servicio **sin turno** no está sujeto a la regla de cola (`σ = 0`), para servicios que no salen de la cola | `servicio.entrada_cola_id`, `pantalla_servicios.dart` |
+| `v1(s)` | La primera entrada **activa** posterior a `π(s)` cuya unidad sea distinta de `v0(s)`, esté operativa, sea compatible con la ruta y tenga capacidad. Si la unidad en turno dejó la cola o no está operativa, solo queda `v1(s)` (salto forzado) | `constructor_instancia.dart` |
+| Cola por orden de llegada | La posición se asigna sola (siguiente a la última, bajo bloqueo de la cola); una llegada anterior a la última registrada se rechaza; la unidad no puede esperar turno dos veces a la vez; retirar una unidad desactiva su entrada sin borrarla. Cada cola es de una ruta y una fecha (el terminal es el origen de la ruta y la programación es por fecha, sin el campo `turno` de la Tabla 41) | `ColaServicio`, `esquema.sql` |
+| Salida nominal | Es la hora solicitada del servicio; `Δt(s) = h − hora solicitada` (la Tabla 41 propone una columna `nominal_min` aparte) | `excepciones.dart` |
+| Pares autorizados | Sin vigencia por fechas (`desde`/`hasta` de la Tabla 41): el conjunto vigente de cada unidad se reemplaza completo y la bitácora guarda el anterior y el nuevo. Una unidad sin pares registrados no tiene conductores admisibles mientras `exigir_par_autorizado` sea `true`. No se rechaza un par cuya licencia no habilita la categoría: `λ(c, v)` lo excluye de `A_s` y la licencia puede renovarse | `VehiculoServicio.asignarConductores` |
+| `η(s)` | Solo cuenta en unidades con conductor habitual (como en el experimento, Anexo E) | `excepciones.dart` |
+| Motivo de las excepciones | El sistema guarda una explicación de cada salto o reemplazo que propone (la unidad o el habitual no eran admisibles, o el algoritmo eligió la otra opción); en un ajuste manual el encargado debe escribir el motivo. La aprobación copia todas las excepciones a la bitácora (sección 3.6) | `ExcepcionesAsignacion.explicacion`, `ProgramacionServicio` |
+| Duraciones | Los 30 y 150 min de ida declarados se conservan en `ruta.ida_min` como referencia; la duración que ocupa los recursos es la del viaje redondo (`ruta.duracion_min`), que en los datos de demostración se **supone** igual a 2 × ida + 30 min (90 y 330 min), como en el generador del experimento. No son ciclos medidos | `datos_ejemplo.sql` |
+
+### Observación sobre la función objetivo
+
+La sección 3.1.2 no penaliza `σ(s)`, `η(s)` ni `Δt(s)` en `F(X)`: las acota
+con `A_s` y las registra para su revisión, y prevé agregar a `J` un término
+ponderado si la empresa decide minimizarlas (peso a fijar con E-01). Con los
+datos de demostración el algoritmo genético usa ese margen: demora salidas
+(hasta la tolerancia de 60 min) y elige la siguiente unidad de la cola cuando
+eso reduce el tiempo muerto `Tm` o el desequilibrio `D`, y la propuesta lo
+muestra en la columna «Excepciones» y en el indicador «Saltos · reemplazos».
+Es el comportamiento del modelo de la tesis, no un error; si la empresa no lo
+acepta, la decisión pendiente es el peso de esos términos en `J` (y, si se
+desea, reducir `tolerancia_salida_min`).
 
 ## 4. Arquitectura y UML
 
@@ -116,8 +138,8 @@ en su Tabla 48 lo que el prototipo debía adecuar. Estado en este repositorio:
 | Aspecto (Tabla 48) | Pendiente señalado | Estado |
 |---|---|---|
 | Tecnología y comparación | publicar `core/` y `experimentos/poc_cap3/`; no presentar los resultados Dart como repetición de la matriz | Paquete `experimentos/sanfelipe/` publicado sin cambios (huellas verificadas). `core/` y `poc_cap3/` **no se recibieron**: siguen pendientes del autor ([`experimentos/README.md`](../experimentos/README.md)). Los resultados Dart se presentan como verificación del prototipo (§2) |
-| Operación por cola | modelar la posición de cola y el par habitual/reemplazo | en desarrollo |
-| Duraciones y horas | conservar 30/150 min de ida declarados sin tratarlos como ciclos demostrados | en desarrollo (datos de demostración) |
+| Operación por cola | modelar la posición de cola y el par habitual/reemplazo | **hecho** (v1.1.0): tablas `cola`, `entrada_cola` y `par_autorizado`; `A_s` exige `v ∈ {v0(s), v1(s)}` y `c ∈ {chab(v)} ∪ C_v^R`; la programación registra `σ`, `η` y `Δt` con su motivo; pantalla «Cola de despacho», conductores autorizados por unidad e indicadores de la Tabla 24. Las diferencias con la Tabla 41 están en §3 |
+| Duraciones y horas | conservar 30/150 min de ida declarados sin tratarlos como ciclos demostrados | **hecho**: `ruta.ida_min` guarda la ida declarada; el viaje redondo de los datos de demostración es un supuesto documentado (§3) |
 | Procedencia y versiones | snapshot inmutable de entrada, huella, versión del algoritmo y versión de cada ajuste | en desarrollo |
 | Comunicación y concurrencia | probar concurrencia e idempotencia; el plan 202 es ampliación propuesta | en desarrollo (versión esperada al aprobar) |
 | Tiempo y complejidad | aislar el tiempo del núcleo del tiempo de la API | en desarrollo |

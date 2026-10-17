@@ -1,6 +1,6 @@
 # Diagramas UML (versión final, según lo construido)
 
-Los diagramas reflejan el código de la versión `v1.0.0`: cada clase, método
+Los diagramas reflejan el código de la versión `v1.1.0`: cada clase, método
 y ruta que aparece aquí existe con ese nombre en el repositorio. Las
 diferencias con el diseño de la tesis están en
 [`decisiones_y_desviaciones.md`](decisiones_y_desviaciones.md).
@@ -36,6 +36,8 @@ flowchart LR
     UC04([HU-04 Registrar rutas])
     UC05([HU-05 Registrar salidas autorizadas])
     UC06([HU-06 Registrar servicios del turno])
+    UCC([Registrar la cola de despacho])
+    UCP2([Registrar conductor habitual y reemplazos])
     UC07([HU-07 Generar la programación])
     UC08([HU-08 Revisar la propuesta])
     UC09([HU-09 Ajustar y aprobar])
@@ -44,7 +46,9 @@ flowchart LR
     UCP([Consultar parámetros y bitácora])
   end
 
-  despacho --- UC01a & UC02 & UC03 & UC04 & UC05 & UC06 & UC10
+  despacho --- UC01a & UC02 & UC03 & UC04 & UC05 & UC06 & UCC & UCP2 & UC10
+  UC06 -. «include» .-> UCC
+  UC02 -. «extend» .-> UCP2
   operaciones --- UC01a & UC07 & UC08 & UC09 & UC11
   admin --- UC01a & UC01b & UCP
   UC07 -. «include» .-> UC08
@@ -127,6 +131,24 @@ classDiagram
   class ConstructorInstancia {
     +ParametrosModelo parametros
     +construir(DatosTurno) InstanciaTurno
+    -_salidasCandidatas(servicio, salidas) List~SalidaAutorizada~
+    -_diagnosticar(...) String
+  }
+  class DatosTurno {
+    +List~ServicioProgramado~ servicios
+    +List~EntradaCola~ entradas
+    +List~ParAutorizado~ pares
+    +Map~int, Alternativa~ comprometidas
+  }
+  class ExcepcionesAsignacion {
+    +bool saltoCola «σ»
+    +bool reemplazo «η»
+    +int demoraMin «Δt»
+    +int? vehiculoCola «v0»
+    +int? conductorHabitual «chab»
+    +String? explicacion
+    +de(instancia, servicio, alternativa)$ ExcepcionesAsignacion
+    +bool requiereJustificacion
   }
   class Evaluador {
     +decodificar(alfa) Map~int, Alternativa~
@@ -148,6 +170,7 @@ classDiagram
     +List~ServicioTurno~ servicios
     +List~ServicioTurno~ admisibles
     +Map~int, ConductorTurno~ conductores
+    +Map~int, int~ habituales «chab»
     +int holguraMinima
     +double penalizacion
   }
@@ -170,6 +193,8 @@ classDiagram
   AlgoritmoVoraz --> Evaluador
   ConstructorInstancia --> ParametrosModelo
   ConstructorInstancia ..> InstanciaTurno : crea
+  ConstructorInstancia ..> DatosTurno : lee
+  ExcepcionesAsignacion ..> InstanciaTurno
   Evaluador --> InstanciaTurno
   Reparador --> InstanciaTurno
   Decodificador --> InstanciaTurno
@@ -208,7 +233,8 @@ classDiagram
     +String codigo
     +String origen
     +String destino
-    +int duracionMin
+    +int duracionMin «viaje redondo»
+    +int? idaMin «ida declarada»
     +bool activa
     +List~int~ vehiculosCompatibles
   }
@@ -227,6 +253,29 @@ classDiagram
     +int prioridad
     +int capacidadRequerida
     +EstadoServicio estado
+    +int? entradaColaId «v0(s), π(s)»
+  }
+  class EntradaCola {
+    +int id
+    +int rutaId
+    +DateTime fecha
+    +int vehiculoId
+    +int posicion «π»
+    +int llegada
+    +bool activa
+    +int? servicioId
+    +bool libre
+  }
+  class ParAutorizado {
+    +int vehiculoId
+    +int conductorId
+    +TipoPar tipo «habitual | reemplazo»
+  }
+  class ConductoresAutorizados {
+    +int vehiculoId
+    +int? conductorHabitualId
+    +List~int~ reemplazos
+    +porVehiculo(pares)$ Map
   }
   class Programacion {
     +int id
@@ -249,6 +298,10 @@ classDiagram
     +EstadoAsignacion estado
     +String? motivo
     +bool ajustada
+    +bool saltoCola
+    +bool reemplazo
+    +int demoraMin
+    +String? justificacion
   }
   class Incidencia {
     +int id
@@ -275,6 +328,11 @@ classDiagram
   Ruta "1" o-- "*" SalidaAutorizada
   Ruta "*" o-- "*" Vehiculo : κ(v, r)
   ServicioProgramado "*" --> "1" Ruta
+  ServicioProgramado "0..1" --> "0..1" EntradaCola : turno
+  EntradaCola "*" --> "1" Vehiculo
+  ParAutorizado "*" --> "1" Vehiculo
+  ParAutorizado "*" --> "1" Conductor
+  ConductoresAutorizados "1" o-- "*" ParAutorizado
   Programacion "1" *-- "*" Asignacion
   Asignacion "*" --> "1" ServicioProgramado
   Incidencia "*" --> "1" ServicioProgramado
@@ -389,11 +447,12 @@ recurso):
 |---|---|---|---|
 | Sesión | `AutenticacionControlador` | `AutenticacionServicio` | `RepositorioUsuarios`, `RepositorioSesiones` |
 | Usuarios | `UsuarioControlador` | `UsuarioServicio` | `RepositorioUsuarios` |
-| Vehículos | `VehiculoControlador` | `VehiculoServicio` | `RepositorioVehiculos` |
+| Vehículos y conductores autorizados | `VehiculoControlador` | `VehiculoServicio` | `RepositorioVehiculos`, `RepositorioPares` |
 | Conductores | `ConductorControlador` | `ConductorServicio` | `RepositorioConductores` |
 | Rutas y salidas | `RutaControlador` | `RutaServicio` | `RepositorioRutas` |
-| Servicios | `ServicioProgramadoControlador` | `ServicioProgramadoServicio` | `RepositorioServicios` |
-| Programación | `ProgramacionControlador` | `ProgramacionServicio` | `RepositorioProgramaciones` (+ los de registros) |
+| Servicios | `ServicioProgramadoControlador` | `ServicioProgramadoServicio` | `RepositorioServicios`, `RepositorioCola` |
+| Cola de despacho | `ColaControlador` | `ColaServicio` | `RepositorioCola` |
+| Programación | `ProgramacionControlador` | `ProgramacionServicio` | `RepositorioProgramaciones` (+ los de registros, `RepositorioCola` y `RepositorioPares`) |
 | Incidencias | `IncidenciaControlador` | `IncidenciaServicio` | `RepositorioIncidencias` |
 | Reportes, bitácora, parámetros | `ReporteControlador` | `ReporteServicio`, `BitacoraServicio`, `ParametrosServicio` | `RepositorioReportes`, `RepositorioBitacora` |
 
@@ -433,8 +492,22 @@ classDiagram
   }
   class ServiciosControlador {
     +cargar()
+    +cargarRuta(rutaId)
+    +turnosDisponibles(rutaId, hora) List~EntradaCola~
     +guardar(servicio) bool
     +cancelar(servicio) bool
+  }
+  class ColaControlador {
+    +cargar()
+    +seleccionarRuta(rutaId)
+    +registrarLlegada(vehiculoId, llegada) bool
+    +retirar(entrada) bool
+  }
+  class RepositorioCola {
+    <<interface · Modelo>>
+    +entradas(fecha, rutaId) List~EntradaCola~
+    +registrar(solicitud) EntradaCola
+    +retirar(id) EntradaCola
   }
   class SesionControlador {
     +ingresar(usuario, clave) bool
@@ -465,6 +538,9 @@ classDiagram
   ChangeNotifier <|-- ControladorBase
   ControladorBase <|-- ProgramacionControlador
   ControladorBase <|-- ServiciosControlador
+  ControladorBase <|-- ColaControlador
+  ServiciosControlador --> RepositorioCola
+  ColaControlador --> RepositorioCola
   ControladorBase <|-- SesionControlador
   PantallaProgramacion ..> ProgramacionControlador : watch / acciones
   PantallaProgramacion *-- BotonAsincrono
@@ -512,12 +588,13 @@ sequenceDiagram
   alt no hay pendientes
     PS-->>A: 422 «No hay servicios pendientes…»
   end
-  PS->>R: vehículos, conductores, rutas, salidas, comprometidas
+  PS->>R: vehículos, conductores, rutas, salidas, colas, pares, comprometidas
   R->>BD: SELECT
-  PS->>PS: ConstructorInstancia.construir → A_s (ec. 1)
+  PS->>PS: ConstructorInstancia.construir → A_s (ec. 1 con v ∈ {v0, v1} y c ∈ {chab} ∪ C^R)
   PS->>N: Isolate.run(AlgoritmoGenetico.resolver)
   N-->>PS: ResultadoOptimizacion (α, F, Φ, historial)
   PS->>PS: Decodificador (incidencias) y Validador (Φ independiente)
+  PS->>PS: ExcepcionesAsignacion.de → σ, η, Δt y su explicación
   PS->>BD: transacción: programacion + asignacion + historial_aptitud + bitacora
   PS-->>PC: Programacion
   PC-->>A: 201 Created + JSON
@@ -657,6 +734,12 @@ erDiagram
   RUTA ||--o{ SALIDA_AUTORIZADA : "tiene"
   RUTA ||--o{ RUTA_VEHICULO : ""
   VEHICULO ||--o{ RUTA_VEHICULO : "compatible"
+  VEHICULO ||--o{ PAR_AUTORIZADO : "chab(v), C_v^R"
+  CONDUCTOR ||--o{ PAR_AUTORIZADO : ""
+  RUTA ||--o{ COLA : "por fecha"
+  COLA ||--o{ ENTRADA_COLA : "π"
+  VEHICULO ||--o{ ENTRADA_COLA : "llega"
+  ENTRADA_COLA |o--o| SERVICIO : "v0(s)"
   SALIDA_AUTORIZADA ||--o{ SERVICIO : "(ruta_id, hora)"
   PROGRAMACION ||--o{ ASIGNACION : "contiene"
   PROGRAMACION ||--o{ HISTORIAL_APTITUD : "convergencia"
@@ -693,6 +776,27 @@ erDiagram
     string origen
     string destino
     int duracion_min
+    int ida_min
+    bool activa
+  }
+  PAR_AUTORIZADO {
+    int vehiculo_id PK
+    int conductor_id PK
+    enum tipo
+    int habitual_vehiculo UK
+    int habitual_conductor UK
+  }
+  COLA {
+    int id PK
+    int ruta_id FK
+    date fecha
+  }
+  ENTRADA_COLA {
+    int id PK
+    int cola_id FK
+    int vehiculo_id FK
+    int posicion
+    int llegada
     bool activa
   }
   SALIDA_AUTORIZADA {
@@ -710,6 +814,8 @@ erDiagram
     int prioridad
     int capacidad_requerida
     enum estado
+    int entrada_cola_id FK
+    int entrada_vigente UK
   }
   PROGRAMACION {
     int id PK
@@ -733,6 +839,12 @@ erDiagram
     enum estado
     string motivo
     bool ajustada
+    bool salto_cola
+    bool reemplazo
+    int demora_min
+    int vehiculo_cola_id FK
+    int conductor_habitual_id FK
+    string justificacion
   }
   INCIDENCIA {
     int id PK

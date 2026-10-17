@@ -3,11 +3,15 @@
 Sistema web y de escritorio que **propone la programación diaria** de la
 empresa (Soritor, San Martín): asigna a cada servicio del turno un vehículo,
 un conductor y una salida autorizada con un **algoritmo genético**, sin cruces
-de vehículos ni de conductores y respetando licencias, turnos y límites de
-conducción. El encargado de operaciones revisa la propuesta, la ajusta si
-hace falta y la aprueba; el personal de despacho registra los recursos, los
-servicios y las incidencias, y el sistema calcula los indicadores de
-desempeño (PIO, PSR, PSA, PUV y PAV).
+de vehículos ni de conductores y respetando licencias, turnos, límites de
+conducción y las reglas de despacho de la empresa: **las unidades salen por
+orden de llegada en la cola de su destino** y cada unidad la conduce **su
+conductor habitual o un reemplazo autorizado**. La propuesta marca cada salto
+de cola, reemplazo y salida demorada con su motivo. El encargado de
+operaciones la revisa, la ajusta si hace falta y la aprueba; el personal de
+despacho registra los recursos, la cola, los servicios y las incidencias, y
+el sistema calcula los indicadores de desempeño (PIO, PSR, PSA, PUV, PAV y
+los operativos de la Tabla 24).
 
 Implementa el modelo del capítulo III de la tesis *Sistema de asignación de
 recursos basado en algoritmo genético para optimizar la programación
@@ -20,10 +24,10 @@ programación lineal entera); la evidencia del experimento está en
 
 | | |
 |---|---|
-| Versión | **1.0.0** (contrato de la API `1.0.0`) |
+| Versión | **1.1.0** (contrato de la API `1.1.0`) |
 | Arquitectura | cliente **Flutter (MVC)** · servidor **Dart** (Controller–Service–Repository) · **MySQL 8.4** |
 | Instalación | `docker compose up --build` |
-| Pruebas | 126 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz; cobertura del núcleo 96 % |
+| Pruebas | 162 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz; cobertura del núcleo 97 % |
 
 ![Programación propuesta](docs/capturas/05_propuesta.png)
 
@@ -85,13 +89,18 @@ cámbielos antes de usar el sistema con datos reales):
 
 | Usuario | Contraseña | Rol | Ve |
 |---|---|---|---|
-| `jdespacho` | `Despacho2026` | Personal de despacho | servicios, vehículos, conductores, rutas, incidencias |
+| `jdespacho` | `Despacho2026` | Personal de despacho | servicios, cola de despacho, vehículos (con sus conductores autorizados), conductores, rutas, incidencias |
 | `operaciones` | `Opera2026` | Encargado de operaciones | programación y reportes |
 | `admin` | `Admin2026` | Administrador | usuarios, parámetros y bitácora |
 
-Recorrido sugerido: ingrese como `operaciones`, pulse **Generar
-programación** (turno de mañana, 12 servicios cargados), revise la tabla, el
-Gantt y la curva de convergencia y pulse **Aprobar**.
+Recorrido sugerido: ingrese como `jdespacho` y abra **Cola de despacho**
+(colas de Moyobamba y Tarapoto de mañana) y **Vehículos** (conductor habitual
+y reemplazos de cada unidad); luego ingrese como `operaciones`, pulse
+**Generar programación** (12 servicios cargados), revise la tabla —la
+columna «Excepciones» muestra los saltos de cola, los reemplazos y las
+demoras—, el Gantt y la curva de convergencia y pulse **Aprobar**. V-10, la
+segunda unidad de la cola de Tarapoto, está en mantenimiento: la propuesta
+explica el salto a la siguiente unidad.
 
 ```sh
 docker compose down        # detiene (conserva los datos)
@@ -136,9 +145,9 @@ Docker basta `docker compose restart servidor` para aplicarlos.
 ## Pruebas
 
 ```sh
-(cd paquetes/dominio && dart test)    # 61: núcleo, ecuaciones, parámetros, contrato
-(cd servidor && dart test)            # 49: HU-01…HU-11 sobre MySQL (base <DB_NAME>_pruebas)
-(cd cliente && flutter test)          # 14: ApiCliente, controladores, formulario HU-06
+(cd paquetes/dominio && dart test)    # 82: núcleo, ecuaciones, cola y pares, parámetros, contrato
+(cd servidor && dart test)            # 62: HU-01…HU-11 y cola/pares sobre MySQL (base <DB_NAME>_pruebas)
+(cd cliente && flutter test)          # 16: ApiCliente, controladores, formulario HU-06
 herramientas/e2e.sh                   # 2: ciclo completo y recorrido de pantallas (escritorio)
 herramientas/cobertura.sh             # cobertura del núcleo; falla por debajo de 80 % (RNF-07)
 ```
@@ -196,6 +205,7 @@ creó no tiene permiso para subirlas. Se crean desde un clon propio con
 | `v0.2.0` | base de datos y servidor REST con pruebas de aceptación |
 | `v0.3.0` | cliente Flutter MVC y prueba de ciclo completo |
 | `v1.0.0` | entorno Docker, documentación final y UML según lo construido |
+| `v1.1.0` | cola de despacho, conductor habitual y reemplazos autorizados, `σ`/`η`/`Δt` e indicadores operativos (sección 3.1.2 de la tesis); contrato 1.1.0 |
 
 ## Respaldos (RNF-05)
 

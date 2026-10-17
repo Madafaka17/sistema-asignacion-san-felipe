@@ -2,12 +2,12 @@
 
 | Nivel | Dónde | Qué verifica | Cantidad | Cómo se ejecuta |
 |---|---|---|---:|---|
-| Unitarias del núcleo | `paquetes/dominio/test/` | ecuación (1), F(X) con el ejemplo de la Tabla 21, reparación, AG (reproducibilidad, elitismo, convergencia, óptimo exacto en n = 7), voraz, validador = evaluador en 300 cromosomas, parámetros de las Tablas 11 y 23, contrato JSON, indicadores | 61 | `cd paquetes/dominio && dart test` |
-| Aceptación del servidor | `servidor/test/aceptacion/` | los 26 escenarios de la Tabla 33 (HU-01 a HU-11) y 13 casos adicionales (duplicados, formatos, rotación de la cookie, reproducibilidad…), sobre la aplicación completa y MySQL real, con reloj fijo | 39 | `cd servidor && dart test` |
+| Unitarias del núcleo | `paquetes/dominio/test/` | ecuación (1) —incluidas las reglas de cola `v ∈ {v0(s), v1(s)}` y de pares `c ∈ {chab(v)} ∪ C_v^R`—, `σ`, `η` y `Δt` con su explicación, F(X) con el ejemplo de la Tabla 21, reparación, AG (reproducibilidad, elitismo, convergencia, óptimo exacto en n = 7), voraz, validador = evaluador en 300 cromosomas, parámetros de las Tablas 11 y 23, contrato JSON, indicadores | 82 | `cd paquetes/dominio && dart test` |
+| Aceptación del servidor | `servidor/test/aceptacion/` | los 26 escenarios de la Tabla 33 (HU-01 a HU-11), 13 casos adicionales (duplicados, formatos, rotación de la cookie, reproducibilidad…) y 13 de la cola de despacho y los pares autorizados (`cola_pares_test.dart`: posiciones por orden de llegada, turnos, habitual único, salto de cola y reemplazo explicados, motivo obligatorio en el ajuste, bitácora e indicadores), sobre la aplicación completa y MySQL real, con reloj fijo | 52 | `cd servidor && dart test` |
 | Contrato HTTP y configuración | `servidor/test/contrato_http_test.dart`, `parametros_sistema_test.dart` | `X-Version-Api`, 426, forma de los errores, CORS, cabeceras de seguridad, validación de `parametros.yaml` | 7 + 3 | idem |
-| Unitarias y de widgets del cliente | `cliente/test/` | `ApiCliente` (Bearer, renovación con la cookie, versión, errores), controladores con repositorios en memoria, formulario HU-06 con servidor simulado | 14 | `cd cliente && flutter test` |
+| Unitarias y de widgets del cliente | `cliente/test/` | `ApiCliente` (Bearer, renovación con la cookie, versión, errores), controladores con repositorios en memoria (incluida la cola), formulario HU-06 con servidor simulado y turno de cola por defecto | 16 | `cd cliente && flutter test` |
 | **Ciclo completo (E2E)** | `cliente/integration_test/ciclo_completo_test.dart` | interfaz → servidor → MySQL → interfaz (ver abajo) y generación + aprobación | 1 | `herramientas/e2e.sh` |
-| Recorrido de pantallas | `cliente/integration_test/recorrido_pantallas_test.dart` | cada rol ve solo sus módulos y cada pantalla carga sin errores; genera `docs/capturas/` | 1 | `CAPTURAS=docs/capturas herramientas/e2e.sh` |
+| Recorrido de pantallas | `cliente/integration_test/recorrido_pantallas_test.dart` | cada rol ve solo sus módulos y cada pantalla carga sin errores (incluidas la cola de despacho y los conductores autorizados); genera `docs/capturas/` | 1 | `CAPTURAS=docs/capturas herramientas/e2e.sh` |
 
 ## Prueba de ciclo completo (Sesión 7)
 
@@ -19,13 +19,13 @@ sin alterarlas y una conexión directa a MySQL comprueba lo guardado.
 | Paso | Verificación |
 |---|---|
 | 1. El usuario `jdespacho` ingresa y abre «Nuevo servicio» | la navegación muestra solo sus módulos |
-| 2. Completa código, ruta R-03, hora 07:30, prioridad alta y 4 asientos y pulsa «Guardar» | — |
+| 2. Completa código, ruta R-01 (Soritor–Moyobamba), hora 11:00, prioridad alta y 4 asientos y pulsa «Guardar» | el formulario propone el turno de la unidad que corresponde en la cola: el primero libre que llegó antes de las 11:00 (o «Sin turno de cola» si la base de demostración ya no tiene) |
 | 3. Mientras la respuesta está retenida | **el botón «Guardar» está desactivado** (`onPressed == null`) y un segundo toque **no envía otra solicitud** |
-| 4. Payload enviado | `{"codigo", "fecha": mañana, "rutaId": id de R-03, "horaSolicitada": 450, "prioridad": 3, "capacidadRequerida": 4}` con los tipos del contrato |
+| 4. Payload enviado | `{"codigo", "fecha": mañana, "rutaId": id de R-01, "horaSolicitada": 660, "prioridad": 3, "capacidadRequerida": 4, "entradaColaId": turno propuesto}` con los tipos del contrato |
 | 5. Respuesta | el cliente intercepta **HTTP 201** y el cuerpo es un `ServicioProgramado` pendiente |
-| 6. Base de datos | `SELECT` en `servicio`: misma fecha, hora, prioridad, asientos, estado `pendiente` y `creado_por = jdespacho` |
+| 6. Base de datos | `SELECT` en `servicio`: misma fecha, hora, prioridad, asientos, turno de cola, estado `pendiente` y `creado_por = jdespacho` |
 | 7. Interfaz | el diálogo se cierra y la fila aparece **sin volver a pedir la lista** (no hay otro `GET /api/servicios`) ni recargar la página |
-| 8. `operaciones` genera la programación | 201, `phiValidador = 0`, el nuevo servicio queda asignado a las 07:30 |
+| 8. `operaciones` genera la programación | 201, `phiValidador = 0`; el nuevo servicio queda asignado entre las 11:00 y las 12:00 (`H_s`) con `Δt` = salida − 11:00, con la unidad en turno o la siguiente y `σ` coherente con ella |
 | 9. Aprueba | estado `aprobada` en `programacion`, servicio `programado` y evento `aprobar_programacion` en la bitácora |
 
 La misma propiedad (botón desactivado, un solo POST, 201 y actualización
@@ -46,10 +46,10 @@ revisa.
 
 ```sh
 docker compose up -d --build                       # entorno
-(cd paquetes/dominio && dart test)                 # 61
+(cd paquetes/dominio && dart test)                 # 82
 herramientas/cobertura.sh                          # cobertura del núcleo ≥ 80 %
-(cd servidor && dart test)                         # 49, usa <DB_NAME>_pruebas
-(cd cliente && flutter test)                       # 14
+(cd servidor && dart test)                         # 62, usa <DB_NAME>_pruebas
+(cd cliente && flutter test)                       # 16
 herramientas/e2e.sh                                # 2 pruebas de integración
 ```
 
@@ -57,10 +57,14 @@ Las pruebas del servidor leen `PRUEBAS_DB_*` (o `DB_PASSWORD`) y **borran y
 recrean las tablas** de la base de pruebas; por seguridad se niegan a correr
 si su nombre no termina en `_pruebas`.
 
-## Resultado de la versión 1.0.0
+## Resultado de la versión 1.1.0
 
-Todas las pruebas pasan (61 + 49 + 14 + 2 = **126**). La cobertura de líneas del núcleo (`lib/src/optimizacion`) es **96,3 %** (RNF-07 exige ≥ 80 %); la del paquete completo, 60,2 %, porque los `toJson`/`fromJson` de los modelos se prueban desde el servidor y el cliente. Además se verificó con Playwright
-el cliente web en Chromium contra `docker compose`: la cookie `refresco` es
+Todas las pruebas pasan (82 + 62 + 16 + 2 = **162**). La cobertura de líneas del núcleo (`lib/src/optimizacion`) es **97,4 %** (RNF-07 exige ≥ 80 %); la del paquete completo, 75,2 %, porque parte de los `toJson`/`fromJson` de los modelos se prueba desde el servidor y el cliente.
+
+En la versión 1.0.0 (sin cola ni pares) eran 61 + 49 + 14 + 2 = 126 pruebas y
+la cobertura del núcleo, 96,3 %. En esa versión se verificó además con
+Playwright el cliente web en Chromium contra `docker compose` (no se repitió
+en la 1.1.0, que no cambia la sesión ni la autenticación): la cookie `refresco` es
 `HttpOnly`, `SameSite=Strict` y `Secure`, `document.cookie` no la expone,
 recargar la página reanuda la sesión sin pedir la contraseña y la aplicación
 no hace solicitudes a dominios externos.

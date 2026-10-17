@@ -11,7 +11,7 @@ que se corresponden una a una:
 
 Al final se relaciona con la estructura de datos en memoria y con la
 topología de la base de datos (sección 5) y se analiza su complejidad
-(sección 6). Las referencias `archivo:línea` apuntan a la versión `v1.0.0`.
+(sección 6). Las referencias `archivo:línea` apuntan a la versión `v1.1.0`.
 
 > Todas las rutas de código son relativas a `paquetes/dominio/lib/src/` salvo
 > que se indique otra carpeta.
@@ -25,8 +25,18 @@ topología de la base de datos (sección 5) y se analiza su complejidad
 ```text
 A_s = {(v, c, h) ∈ V × C × H_s : E_v(h) = 1, E_c(h) = 1, Q_v ≥ q_s,
                                  κ(v, r(s)) = 1, λ(c, v) = 1,
-                                 [t_{s,h}, t_{s,h} + d_{s,h}] ⊆ T_c}          (1)
+                                 [t_{s,h}, t_{s,h} + d_{s,h}] ⊆ T_c,
+                                 v ∈ {v0(s), v1(s)},  c ∈ {chab(v)} ∪ C_v^R}   (1)
 ```
+
+Las dos últimas condiciones son las reglas de cola y de conductores de la
+sección 3.1.2 (Tabla 11): `v0(s)` es la unidad que corresponde al servicio
+según su turno `π(s)` en la cola de su destino y `v1(s)` la siguiente unidad
+elegible de esa cola; `chab(v)` es el conductor habitual de la unidad y
+`C_v^R` sus reemplazos autorizados. Para la alternativa elegida se registran
+las salidas `σ(s)` (salto de cola: `v ≠ v0(s)`), `η(s)` (reemplazo:
+`chab(v)` existe y `c ≠ chab(v)`) y `Δt(s) = h − h_nominal(s)`, que no entran
+en `F(X)` (sección 3.1.2: se acotan con `A_s` y se revisan).
 
 ### Pseudocódigo
 
@@ -34,34 +44,58 @@ A_s = {(v, c, h) ∈ V × C × H_s : E_v(h) = 1, E_c(h) = 1, Q_v ≥ q_s,
 FUNCIÓN ConstruirInstancia(datos del turno)
   V⁺ ← {v ∈ V : E_v = 1}                                  -- operativos
   C⁺ ← {c ∈ C : E_c = 1 ∧ licencia vigente ∧ H_c0 < H_cmáx}
+  chab, C^R ← pares autorizados (habitual y reemplazos de cada unidad)
   PARA cada servicio s, en orden de hora solicitada:
      H_s ← salidas autorizadas de r(s) en [hora_s, hora_s + tolerancia]
+     SI s tiene turno e en la cola ENTONCES
+        v0 ← unidad de e;  π ← posición de e
+        v1 ← primera unidad de una entrada activa posterior a π, distinta de v0,
+             operativa, compatible y con capacidad          -- si la regla lo admite
+        V_s ← {v0 si e sigue activa} ∪ {v1}
+     SI NO  V_s ← V                                         -- servicio sin cola
      A_s ← ∅
      PARA cada h ∈ H_s;  d ← d_{s,h} (duración de la salida o de la ruta)
-        PARA cada v ∈ V⁺ con Q_v ≥ q_s y κ(v, r(s)) = 1
-           PARA cada c ∈ C⁺ con λ(c, v) = 1 y [h, h + d] ⊆ T_c
+        PARA cada v ∈ V⁺ ∩ V_s con Q_v ≥ q_s y κ(v, r(s)) = 1
+           PARA cada c ∈ C⁺ con λ(c, v) = 1, c ∈ {chab(v)} ∪ C_v^R y [h, h + d] ⊆ T_c
               A_s ← A_s ∪ {(v, c, h, d)}
      SI A_s = ∅ ENTONCES registrar el motivo (incidencia u_s = 1)
-  DEVOLVER instancia (S, A_s, H_c0, H_cmáx, t_mín, w, b, M)
+  DEVOLVER instancia (S, A_s, v0, π, v1, chab, H_c0, H_cmáx, t_mín, w, b, M)
+
+FUNCIÓN Excepciones(s, a = (v, c, h))
+  σ ← v0(s) definido ∧ v ≠ v0(s)
+  η ← chab(v) definido ∧ c ≠ chab(v)
+  Δt ← máx(0, h − hora_s)
 ```
 
-### Código — `optimizacion/constructor_instancia.dart`
+### Código — `optimizacion/constructor_instancia.dart` y `optimizacion/excepciones.dart`
 
 | Pseudocódigo | Línea | Código |
 |---|---|---|
-| `V⁺ ← {v : E_v = 1}` | 52–54 | `datos.vehiculos.where((v) => v.disponible)` |
-| `C⁺ ← {c : E_c = 1 ∧ vigente ∧ H_c0 < H_cmáx}` | 57–61 | `c.disponible && c.licenciaVigente(datos.fecha) && c.minutosAcumulados < c.limiteMinutos` |
-| orden por hora solicitada | 63–66 | `servicios.sort(...)` |
-| `H_s` | 138–149 | `_salidasCandidatas(servicio, salidasRuta)` |
-| `d ← d_{s,h}` | 79 | `salida.duracionMin ?? ruta.duracionMin` |
-| `Q_v ≥ q_s ∧ κ(v, r(s)) = 1` | 81–82 | `v.capacidad < servicio.capacidadRequerida \|\| !compatibles.contains(v.id)` |
-| `λ(c, v) = 1` | 85 | `parametros.habilita(c.categoriaLicencia, v.categoria)` |
-| `[h, h + d] ⊆ T_c` | 86 | `h < c.turnoInicio \|\| h + d > c.turnoFin` |
-| `A_s ← A_s ∪ {(v, c, h, d)}` | 87–92 | `alternativas.add(Alternativa(...))` |
-| `A_s = ∅ → motivo` | 105–107 | `motivoSinAlternativas: _diagnosticar(...)` |
+| `V⁺ ← {v : E_v = 1}` | 65 | `datos.vehiculos.where((v) => v.disponible)` |
+| `C⁺ ← {c : E_c = 1 ∧ vigente ∧ H_c0 < H_cmáx}` | 72 | `c.disponible && c.licenciaVigente(datos.fecha) && c.minutosAcumulados < c.limiteMinutos` |
+| `chab, C^R` | 88–95 | `habituales[p.vehiculoId]`, `autorizado(vehiculoId, conductorId)` |
+| orden por hora solicitada | 96 | `servicios.sort(...)` |
+| `H_s` | 106, 210 | `_salidasCandidatas(servicio, salidasRuta)` |
+| `Q_v ≥ q_s ∧ κ(v, r(s)) = 1` | 109 | `elegible(v)` |
+| `v0, π` | 113 | `entradas[servicio.entradaColaId]` |
+| `v1` | 117–125 | primera entrada activa con `e.posicion > entrada.posicion` y `elegible` |
+| `V_s` | 127 | `permitidos = {if (entrada.activa) entrada.vehiculoId, ?siguiente}` |
+| `d ← d_{s,h}` | 133 | `salida.duracionMin ?? ruta.duracionMin` |
+| `v ∈ V⁺ ∩ V_s` | 135 | `!elegible(v) \|\| !(permitidos?.contains(v.id) ?? true)` |
+| `λ(c, v) = 1` | 138 | `parametros.habilita(c.categoriaLicencia, v.categoria)` |
+| `c ∈ {chab(v)} ∪ C_v^R` | 139 | `autorizado(v.id, c.id)` |
+| `[h, h + d] ⊆ T_c` | 140 | `h < c.turnoInicio \|\| h + d > c.turnoFin` |
+| `A_s ← A_s ∪ {(v, c, h, d)}` | 141 | `alternativas.add(Alternativa(...))` |
+| `A_s = ∅ → motivo` | 163 | `motivoSinAlternativas: _diagnosticar(...)` |
+| `σ`, `η`, `Δt` | `excepciones.dart` 22, 23, 46 | `ExcepcionesAsignacion.de(instancia, servicio, alternativa)` |
+
+Las reglas de cola y de pares se pueden desactivar en `config/parametros.yaml`
+(`modelo.reglas_despacho`), porque la tesis las declara pendientes de
+confirmación con E-01 y O-01.
 
 Pruebas: `paquetes/dominio/test/constructor_instancia_test.dart` (un caso por
-condición de la ecuación y los escenarios HU-02, HU-03 y HU-07).
+condición clásica de la ecuación y los escenarios HU-02, HU-03 y HU-07) y
+`paquetes/dominio/test/cola_pares_test.dart` (cola, pares, `σ`, `η` y `Δt`).
 
 ---
 
@@ -188,7 +222,13 @@ leer en los dos sentidos.
 | κ(v, r) | compatibilidad vehículo–ruta | `Ruta.vehiculosCompatibles` | `ruta_vehiculo` |
 | λ(c, v) | licencia habilitante | `ParametrosModelo.habilita` | `config/parametros.yaml` |
 | H_s | salidas candidatas | `_salidasCandidatas` | `salida_autorizada` |
-| d_{s,h} | duración | `Alternativa.duracion` | `salida_autorizada.duracion_min` o `ruta.duracion_min` |
+| d_{s,h} | duración (viaje redondo) | `Alternativa.duracion` | `salida_autorizada.duracion_min` o `ruta.duracion_min` |
+| — | ida declarada (referencia) | `Ruta.idaMin` | `ruta.ida_min` |
+| π(s) | posición en la cola | `EntradaCola.posicion`, `ServicioTurno.posicionCola` | `entrada_cola.posicion` |
+| v0(s) | unidad que corresponde en la cola | `ServicioTurno.vehiculoCola` | `servicio.entrada_cola_id → entrada_cola.vehiculo_id` |
+| v1(s) | siguiente unidad elegible | `ServicioTurno.vehiculoSiguiente` | — (se calcula) |
+| chab(v) | conductor habitual | `InstanciaTurno.habituales`, `TipoPar.habitual` | `par_autorizado` con `tipo = 'habitual'` |
+| C_v^R | reemplazos autorizados | `ConductoresAutorizados.reemplazos`, `TipoPar.reemplazo` | `par_autorizado` con `tipo = 'reemplazo'` |
 | q_s | capacidad requerida | `ServicioTurno.capacidadRequerida` | `servicio.capacidad_requerida` |
 | p_s | prioridad | `ServicioTurno.prioridad` | `servicio.prioridad` |
 | A_s | alternativas admisibles | `ServicioTurno.alternativas` | — (se calcula) |
@@ -196,6 +236,9 @@ leer en los dos sentidos.
 | t_{s,a} | hora de inicio | `Alternativa.inicio` | `asignacion.salida` |
 | x_{s,a} = 1 | decisión | gen `α_s` / fila de `asignacion` | `asignacion` |
 | u_s = 1 | servicio sin cobertura | `ResultadoServicio.incidencia` | `asignacion.estado = 'incidencia'` |
+| σ(s) | salto de cola | `ExcepcionesAsignacion.saltoCola`, `Asignacion.saltoCola` | `asignacion.salto_cola` |
+| η(s) | reemplazo del habitual | `ExcepcionesAsignacion.reemplazo`, `Asignacion.reemplazo` | `asignacion.reemplazo` |
+| Δt(s) | demora frente a la salida nominal | `ExcepcionesAsignacion.demoraMin`, `Asignacion.demoraMin` | `asignacion.demora_min` |
 | b(s) | programación comprometida | `ServicioTurno.comprometida` | `asignacion` de la programación aprobada |
 | Γ, γ | pares en conflicto | `enConflicto()` (implícito) | — |
 | t_mín | holgura mínima | `InstanciaTurno.holguraMinima` | `config/parametros.yaml` |
@@ -230,12 +273,17 @@ classDiagram
     pesos : PesosPerdida  «w»
     referencias : ReferenciasPerdida  «b»
     penalizacion : double  «M»
+    habituales : Map~int, int~  «chab»
   }
   class ServicioTurno {
     servicioId : int
     prioridad : int  «p_s»
     alternativas : List~Alternativa~  «A_s»
     comprometida : Alternativa  «b, opcional»
+    nominal : int  «salida nominal»
+    vehiculoCola : int  «v0(s)»
+    posicionCola : int  «π(s)»
+    vehiculoSiguiente : int  «v1(s)»
   }
   class Alternativa {
     vehiculoId : int  «v»
@@ -270,6 +318,12 @@ erDiagram
   RUTA ||--o{ SALIDA_AUTORIZADA : "H (salidas)"
   RUTA ||--o{ RUTA_VEHICULO : "κ(v, r)"
   VEHICULO ||--o{ RUTA_VEHICULO : ""
+  VEHICULO ||--o{ PAR_AUTORIZADO : "chab(v), C_v^R"
+  CONDUCTOR ||--o{ PAR_AUTORIZADO : ""
+  RUTA ||--o{ COLA : "cola por fecha"
+  COLA ||--o{ ENTRADA_COLA : "π"
+  VEHICULO ||--o{ ENTRADA_COLA : ""
+  ENTRADA_COLA |o--o| SERVICIO : "v0(s)"
   SALIDA_AUTORIZADA ||--o{ SERVICIO : "FK compuesta (ruta_id, hora)"
   PROGRAMACION ||--o{ ASIGNACION : "X"
   SERVICIO ||--o{ ASIGNACION : "x_s,a"
@@ -283,6 +337,13 @@ erDiagram
   `servicio(ruta_id, hora_solicitada) → salida_autorizada(ruta_id, hora)` hace
   imposible registrar un servicio a una hora no autorizada; `ruta_vehiculo`
   es exactamente la relación N:M `κ(v, r)`.
+* **Las reglas de cola y de pares también.** `entrada_cola(cola_id,
+  posicion)` es único y la posición se asigna bajo bloqueo de la fila de
+  `cola`; la columna generada `servicio.entrada_vigente` (el turno si el
+  servicio no está cancelado) con índice único impide que un turno
+  corresponda a dos servicios; en `par_autorizado`, dos columnas generadas
+  con índice único dejan a cada unidad con a lo sumo un habitual y a cada
+  conductor como habitual de una sola unidad.
 * **Una programación aprobada por fecha.** La columna generada
   `programacion.fecha_aprobada = IF(estado = 'aprobada', fecha, NULL)` con
   índice único implementa la regla de HU-09 en la propia base.
@@ -291,9 +352,9 @@ erDiagram
   una asignación sin ellos.
 * **Lectura → instancia.** `ProgramacionServicio._instancia`
   (`servidor/lib/src/servicios/programacion_servicio.dart`) lee servicios,
-  vehículos, conductores, rutas, salidas y la programación comprometida con
-  los repositorios y llama a `ConstructorInstancia`; el núcleo no conoce la
-  base de datos (RNF-07).
+  vehículos, conductores, rutas, salidas, las colas de la fecha, los pares
+  autorizados y la programación comprometida con los repositorios y llama a
+  `ConstructorInstancia`; el núcleo no conoce la base de datos (RNF-07).
 * **Resultado → filas.** La programación, sus asignaciones y su curva se
   guardan en una transacción (`BaseDatos.transaccion`); si algo falla, no
   queda una programación a medias.
@@ -308,7 +369,7 @@ recursos disponibles, `P` la población, `G` las generaciones ejecutadas y
 
 | Etapa | Tiempo | Espacio | Comentario |
 |---|---|---|---|
-| Construir A_s (ec. 1) | `O(n·|H_s|·|V|·|C|)` | `O(K)` | filtros en `O(1)` por combinación |
+| Construir A_s (ec. 1) | `O(n·(q + |H_s|·|V|·|C|))` | `O(K + q + |pares|)` | filtros en `O(1)` por combinación; `q` entradas de la cola para hallar `v1(s)`. Con la regla de cola, `|V_s| ≤ 2` y el término queda en `O(n·|H_s|·2·|C|)` |
 | Evaluar F(X) | `O(n² + n log n)` | `O(n)` | pares elegidos (Cv, Cc) y orden por vehículo (Tm) |
 | Reparar (por pasada) | `O(n² + c·k·n)` | `O(n)` | `c` conflictos; cada reasignación revisa `k` alternativas contra `n` servicios |
 | Una generación | `O(P·(n² + ϱ·(n² + c·k·n)))` | `O(P·n)` | evaluar y reparar los descendientes |
