@@ -1,5 +1,29 @@
-pygad
-mysql-connector-python
-pyyaml
-python-dotenv
-pytest
+# Dependencias con versiones fijas (probadas con Python 3.12).
+# Instalar con:  pip install -r requirements.txt
+#
+# Para actualizar: cambie la versión, reinstale en un entorno limpio,
+# ejecute `pytest` y registre el cambio en el commit.
+
+# --- Dependencias directas ---------------------------------------------
+pygad==3.7.0                    # Algoritmo genético
+mysql-connector-python==26.7.0  # Conector oficial de MySQL
+PyYAML==6.0.3                   # Lectura de config/parametros_ga.yaml
+python-dotenv==1.2.4            # Lectura de variables desde .env
+matplotlib==3.11.2              # Curva de convergencia y diagramas de Gantt
+pytest==9.1.1                   # Pruebas automatizadas
+
+# --- Dependencias transitivas (fijadas para reproducibilidad) ----------
+cloudpickle==3.1.2
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.66.1
+iniconfig==2.3.0
+kiwisolver==1.5.1
+numpy==2.5.3
+packaging==26.3
+pillow==12.3.0
+pluggy==1.6.0
+Pygments==2.21.0
+pyparsing==3.3.3
+python-dateutil==2.9.0.post0
+six==1.17.0

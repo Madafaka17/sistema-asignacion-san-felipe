@@ -1,0 +1,176 @@
+import 'tiempo.dart';
+
+/// Indicadores de la sección 3.5 de la tesis (ecuaciones 19 a 23).
+///
+/// Todas devuelven un porcentaje entre 0 y 100, o `0` cuando el
+/// denominador es 0.
+class Indicadores {
+  const Indicadores._();
+
+  static double _porcentaje(num numerador, num denominador) =>
+      denominador == 0 ? 0 : numerador / denominador * 100;
+
+  /// (19) PIO = (vehículos + conductores con asignación inadecuada)
+  /// / servicios programados × 100.
+  static double pio(int vehiculosInadecuados, int conductoresInadecuados, int programados) =>
+      _porcentaje(vehiculosInadecuados + conductoresInadecuados, programados);
+
+  /// (20) PSR = servicios reprogramados / servicios programados × 100.
+  static double psr(int reprogramados, int programados) => _porcentaje(reprogramados, programados);
+
+  /// (21) PSA = servicios con retraso / servicios programados × 100.
+  static double psa(int conRetraso, int programados) => _porcentaje(conRetraso, programados);
+
+  /// (22) PUV = tiempo de servicio de los vehículos / tiempo disponible × 100.
+  static double puv(int minutosServicio, int minutosDisponibles) =>
+      _porcentaje(minutosServicio, minutosDisponibles);
+
+  /// (23) PAV = asignaciones sin conflicto / asignaciones generadas × 100.
+  static double pav(int sinConflicto, int generadas) => _porcentaje(sinConflicto, generadas);
+
+  /// Redondeo a un decimal para la presentación (6.315… → 6.3).
+  static double redondear(double valor) => (valor * 10).roundToDouble() / 10;
+}
+
+/// Reporte de indicadores de un periodo (HU-11).
+class ReporteIndicadores {
+  const ReporteIndicadores({
+    required this.desde,
+    required this.hasta,
+    this.sinDatos = false,
+    this.serviciosProgramados = 0,
+    this.reprogramados = 0,
+    this.conRetraso = 0,
+    this.vehiculosInadecuados = 0,
+    this.conductoresInadecuados = 0,
+    this.pio = 0,
+    this.psr = 0,
+    this.psa = 0,
+    this.puv = 0,
+    this.pav = 0,
+    this.desviacionCarga = 0,
+    this.tiempoGeneracionPromedioS = 0,
+    this.tiempoNucleoPromedioS = 0,
+    this.programacionesGeneradas = 0,
+    this.reemplazos = 0,
+    this.saltosCola = 0,
+    this.salidasDemoradas = 0,
+    this.minutosDemora = 0,
+    this.retrasoAcumuladoMin = 0,
+    this.tiempoMuertoMin = 0,
+  });
+
+  /// Reporte de un periodo en el que no hay programaciones aprobadas.
+  const ReporteIndicadores.vacio(this.desde, this.hasta)
+      : sinDatos = true,
+        serviciosProgramados = 0,
+        reprogramados = 0,
+        conRetraso = 0,
+        vehiculosInadecuados = 0,
+        conductoresInadecuados = 0,
+        pio = 0,
+        psr = 0,
+        psa = 0,
+        puv = 0,
+        pav = 0,
+        desviacionCarga = 0,
+        tiempoGeneracionPromedioS = 0,
+        tiempoNucleoPromedioS = 0,
+        programacionesGeneradas = 0,
+        reemplazos = 0,
+        saltosCola = 0,
+        salidasDemoradas = 0,
+        minutosDemora = 0,
+        retrasoAcumuladoMin = 0,
+        tiempoMuertoMin = 0;
+
+  static const mensajeSinDatos = 'Sin datos para el periodo';
+
+  final DateTime desde;
+  final DateTime hasta;
+  final bool sinDatos;
+  final int serviciosProgramados;
+  final int reprogramados;
+  final int conRetraso;
+  final int vehiculosInadecuados;
+  final int conductoresInadecuados;
+  final double pio;
+  final double psr;
+  final double psa;
+  final double puv;
+  final double pav;
+
+  /// Promedio de `D(X)` de las programaciones aprobadas, en minutos.
+  final double desviacionCarga;
+  /// Tiempo medio de generación de la propuesta (toda la solicitud) y, por
+  /// separado, del núcleo de optimización (CU-11: no se mezclan).
+  final double tiempoGeneracionPromedioS;
+  final double tiempoNucleoPromedioS;
+  final int programacionesGeneradas;
+
+  /// Indicadores operativos de la Tabla 24 sobre las programaciones
+  /// aprobadas: `Ση(s)`, `Σσ(s)`, servicios con `Δt(s) > 0`, `ΣΔt(s)`,
+  /// `Ret(X)` y `Tm(X)` acumulados.
+  final int reemplazos;
+  final int saltosCola;
+  final int salidasDemoradas;
+  final int minutosDemora;
+  final int retrasoAcumuladoMin;
+  final int tiempoMuertoMin;
+
+  Map<String, Object?> toJson() => {
+        'desde': fechaATexto(desde),
+        'hasta': fechaATexto(hasta),
+        'sinDatos': sinDatos,
+        if (sinDatos) 'mensaje': mensajeSinDatos,
+        'serviciosProgramados': serviciosProgramados,
+        'reprogramados': reprogramados,
+        'conRetraso': conRetraso,
+        'vehiculosInadecuados': vehiculosInadecuados,
+        'conductoresInadecuados': conductoresInadecuados,
+        'pio': pio,
+        'psr': psr,
+        'psa': psa,
+        'puv': puv,
+        'pav': pav,
+        'desviacionCarga': desviacionCarga,
+        'tiempoGeneracionPromedioS': tiempoGeneracionPromedioS,
+        'tiempoNucleoPromedioS': tiempoNucleoPromedioS,
+        'programacionesGeneradas': programacionesGeneradas,
+        'reemplazos': reemplazos,
+        'saltosCola': saltosCola,
+        'salidasDemoradas': salidasDemoradas,
+        'minutosDemora': minutosDemora,
+        'retrasoAcumuladoMin': retrasoAcumuladoMin,
+        'tiempoMuertoMin': tiempoMuertoMin,
+      };
+
+  factory ReporteIndicadores.fromJson(Map<String, Object?> json) {
+    double d(String k) => (json[k] as num).toDouble();
+    return ReporteIndicadores(
+      desde: textoAFecha(json['desde'] as String),
+      hasta: textoAFecha(json['hasta'] as String),
+      sinDatos: json['sinDatos'] as bool,
+      serviciosProgramados: json['serviciosProgramados'] as int,
+      reprogramados: json['reprogramados'] as int,
+      conRetraso: json['conRetraso'] as int,
+      vehiculosInadecuados: json['vehiculosInadecuados'] as int,
+      conductoresInadecuados: json['conductoresInadecuados'] as int,
+      pio: d('pio'),
+      psr: d('psr'),
+      psa: d('psa'),
+      puv: d('puv'),
+      pav: d('pav'),
+      desviacionCarga: d('desviacionCarga'),
+      tiempoGeneracionPromedioS: d('tiempoGeneracionPromedioS'),
+      tiempoNucleoPromedioS: d('tiempoNucleoPromedioS'),
+      programacionesGeneradas: json['programacionesGeneradas'] as int,
+      reemplazos: json['reemplazos'] as int,
+      saltosCola: json['saltosCola'] as int,
+      salidasDemoradas: json['salidasDemoradas'] as int,
+      minutosDemora: json['minutosDemora'] as int,
+      retrasoAcumuladoMin: json['retrasoAcumuladoMin'] as int,
+      tiempoMuertoMin: json['tiempoMuertoMin'] as int,
+    );
+  }
+}

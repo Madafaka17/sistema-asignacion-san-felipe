@@ -1,0 +1,28 @@
+# Solo para construir las imágenes detrás de un proxy HTTP(S) corporativo
+# que inspecciona TLS. Copie el certificado de su CA en
+# docker/certificados/ (archivo .crt, ignorado por git) y ejecute:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.proxy.yml up --build
+#
+# Las variables HTTPS_PROXY/HTTP_PROXY/NO_PROXY se toman del entorno.
+services:
+  servidor:
+    build:
+      network: host
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-}
+        http_proxy: ${HTTP_PROXY:-}
+        https_proxy: ${HTTPS_PROXY:-}
+        no_proxy: ${NO_PROXY:-}
+  cliente:
+    build:
+      network: host
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-}
+        http_proxy: ${HTTP_PROXY:-}
+        https_proxy: ${HTTPS_PROXY:-}
+        no_proxy: ${NO_PROXY:-}

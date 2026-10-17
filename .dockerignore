@@ -1,0 +1,13 @@
+# Contexto de construcción de las imágenes: solo el código fuente.
+.git
+**/.dart_tool
+**/build
+**/.flutter-plugins*
+.env
+.env.*
+docs
+src
+tests
+**/*.log
+cliente/linux/flutter/ephemeral
+cliente/windows/flutter/ephemeral

@@ -1,0 +1,12 @@
+manifiesto,fecha_consignada,hora,origen,destino,asientos,pasajeros_origen,unidad,conductor
+001-029451,24 de set. (sin año),04:00,Soritor,Tarapoto,16,,V004,C002
+001-029455,25 de set. (sin año),04:00,Soritor,Tarapoto,16,12,V003,C037
+001-029458,26-09-26,04:00,Soritor,Tarapoto,16,16,,
+001-029459,27-09-26,04:00,Soritor,Tarapoto,16,,s. c.,C003
+001-029460,28-09-26,04:00,Soritor,Tarapoto,16,,s. c.,C040
+001-029461,28-09-26,04:00,Soritor,Tarapoto,16,,s. c.,C017
+001-029462,27-09-26,04:00,Soritor,Tarapoto,16,,V002,C035
+001-029467,30-09-26,04:00,Soritor,Tarapoto,16,,,
+001-029468,01-10-26,04:00,Soritor,Tarapoto,16,,s. c.,C021
+001-029471,02-10-26,04:00,Soritor,Tarapoto,16,16,V002,C035
+001-029483,03-10-26,04:00,Soritor,Tarapoto,16,15,V001,C041
