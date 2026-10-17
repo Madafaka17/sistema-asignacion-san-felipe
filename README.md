@@ -172,7 +172,8 @@ basedatos/             esquema.sql, datos_ejemplo.sql, creación de la base de p
 config/parametros.yaml parámetros del modelo y del algoritmo (RNF-07)
 docker/, */Dockerfile  imágenes y configuración de nginx
 herramientas/          e2e.sh (integración), cobertura.sh (cobertura del núcleo), respaldo.sh
-experimentos/          paquete del experimento comparativo de la tesis (Anexo E), sin modificar
+experimentos/          paquete del experimento comparativo de la tesis (Anexo E), sin modificar, y material suplementario
+core/                  reimplementación (2026-10-17) del núcleo Python que importa ese paquete; no es el original
 docs/                  documentación técnica, UML, wireframes, capturas e instrumentos (docs/instrumentos)
 ```
 
@@ -191,7 +192,8 @@ docs/                  documentación técnica, UML, wireframes, capturas e inst
 | [pruebas.md](docs/pruebas.md) | estrategia y resultados de las pruebas |
 | [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) | diferencias con el diseño de la tesis y seguimiento de su Tabla 48 |
 | [instrumentos/](docs/instrumentos/README.md) | formatos anonimizados RD-01, RD-02, O-01 y E-01 (anexos A–D) |
-| [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método |
+| [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método; reevaluación, incertidumbre bootstrap y repetición con la reimplementación |
+| [core/](core/README.md) | reimplementación del núcleo Python del experimento: qué reproduce del original y qué no |
 
 ## Versiones
 

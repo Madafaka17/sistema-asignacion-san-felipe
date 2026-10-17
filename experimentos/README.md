@@ -22,7 +22,9 @@ ejecuciones.
 ## `sanfelipe/` — paquete del Anexo E, sin modificar
 
 Los archivos de [`sanfelipe/`](sanfelipe/) son los del paquete entregado por el
-autor, copiados **sin cambios** para conservar sus huellas. Las huellas
+autor, copiados **sin cambios** para conservar sus huellas; los únicos agregados
+son el material suplementario descrito más abajo y nuevas secciones de
+`README.md` y `DESVIACIONES.md`, que no tienen huella registrada. Las huellas
 SHA-256 de los cinco archivos que definen el experimento coinciden con las
 registradas en `sanfelipe/registro_protocolo.txt` antes de la ejecución
 (6 de octubre de 2026, 05:14:13 UTC); se pueden comprobar con:
@@ -40,21 +42,46 @@ CSV, resultados crudos y soluciones de las 330 ejecuciones de cada variante,
 figuras 6 y G1. Entorno registrado: Python 3.11.15, NumPy 2.4.4, PyGAD 3.7.0
 y PuLP 2.9.0 (`resumen_*.json`, clave `entorno`).
 
-## Pendiente para repetir el experimento
+## Código importado: reimplementación de `core/` y `poc_cap3/`
 
 El código del paquete importa, sin copiarlas, las implementaciones de los
 candidatos y el núcleo con los que se ejecutó, cuyas huellas también figuran
-en `registro_protocolo.txt`:
+en `registro_protocolo.txt`. **Esos archivos originales no se conservaron.**
+Para que el paquete pueda ejecutarse desde el repositorio se escribió una
+reimplementación (17 de octubre de 2026) a partir del capítulo III:
 
-| Ruta esperada | Contenido | Estado |
+| Ruta | Contenido | Estado |
 |---|---|---|
-| `experimentos/poc_cap3/` (`metodos.py`, `exhaustivo.py`, `validador.py`, `requirements.txt`) | los cuatro candidatos, la enumeración exhaustiva y el validador | **no incluido**: no forma parte del paquete entregado |
-| `core/` (`domain.py`, `conflicts.py`, `fitness.py`, `repair.py`, `scheduler.py`) | núcleo Python del algoritmo genético | **no incluido**: idem |
+| [`poc_cap3/`](poc_cap3/README.md) (`metodos.py`, `exhaustivo.py`, `validador.py`, `requirements.txt`) | los cuatro candidatos, la enumeración exhaustiva y el validador | **reimplementación**; huellas distintas de las registradas |
+| [`../core/`](../core/README.md) (`domain.py`, `conflicts.py`, `fitness.py`, `repair.py`, `scheduler.py`) | núcleo Python del algoritmo genético | **reimplementación**; idem |
 
-Mientras no se incorporen con esas mismas huellas, los resultados de esta
-carpeta son **evidencia registrada**, no una ejecución repetible desde el
-repositorio. No se reconstruyeron a mano: un archivo distinto tendría otra
-huella y no acreditaría lo ejecutado.
+Como sus huellas son otras, la reimplementación **no acredita lo ejecutado**:
+los resultados de `sanfelipe/` siguen siendo la evidencia registrada de la
+ejecución con el código original. Lo que sí se comprobó contra esa evidencia:
+
+| Comprobación | Resultado |
+|---|---|
+| F, J, Φ, validador, componentes e indicadores de las 1 320 soluciones registradas | coinciden las 1 320 |
+| Óptimos de n = 7 (F y hojas factibles) | coinciden los 12 |
+| Voraz (cromosoma) y PLE (F) en las 15 instancias | coinciden; 2 cromosomas de la PLE son óptimos alternativos con la misma F |
+| Búsqueda tabú y AG | no repiten las ejecuciones registradas (otro consumo de números aleatorios) |
+| Repetición completa (`sanfelipe/reimplementacion/`) | mismo orden que el registrado en v1, v2 y v2D; en v1D se invierte el orden entre PLE y AG por el criterio de tiempo C4 |
+
+## Material suplementario (2026-10-17)
+
+Agregado después de la ejecución y registrado en `sanfelipe/DESVIACIONES.md`:
+
+| Archivo | Qué hace |
+|---|---|
+| `sanfelipe/reevaluar_cromosomas.py` | reevalúa las soluciones registradas y los óptimos de n = 7 |
+| `sanfelipe/incertidumbre_bootstrap.py` → `sanfelipe/incertidumbre_brecha.csv` | intervalos bootstrap de la brecha media (C1) y de la diferencia AG − PLE, solo con resultados registrados |
+| `sanfelipe/repetir_reimplementacion.py` → `sanfelipe/reimplementacion/` | repetición completa con la reimplementación, sin sobrescribir los resultados registrados |
+| `poc_cap3/verificar_reimplementacion.py` | voraz, PLE y determinismo de búsqueda tabú y AG frente a lo registrado |
+
+La integración continua (`.github/workflows/ci.yml`, trabajo «Experimento
+Python») comprueba en cada cambio las huellas de los archivos registrados, la
+reevaluación, la verificación y que `datos/` e `incertidumbre_brecha.csv` se
+regeneran sin cambios.
 
 ## Relación con el prototipo Dart
 

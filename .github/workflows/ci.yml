@@ -35,6 +35,31 @@ jobs:
             cobertura.txt
             paquetes/dominio/coverage/lcov.info
 
+  experimento:
+    name: Experimento Python (Anexo E, reimplementación de core/ y poc_cap3/)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: experimentos/sanfelipe
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r ../poc_cap3/requirements.txt
+      - name: Huellas de los archivos registrados antes de la ejecución
+        run: grep sintetico_sanfelipe registro_protocolo.txt | sed 's#experimentos/sintetico_sanfelipe/##' | sha256sum -c
+      - name: Reevaluación de las 1 320 soluciones registradas y de los óptimos de n = 7
+        run: python reevaluar_cromosomas.py
+      - name: Voraz, PLE y determinismo de búsqueda tabú y AG
+        run: python ../poc_cap3/verificar_reimplementacion.py
+      - name: Generador, datos e incertidumbre se regeneran sin cambios
+        run: |
+          python verificar_generador.py > /dev/null
+          python exportar_datos.py
+          python incertidumbre_bootstrap.py > /dev/null
+          git diff --exit-code -- datos incertidumbre_brecha.csv
+
   servidor:
     name: Servidor (pruebas de aceptación sobre MySQL)
     runs-on: ubuntu-24.04
