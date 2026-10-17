@@ -1,6 +1,6 @@
 # Diagramas UML (versión final, según lo construido)
 
-Los diagramas reflejan el código de la versión `v1.1.0`: cada clase, método
+Los diagramas reflejan el código de la versión `v1.2.0`: cada clase, método
 y ruta que aparece aquí existe con ese nombre en el repositorio. Las
 diferencias con el diseño de la tesis están en
 [`decisiones_y_desviaciones.md`](decisiones_y_desviaciones.md).
@@ -281,6 +281,11 @@ classDiagram
     +int id
     +DateTime fecha
     +EstadoProgramacion estado
+    +int version
+    +int ejecucionId
+    +String? huellaEntrada
+    +String versionAlgoritmo
+    +int tiempoNucleoMs
     +String metodo
     +double aptitud
     +int phi
@@ -367,9 +372,12 @@ classDiagram
   }
   class ProgramacionServicio {
     +generar(fecha, usuario) Programacion
-    +ajustar(id, servicioId, ajuste, usuario) Programacion
+    +ajustar(id, servicioId, ajuste, usuario) Programacion «versión nueva»
     +aprobar(id, usuario) Programacion
-    -_instancia(fecha) InstanciaTurno
+    +entrada(id) SnapshotEntrada
+    -_instancia(fecha) (InstanciaTurno, DatosTurno, int)
+    -_registrarEntrada(tx, datos) (int, String)
+    -_exigirVigente(id, estado, accion)
   }
   class ServicioProgramadoServicio {
     +listar(pagina, fecha, estado)
@@ -385,6 +393,9 @@ classDiagram
     +guardar(tx, NuevaProgramacion) int
     +buscar(id) Programacion?
     +comprometidas(fecha) Map
+    +bloquear(tx, id) EstadoProgramacion?
+    +crearVersion(tx, anteriorId, snapshotId, ...) int
+    +marcarSustituida(tx, id)
     +aprobar(tx, id, usuarioId, momento)
   }
   class RepositorioProgramacionesMysql
@@ -452,7 +463,7 @@ recurso):
 | Rutas y salidas | `RutaControlador` | `RutaServicio` | `RepositorioRutas` |
 | Servicios | `ServicioProgramadoControlador` | `ServicioProgramadoServicio` | `RepositorioServicios`, `RepositorioCola` |
 | Cola de despacho | `ColaControlador` | `ColaServicio` | `RepositorioCola` |
-| Programación | `ProgramacionControlador` | `ProgramacionServicio` | `RepositorioProgramaciones` (+ los de registros, `RepositorioCola` y `RepositorioPares`) |
+| Programación | `ProgramacionControlador` | `ProgramacionServicio` | `RepositorioProgramaciones`, `RepositorioSnapshots` (+ los de registros, `RepositorioCola` y `RepositorioPares`) |
 | Incidencias | `IncidenciaControlador` | `IncidenciaServicio` | `RepositorioIncidencias` |
 | Reportes, bitácora, parámetros | `ReporteControlador` | `ReporteServicio`, `BitacoraServicio`, `ParametrosServicio` | `RepositorioReportes`, `RepositorioBitacora` |
 
@@ -675,11 +686,12 @@ flowchart TD
   R1 --> G[Operaciones genera la programación]
   G --> P{¿Hay servicios<br/>pendientes?}
   P -- No --> E1[/«No hay servicios pendientes»/] --> F((Fin))
-  P -- Sí --> M[Construir A_s y ejecutar el método<br/>configurado en parametros.yaml]
+  P -- Sí --> SN[Guardar el snapshot de la entrada<br/>con su SHA-256]
+  SN --> M[Construir A_s y ejecutar el método<br/>configurado en parametros.yaml]
   M --> V[Validador independiente: Φ]
   V --> RV[Revisar la propuesta: incidencias primero,<br/>Gantt y convergencia]
   RV --> AJ{¿Ajustar alguna<br/>asignación?}
-  AJ -- Sí --> A1[Ajuste manual: alternativa admisible] --> V
+  AJ -- Sí --> A1[Ajuste manual: alternativa admisible y motivo<br/>→ versión nueva; la anterior queda sustituida] --> V
   AJ -- No --> Q{¿Φ = 0?}
   Q -- No --> RV
   Q -- Sí --> AP[Aprobar: queda en la bitácora;<br/>servicios → programado]
@@ -690,6 +702,23 @@ flowchart TD
   RP -- Sí --> PEN[El servicio vuelve a pendiente] --> G
   RP -- No --> OP
   INC -- No --> REP[Operaciones genera el reporte de indicadores] --> F
+```
+
+### Estados de una versión de programación (CU-07, CU-09 y CU-12)
+
+```mermaid
+stateDiagram-v2
+  [*] --> propuesta : generar (versión 1, con snapshot)
+  propuesta --> propuesta : ajustar → versión siguiente
+  propuesta --> sustituida : un ajuste creó la versión siguiente
+  propuesta --> aprobada : aprobar (Φ = 0, versión vigente, fila bloqueada)
+  aprobada --> reemplazada : se aprueba otra programación de la misma fecha
+  sustituida --> [*]
+  reemplazada --> [*]
+  note right of sustituida
+    ajustar o aprobar una versión sustituida → 409;
+    sus asignaciones no cambian
+  end note
 ```
 
 ---
@@ -731,6 +760,8 @@ erDiagram
   USUARIO ||--o{ BITACORA : "registra"
   USUARIO ||--o{ SERVICIO : "creado_por"
   USUARIO ||--o{ PROGRAMACION : "creado_por / aprobado_por"
+  SNAPSHOT_ENTRADA ||--o{ PROGRAMACION : "entrada de la versión"
+  PROGRAMACION ||--o{ PROGRAMACION : "ejecución / versión anterior"
   RUTA ||--o{ SALIDA_AUTORIZADA : "tiene"
   RUTA ||--o{ RUTA_VEHICULO : ""
   VEHICULO ||--o{ RUTA_VEHICULO : "compatible"
@@ -821,12 +852,25 @@ erDiagram
     int id PK
     date fecha
     enum estado
+    int version
+    int ejecucion_id FK
+    int version_anterior_id FK
+    int snapshot_id FK
     string metodo
+    string version_algoritmo
     double aptitud
     int phi
     int phi_validador
+    int tiempo_ms
+    int tiempo_nucleo_ms
     json parametros
     date fecha_aprobada UK
+  }
+  SNAPSHOT_ENTRADA {
+    int id PK
+    date fecha
+    string sha256 UK
+    text contenido
   }
   ASIGNACION {
     int id PK

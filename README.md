@@ -11,7 +11,9 @@ de cola, reemplazo y salida demorada con su motivo. El encargado de
 operaciones la revisa, la ajusta si hace falta y la aprueba; el personal de
 despacho registra los recursos, la cola, los servicios y las incidencias, y
 el sistema calcula los indicadores de desempeño (PIO, PSR, PSA, PUV, PAV y
-los operativos de la Tabla 24).
+los operativos de la Tabla 24). Cada propuesta guarda su **procedencia**
+(snapshot de la entrada con su SHA-256, versión del algoritmo, semilla y
+parámetros) y cada ajuste crea una **versión** nueva sin borrar la anterior.
 
 Implementa el modelo del capítulo III de la tesis *Sistema de asignación de
 recursos basado en algoritmo genético para optimizar la programación
@@ -24,10 +26,10 @@ programación lineal entera); la evidencia del experimento está en
 
 | | |
 |---|---|
-| Versión | **1.1.0** (contrato de la API `1.1.0`) |
+| Versión | **1.2.0** (contrato de la API `1.2.0`) |
 | Arquitectura | cliente **Flutter (MVC)** · servidor **Dart** (Controller–Service–Repository) · **MySQL 8.4** |
 | Instalación | `docker compose up --build` |
-| Pruebas | 162 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz; cobertura del núcleo 97 % |
+| Pruebas | 173 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz; cobertura del núcleo 98 % |
 
 ![Programación propuesta](docs/capturas/05_propuesta.png)
 
@@ -145,9 +147,9 @@ Docker basta `docker compose restart servidor` para aplicarlos.
 ## Pruebas
 
 ```sh
-(cd paquetes/dominio && dart test)    # 82: núcleo, ecuaciones, cola y pares, parámetros, contrato
-(cd servidor && dart test)            # 62: HU-01…HU-11 y cola/pares sobre MySQL (base <DB_NAME>_pruebas)
-(cd cliente && flutter test)          # 16: ApiCliente, controladores, formulario HU-06
+(cd paquetes/dominio && dart test)    # 88: núcleo, ecuaciones, cola y pares, procedencia, parámetros, contrato
+(cd servidor && dart test)            # 66: HU-01…HU-11, cola/pares y versiones sobre MySQL (base <DB_NAME>_pruebas)
+(cd cliente && flutter test)          # 17: ApiCliente, controladores, formulario HU-06
 herramientas/e2e.sh                   # 2: ciclo completo y recorrido de pantallas (escritorio)
 herramientas/cobertura.sh             # cobertura del núcleo; falla por debajo de 80 % (RNF-07)
 ```
@@ -206,6 +208,7 @@ creó no tiene permiso para subirlas. Se crean desde un clon propio con
 | `v0.3.0` | cliente Flutter MVC y prueba de ciclo completo |
 | `v1.0.0` | entorno Docker, documentación final y UML según lo construido |
 | `v1.1.0` | cola de despacho, conductor habitual y reemplazos autorizados, `σ`/`η`/`Δt` e indicadores operativos (sección 3.1.2 de la tesis); contrato 1.1.0 |
+| `v1.2.0` | procedencia y versiones: snapshot de la entrada con SHA-256, versión del núcleo, versión por ajuste, bloqueo de la versión al ajustar y aprobar, tiempo del núcleo aparte (sección 5.5, CU-09 y CU-12); contrato 1.2.0 |
 
 ## Respaldos (RNF-05)
 

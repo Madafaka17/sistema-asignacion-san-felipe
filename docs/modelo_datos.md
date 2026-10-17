@@ -19,7 +19,8 @@ leer el modelo matemático. El diagrama entidad–relación está en
 | `cola` | cola de despacho de una ruta (su origen es el terminal) para una fecha | único (`ruta_id`, `fecha`); su fila se bloquea al registrar una llegada | HU-02, HU-06 |
 | `entrada_cola` | llegada de una unidad: `π` = `posicion`, por orden de llegada; `activa = FALSE` si dejó la cola | único (`cola_id`, `posicion`); las entradas no se borran ni se reordenan | HU-02, HU-06 |
 | `servicio` | `S`; `r(s)` = `ruta_id`; `p_s` = `prioridad`; `q_s` = `capacidad_requerida`; salida nominal = `hora_solicitada`; turno en la cola = `entrada_cola_id` (`v0(s)`, `π(s)`) | **FK compuesta** (`ruta_id`, `hora_solicitada`) → `salida_autorizada`; **único** sobre la columna generada `entrada_vigente` (un turno por servicio no cancelado); `CHECK prioridad BETWEEN 1 AND 3` | HU-06 |
-| `programacion` | una ejecución del método: `F(X)` = `aptitud`, `Φ(X)` = `phi`, `phi_validador`, componentes `Cv`, `Cc`, `N_exc`, `E`, `Ret`, `R`, `Tm`, `D`, `J`; copia de los parámetros (`JSON`) | **único** sobre la columna generada `fecha_aprobada` (una aprobada por día) | HU-07, HU-09 |
+| `snapshot_entrada` | entrada de una ejecución o de un ajuste: el `DatosTurno` en JSON canónico y su SHA-256 | **único** `sha256`; `CHECK (sha256 = SHA2(contenido, 256))`; solo se inserta | HU-07, HU-09 |
+| `programacion` | una versión de una ejecución del método: `F(X)` = `aptitud`, `Φ(X)` = `phi`, `phi_validador`, componentes `Cv`, `Cc`, `N_exc`, `E`, `Ret`, `R`, `Tm`, `D`, `J`; copia de los parámetros (`JSON`), semilla, `version_algoritmo`, `tiempo_ms` (solicitud) y `tiempo_nucleo_ms` (núcleo); `version`, `ejecucion_id` (la versión 1), `version_anterior_id` y `snapshot_id` | **único** sobre la columna generada `fecha_aprobada` (una aprobada por día) y sobre (`ejecucion_id`, `version`); estado `sustituida` para la versión que un ajuste reemplazó | HU-07, HU-09 |
 | `asignacion` | `x_{s,a} = 1` (vehículo, conductor, salida, fin) o `u_s = 1` (`estado = 'incidencia'` con `motivo`); `σ(s)` = `salto_cola`, `η(s)` = `reemplazo`, `Δt(s)` = `demora_min`, con `v0(s)` (`vehiculo_cola_id`), `chab(v)` (`conductor_habitual_id`) y la `justificacion` | único (`programacion_id`, `servicio_id`); `CHECK` de coherencia entre estado y recursos | HU-07 a HU-09 |
 | `historial_aptitud` | curva de convergencia: mejor y promedio de `F` por generación | PK (`programacion_id`, `generacion`) | HU-07 |
 | `incidencia` | retrasos, reprogramaciones e indisponibilidades: fuente de PIO, PSR y PSA | índice (`fecha`, `tipo`); `CHECK` minutos de retraso | HU-10, HU-11 |
@@ -50,6 +51,15 @@ programación aprobada de su fecha (`RepositorioProgramaciones.comprometidas`).
   («un turno, un servicio vigente»; «un habitual por unidad»). Por eso las
   claves foráneas de `par_autorizado` no usan `ON DELETE CASCADE`, que MySQL
   no admite sobre columnas base de una columna generada.
+* **Procedencia.** Cada versión apunta al snapshot de la entrada con la que
+  se construyó su instancia; con él, la semilla, los parámetros y
+  `version_algoritmo` la ejecución puede repetirse. La huella se verifica en
+  la propia base (`CHECK` con `SHA2`): un `UPDATE` que cambie el contenido
+  sin la huella correspondiente falla.
+* **Versiones.** Un ajuste no modifica la versión revisada: la copia como la
+  versión siguiente (`INSERT … SELECT`), aplica el cambio sobre la copia y
+  marca la anterior como `sustituida`, todo en una transacción que bloquea
+  la fila de la versión ajustada.
 * **Historial completo.** Cada ejecución del método crea un registro; la
   aprobada pasa a `reemplazada` cuando se aprueba otra. Así se miden PAV y el
   tiempo medio de generación sobre todas las ejecuciones (HU-11).

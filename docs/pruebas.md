@@ -2,10 +2,10 @@
 
 | Nivel | Dónde | Qué verifica | Cantidad | Cómo se ejecuta |
 |---|---|---|---:|---|
-| Unitarias del núcleo | `paquetes/dominio/test/` | ecuación (1) —incluidas las reglas de cola `v ∈ {v0(s), v1(s)}` y de pares `c ∈ {chab(v)} ∪ C_v^R`—, `σ`, `η` y `Δt` con su explicación, F(X) con el ejemplo de la Tabla 21, reparación, AG (reproducibilidad, elitismo, convergencia, óptimo exacto en n = 7), voraz, validador = evaluador en 300 cromosomas, parámetros de las Tablas 11 y 23, contrato JSON, indicadores | 82 | `cd paquetes/dominio && dart test` |
-| Aceptación del servidor | `servidor/test/aceptacion/` | los 26 escenarios de la Tabla 33 (HU-01 a HU-11), 13 casos adicionales (duplicados, formatos, rotación de la cookie, reproducibilidad…) y 13 de la cola de despacho y los pares autorizados (`cola_pares_test.dart`: posiciones por orden de llegada, turnos, habitual único, salto de cola y reemplazo explicados, motivo obligatorio en el ajuste, bitácora e indicadores), sobre la aplicación completa y MySQL real, con reloj fijo | 52 | `cd servidor && dart test` |
+| Unitarias del núcleo | `paquetes/dominio/test/` | ecuación (1) —incluidas las reglas de cola `v ∈ {v0(s), v1(s)}` y de pares `c ∈ {chab(v)} ∪ C_v^R`—, `σ`, `η` y `Δt` con su explicación, JSON canónico y snapshot de la entrada (huella estable y propuesta repetible desde él), F(X) con el ejemplo de la Tabla 21, reparación, AG (reproducibilidad, elitismo, convergencia, óptimo exacto en n = 7), voraz, validador = evaluador en 300 cromosomas, parámetros de las Tablas 11 y 23, contrato JSON, indicadores | 88 | `cd paquetes/dominio && dart test` |
+| Aceptación del servidor | `servidor/test/aceptacion/` | los 26 escenarios de la Tabla 33 (HU-01 a HU-11), 13 casos adicionales (duplicados, formatos, rotación de la cookie, reproducibilidad…) y 13 de la cola de despacho y los pares autorizados (`cola_pares_test.dart`: posiciones por orden de llegada, turnos, habitual único, salto de cola y reemplazo explicados, motivo obligatorio en el ajuste, bitácora e indicadores) y 4 de procedencia y versiones (`procedencia_versiones_test.dart`: snapshot con SHA-256 verificado en la base y ejecución repetida desde él, versión nueva por ajuste con la anterior intacta, 409 ante una versión sustituida, dos ajustes y dos aprobaciones simultáneos con un solo registro, tiempo del núcleo aparte), sobre la aplicación completa y MySQL real, con reloj fijo | 56 | `cd servidor && dart test` |
 | Contrato HTTP y configuración | `servidor/test/contrato_http_test.dart`, `parametros_sistema_test.dart` | `X-Version-Api`, 426, forma de los errores, CORS, cabeceras de seguridad, validación de `parametros.yaml` | 7 + 3 | idem |
-| Unitarias y de widgets del cliente | `cliente/test/` | `ApiCliente` (Bearer, renovación con la cookie, versión, errores), controladores con repositorios en memoria (incluida la cola), formulario HU-06 con servidor simulado y turno de cola por defecto | 16 | `cd cliente && flutter test` |
+| Unitarias y de widgets del cliente | `cliente/test/` | `ApiCliente` (Bearer, renovación con la cookie, versión, errores), controladores con repositorios en memoria (incluida la cola), formulario HU-06 con servidor simulado y turno de cola por defecto, versión nueva tras un ajuste | 17 | `cd cliente && flutter test` |
 | **Ciclo completo (E2E)** | `cliente/integration_test/ciclo_completo_test.dart` | interfaz → servidor → MySQL → interfaz (ver abajo) y generación + aprobación | 1 | `herramientas/e2e.sh` |
 | Recorrido de pantallas | `cliente/integration_test/recorrido_pantallas_test.dart` | cada rol ve solo sus módulos y cada pantalla carga sin errores (incluidas la cola de despacho y los conductores autorizados); genera `docs/capturas/` | 1 | `CAPTURAS=docs/capturas herramientas/e2e.sh` |
 
@@ -46,10 +46,10 @@ revisa.
 
 ```sh
 docker compose up -d --build                       # entorno
-(cd paquetes/dominio && dart test)                 # 82
+(cd paquetes/dominio && dart test)                 # 88
 herramientas/cobertura.sh                          # cobertura del núcleo ≥ 80 %
-(cd servidor && dart test)                         # 62, usa <DB_NAME>_pruebas
-(cd cliente && flutter test)                       # 16
+(cd servidor && dart test)                         # 66, usa <DB_NAME>_pruebas
+(cd cliente && flutter test)                       # 17
 herramientas/e2e.sh                                # 2 pruebas de integración
 ```
 
@@ -57,9 +57,9 @@ Las pruebas del servidor leen `PRUEBAS_DB_*` (o `DB_PASSWORD`) y **borran y
 recrean las tablas** de la base de pruebas; por seguridad se niegan a correr
 si su nombre no termina en `_pruebas`.
 
-## Resultado de la versión 1.1.0
+## Resultado de la versión 1.2.0
 
-Todas las pruebas pasan (82 + 62 + 16 + 2 = **162**). La cobertura de líneas del núcleo (`lib/src/optimizacion`) es **97,4 %** (RNF-07 exige ≥ 80 %); la del paquete completo, 75,2 %, porque parte de los `toJson`/`fromJson` de los modelos se prueba desde el servidor y el cliente.
+Todas las pruebas pasan (88 + 66 + 17 + 2 = **173**). La cobertura de líneas del núcleo (`lib/src/optimizacion`) es **97,9 %** (RNF-07 exige ≥ 80 %); la del paquete completo, 79,0 %, porque parte de los `toJson`/`fromJson` de los modelos se prueba desde el servidor y el cliente. En la 1.1.0 eran 82 + 62 + 16 + 2 = 162.
 
 En la versión 1.0.0 (sin cola ni pares) eran 61 + 49 + 14 + 2 = 126 pruebas y
 la cobertura del núcleo, 96,3 %. En esa versión se verificó además con

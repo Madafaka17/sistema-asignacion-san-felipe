@@ -156,8 +156,9 @@ captura [`despacho_cola.png`](capturas/despacho_cola.png).
 │ Programación del turno   [Turno ▾] [✦ Generar programación] [✓ Aprobar] │  boton_generar, boton_aprobar
 │ Propuesta generada: 12 servicios asignados                              │  mensaje_programacion
 │ [!] Hay cruces sin resolver (Φ = 2): ajuste las asignaciones marcadas   │  aviso_cruces
-│ Ejecuciones: (#2 · Aprobada · 08:04) (#1 · Propuesta · 08:00)           │
-│ ┌Estado┐┌Asignados┐┌Φ validador┐┌Saltos·reemplazos┐┌F(X)┐┌Tiempo muerto┐┌D┐┌AG┐ │  kpi_asignados, kpi_phi, kpi_excepciones
+│ Ejecuciones: (#3 v2 · Propuesta · 08:06) (#3 · Sustituida por un ajuste · 08:05) (#1 · Aprobada · 08:00) │
+│ ┌Estado: ejecución #3 · versión 2┐┌Asignados┐┌Φ validador┐┌Saltos·reemplazos┐┌F(X)┐┌Tm┐┌D┐ │  kpi_asignados, kpi_phi, kpi_excepciones
+│ ┌AG: núcleo 0,03 s · solicitud 0,05 s┐┌Procedencia: 6c1f2a9b04de… · algoritmo_genetico@1.2.0 · semilla 1┐ │  kpi_procedencia
 │ [Asignaciones] [Gantt] [Convergencia]                                    │
 │ Servicio│Ruta│Vehíc.│Cond.│Salida│Término│Excepciones                  │Estado│[✎] │  asignacion_<código>, ajustar_<código>
 │ S-108   │R-02│  —   │  —  │  —   │  —    │ —                           │Incidencia: … │  ← incidencias primero

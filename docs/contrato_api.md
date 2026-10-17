@@ -1,4 +1,4 @@
-# Contrato de la API REST (versión 1.1.0)
+# Contrato de la API REST (versión 1.2.0)
 
 El contrato vive en código, en `paquetes/dominio/lib/src/contrato/` y
 `paquetes/dominio/lib/src/modelos/`: el servidor y el cliente importan **los
@@ -19,15 +19,16 @@ sobre la forma de los datos. Este documento lo resume.
 
 ## Versionado y compatibilidad cliente–servidor
 
-* `versionApi = '1.1.0'` (`contrato/version.dart`) sigue las etiquetas del
-  repositorio (`v1.1.0`). La 1.1.0 agrega la cola de despacho, los pares
-  autorizados y las salidas `σ`, `η` y `Δt` (sección 3.1.2 de la tesis): un
-  cliente 1.0 recibe 426 y debe actualizarse.
+* `versionApi = '1.2.0'` (`contrato/version.dart`) sigue las etiquetas del
+  repositorio (`v1.2.0`). La 1.1.0 agregó la cola de despacho, los pares
+  autorizados y las salidas `σ`, `η` y `Δt` (sección 3.1.2 de la tesis); la
+  1.2.0, la procedencia y las versiones de cada propuesta (sección 5.5,
+  CU-09 y CU-12). Un cliente de otra versión MENOR recibe 426.
 * Toda respuesta lleva **`X-Version-Api`**; el cliente la compara con la suya
   y, si no coincide en MAYOR.MENOR, muestra «actualice la aplicación».
 * El cliente envía **`X-Version-Cliente`**; si es incompatible el servidor
   responde **426** antes de procesar la solicitud.
-* `GET /api/version` → `{"versionApi": "1.1.0", "versionServidor": "1.1.0"}`.
+* `GET /api/version` → `{"versionApi": "1.2.0", "versionServidor": "1.2.0"}`.
 
 ## Autenticación
 
@@ -89,11 +90,12 @@ L = lectura, E = escritura; D = despacho, O = operaciones, A = administrador.
 | `POST /api/servicios/{id}/cancelar` | E: D | 200 | HU-06 |
 | `POST /api/programaciones {fecha}` | E: O | 201 `Programacion` · 422 sin pendientes | HU-07 |
 | `GET /api/programaciones?fecha=` | L: O | 200 lista de resúmenes (sin asignaciones) | HU-08 |
-| `GET /api/programaciones/{id}` | L: O | 200 `Programacion` con asignaciones e historial | HU-08 |
-| `PUT /api/programaciones/{id}/asignaciones/{servicioId} {vehiculoId, conductorId, salida, justificacion?}` | E: O | 200 (cruces marcados como `conflicto`) · 422 si no es admisible o si salta la cola o reemplaza al habitual sin `justificacion` | HU-09 |
-| `POST /api/programaciones/{id}/aprobar` | E: O | 200 · 409 con cruces sin resolver | HU-09 |
+| `GET /api/programaciones/{id}` | L: O | 200 `Programacion` con asignaciones e historial (la curva de su ejecución), `version`, `ejecucionId`, `versionAnteriorId`, `huellaEntrada`, `versionAlgoritmo`, `tiempoMs` y `tiempoNucleoMs` | HU-08 |
+| `GET /api/programaciones/{id}/entrada` | L: O | 200 `SnapshotEntrada` `{id, fecha, sha256, contenido, creadoEn}`: SHA-256 del JSON canónico de `contenido` = `sha256` | HU-07 |
+| `PUT /api/programaciones/{id}/asignaciones/{servicioId} {vehiculoId, conductorId, salida, justificacion?}` | E: O | 200 con la **versión nueva** (otro `id`; la ajustada queda `sustituida`), con los cruces marcados como `conflicto` · 409 si la versión ya fue sustituida · 422 si no es admisible o si salta la cola, reemplaza al habitual o demora la salida sin `justificacion` | HU-09 |
+| `POST /api/programaciones/{id}/aprobar` | E: O | 200 · 409 con cruces sin resolver o si la versión fue sustituida · 422 si ya no es una propuesta (por ejemplo, otra solicitud la aprobó) | HU-09 |
 | `GET /api/incidencias?desde=&hasta=` · `POST /api/incidencias` | L/E: D (L: O) | 200 · 201 `Incidencia` · 404 servicio | HU-10 |
-| `GET /api/reportes/indicadores?desde=&hasta=` | O | 200 `ReporteIndicadores` (PIO…PAV y los operativos: `reemplazos`, `saltosCola`, `salidasDemoradas`, `minutosDemora`, `retrasoAcumuladoMin`, `tiempoMuertoMin`) | HU-11 |
+| `GET /api/reportes/indicadores?desde=&hasta=` | O | 200 `ReporteIndicadores` (PIO…PAV, los operativos `reemplazos`, `saltosCola`, `salidasDemoradas`, `minutosDemora`, `retrasoAcumuladoMin`, `tiempoMuertoMin`, y los tiempos medios de la solicitud y del núcleo sobre las ejecuciones) | HU-11 |
 | `GET /api/reportes/indicadores.csv?desde=&hasta=` | O | 200 `text/csv` (adjunto) | HU-11 |
 | `GET /api/bitacora?pagina=&accion=&entidad=&entidadId=` | A | 200 `Pagina<EntradaBitacora>` | RNF-06 |
 | `GET /api/parametros` | A | 200 parámetros efectivos | RNF-07 |
@@ -103,7 +105,7 @@ L = lectura, E = escritura; D = despacho, O = operaciones, A = administrador.
 ```http
 POST /api/servicios HTTP/1.1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIs…
-X-Version-Cliente: 1.1.0
+X-Version-Cliente: 1.2.0
 Content-Type: application/json
 
 {"codigo":"S-115","fecha":"2026-11-12","rutaId":1,"horaSolicitada":660,"prioridad":3,"capacidadRequerida":10,
@@ -112,7 +114,7 @@ Content-Type: application/json
 
 ```http
 HTTP/1.1 201 Created
-X-Version-Api: 1.1.0
+X-Version-Api: 1.2.0
 
 {"id":115,"codigo":"S-115","fecha":"2026-11-12","rutaId":1,"horaSolicitada":660,"prioridad":3,
  "capacidadRequerida":10,"estado":"pendiente","entradaColaId":8,"codigoRuta":"R-01",
@@ -142,6 +144,9 @@ POST /api/cola HTTP/1.1
                   "excesoMin": 0, "retrasoMin": 0, "reprogramados": 0, "tiempoMuertoMin": 395,
                   "desviacionCarga": 21.9, "perdida": 0.4206},
   "generaciones": 59, "tiempoMs": 142, "semilla": 1,
+  "version": 1, "ejecucionId": 1, "versionAnteriorId": null, "tiempoNucleoMs": 35,
+  "versionAlgoritmo": "algoritmo_genetico@1.2.0",
+  "huellaEntrada": "6c1f…(64 hexadecimales)",
   "asignaciones": [
     {"servicioId": 5, "codigoServicio": "S-0005", "codigoRuta": "R-02", "prioridad": 2,
      "vehiculoId": 6, "codigoVehiculo": "V-06", "conductorId": 6, "codigoConductor": "C-06",

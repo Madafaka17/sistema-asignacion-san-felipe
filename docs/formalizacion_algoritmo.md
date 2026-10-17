@@ -11,7 +11,7 @@ que se corresponden una a una:
 
 Al final se relaciona con la estructura de datos en memoria y con la
 topología de la base de datos (sección 5) y se analiza su complejidad
-(sección 6). Las referencias `archivo:línea` apuntan a la versión `v1.1.0`.
+(sección 6). Las referencias `archivo:línea` apuntan a la versión `v1.2.0`.
 
 > Todas las rutas de código son relativas a `paquetes/dominio/lib/src/` salvo
 > que se indique otra carpeta.
@@ -255,6 +255,9 @@ leer en los dos sentidos.
 | α | cromosoma | `List<int> cromosoma` | — |
 | P, G_máx, p_c, p_m, k, ε, g_conv, t_lím, ϱ | parámetros del AG | `ParametrosAG.tamanoPoblacion`, `generacionesMaximas`, `probabilidadCruce`, `probabilidadMutacion`, `tamanoTorneo`, `proporcionElite`, `generacionesSinMejora`, `limiteTiempo`, `pasadasReparacion` | `config/parametros.yaml` |
 | curva de convergencia | mejor y promedio por generación | `PuntoConvergencia` | `historial_aptitud` |
+| entrada de la instancia | datos del turno con los que se construye `A_s` | `DatosTurno`, `SnapshotEntrada` | `snapshot_entrada` (JSON canónico y SHA-256) |
+| versión del núcleo | código que produjo la propuesta | `versionNucleo`, `ResultadoOptimizacion.versionAlgoritmo` | `programacion.version_algoritmo` |
+| versión de la propuesta | ejecución (1) y ajustes (2, 3, …) | `Programacion.version`, `ejecucionId` | `programacion.version`, `ejecucion_id` |
 
 ---
 
@@ -358,6 +361,12 @@ erDiagram
 * **Resultado → filas.** La programación, sus asignaciones y su curva se
   guardan en una transacción (`BaseDatos.transaccion`); si algo falla, no
   queda una programación a medias.
+* **Snapshot → instancia.** Antes de guardar, `DatosTurno.toJson()` se
+  serializa en JSON canónico (`jsonCanonico`) y su SHA-256 se guarda en
+  `snapshot_entrada`; `DatosTurno.fromJson` reconstruye exactamente la misma
+  entrada, de modo que `ConstructorInstancia` y el AG con la semilla y los
+  parámetros guardados repiten la propuesta (`procedencia_test.dart` y
+  `procedencia_versiones_test.dart`).
 
 ---
 

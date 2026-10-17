@@ -63,13 +63,19 @@ modo que:
    intervalos; su valor (`phi_validador`) es el que decide si se puede aprobar.
    `ExcepcionesAsignacion` calcula `σ`, `η` y `Δt` de cada asignación y
    explica por qué el sistema propone un salto o un reemplazo.
-6. **Persistencia.** En una transacción: programación (con F, Φ, componentes,
-   tiempo, semilla y parámetros efectivos), asignaciones, curva de
-   convergencia y evento de bitácora. Responde 201.
-7. **Ajuste (HU-09).** Solo se acepta una alternativa de `A_s`; si salta la
-   cola o reemplaza al conductor habitual exige el motivo; se revalida toda
-   la programación y los cruces quedan marcados como `conflicto`.
-8. **Aprobación (HU-09).** Exige Φ = 0 según el validador; reemplaza la
+6. **Persistencia.** En una transacción: snapshot de la entrada (JSON
+   canónico y SHA-256), programación versión 1 (con F, Φ, componentes,
+   tiempo de la solicitud y del núcleo, semilla, parámetros efectivos y
+   método@versión del núcleo), asignaciones, curva de convergencia y evento
+   de bitácora. Responde 201.
+7. **Ajuste (HU-09, CU-12).** Solo se acepta una alternativa de `A_s`; si
+   salta la cola, reemplaza al conductor habitual o demora la salida exige
+   el motivo; se revalida toda la programación y los cruces quedan marcados
+   como `conflicto`. El resultado es una **versión nueva** con su snapshot;
+   la versión ajustada queda `sustituida` y ya no se ajusta ni se aprueba
+   (409).
+8. **Aprobación (HU-09, CU-09).** Bloquea la fila de la versión y verifica
+   que siga vigente; exige Φ = 0 según el validador; reemplaza la
    aprobada anterior de la fecha, pasa los servicios asignados a
    `programado` y registra usuario, fecha y hora en la bitácora, con cada
    salto de cola, reemplazo o demora aprobados y su motivo (sección 3.6).
