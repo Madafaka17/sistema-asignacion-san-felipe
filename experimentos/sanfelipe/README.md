@@ -17,6 +17,13 @@ implementaciones de `experimentos/poc_cap3` (importadas sin copiarlas), las mism
 configuraciones (Tablas 18 y 20) y los mismos criterios, anclajes y pesos (Tablas 14
 a 16). Solo cambia el generador de instancias.
 
+**Código importado.** Los archivos de `core/` y `experimentos/poc_cap3/` con los que
+se ejecutó este experimento (huellas en `registro_protocolo.txt`) no se conservaron.
+El repositorio incluye una **reimplementación** del 17 de octubre de 2026, con otras
+huellas, que reproduce la evaluación, el validador, los óptimos de n = 7, el voraz y
+la F de la PLE registrados, pero no las ejecuciones de la búsqueda tabú y del AG
+(ver [`../../core/README.md`](../../core/README.md)).
+
 ## Archivos
 
 | Archivo | Contenido |
@@ -34,10 +41,26 @@ a 16). Solo cambia el generador de instancias.
 | `optimos_n7_*.csv` | Óptimo certificado por enumeración exhaustiva en n = 7 |
 | `resumen_*.json` | Criterios C1 a C5, puntajes, totales e indicadores por tamaño |
 | `figura_rendimiento.py`, `figura_turno.py` | Figuras del informe |
+| `reevaluar_cromosomas.py` | Suplementario (2026-10-17): reevalúa las 1 320 soluciones registradas y los óptimos de n = 7 |
+| `incertidumbre_bootstrap.py`, `incertidumbre_brecha.csv` | Suplementario (2026-10-17): intervalos bootstrap de la brecha media (C1) y de la diferencia AG − PLE |
+| `repetir_reimplementacion.py`, `reimplementacion/` | Suplementario (2026-10-17): repetición completa con la reimplementación, en una carpeta aparte |
 
 ## Reproducción
 
-Desde esta carpeta, con las dependencias de `experimentos/poc_cap3/requirements.txt`:
+Desde esta carpeta, con las dependencias de `experimentos/poc_cap3/requirements.txt`.
+**`experimento.py ejecutar` y `sensibilidad_D.py ejecutar` sobrescriben los
+resultados registrados**; para repetir el experimento con la reimplementación sin
+tocarlos, use `repetir_reimplementacion.py`:
+
+```bash
+python3 reevaluar_cromosomas.py                  # las 1 320 soluciones registradas, sin ejecutar candidatos
+python3 incertidumbre_bootstrap.py               # -> incertidumbre_brecha.csv (solo lee resultados registrados)
+python3 repetir_reimplementacion.py ejecutar v1  # -> reimplementacion/ (también v2, v1D y v2D)
+python3 repetir_reimplementacion.py analizar v1
+python3 repetir_reimplementacion.py comparar     # registrado frente a la repetición
+```
+
+Instrucciones originales del paquete:
 
 ```bash
 python3 verificar_generador.py          # factibilidad de las 15 instancias
@@ -54,8 +77,10 @@ python3 figura_rendimiento.py
 python3 figura_turno.py
 ```
 
-Con las mismas semillas, la brecha y los incumplimientos se reproducen exactamente;
-los tiempos (C2 y C4) dependen del equipo.
+Con el código original y las mismas semillas, la brecha y los incumplimientos se
+reproducían exactamente (`DESVIACIONES.md`); los tiempos (C2 y C4) dependen del
+equipo. Con la reimplementación, eso vale para el voraz y la PLE; la búsqueda tabú y
+el AG dan otras ejecuciones (ver «Material suplementario»).
 
 ## Resultado (puntaje total ponderado)
 
