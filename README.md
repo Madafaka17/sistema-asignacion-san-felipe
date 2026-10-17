@@ -11,14 +11,19 @@ desempeño (PIO, PSR, PSA, PUV y PAV).
 
 Implementa el modelo del capítulo III de la tesis *Sistema de asignación de
 recursos basado en algoritmo genético para optimizar la programación
-operativa* (ecuaciones 1–15 y 19–23, Tabla 22, historias HU-01 a HU-11).
+operativa* (ecuaciones 1–15 y 19–23, Tabla 22, historias HU-01 a HU-11) y el
+avance del capítulo V. El **algoritmo genético** es el método determinado en
+la sección 3.3 con la matriz de decisión empírica (puntaje 4.45 en la
+ejecución oficial y 4.85 en la de sensibilidad, frente a 4.05 de la
+programación lineal entera); la evidencia del experimento está en
+[`experimentos/`](experimentos/README.md).
 
 | | |
 |---|---|
 | Versión | **1.0.0** (contrato de la API `1.0.0`) |
 | Arquitectura | cliente **Flutter (MVC)** · servidor **Dart** (Controller–Service–Repository) · **MySQL 8.4** |
 | Instalación | `docker compose up --build` |
-| Pruebas | 118 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz |
+| Pruebas | 126 automatizadas, incluida una de ciclo completo interfaz → servidor → MySQL → interfaz; cobertura del núcleo 96 % |
 
 ![Programación propuesta](docs/capturas/05_propuesta.png)
 
@@ -131,11 +136,16 @@ Docker basta `docker compose restart servidor` para aplicarlos.
 ## Pruebas
 
 ```sh
-(cd paquetes/dominio && dart test)    # 53: núcleo, ecuaciones, contrato
+(cd paquetes/dominio && dart test)    # 61: núcleo, ecuaciones, parámetros, contrato
 (cd servidor && dart test)            # 49: HU-01…HU-11 sobre MySQL (base <DB_NAME>_pruebas)
 (cd cliente && flutter test)          # 14: ApiCliente, controladores, formulario HU-06
 herramientas/e2e.sh                   # 2: ciclo completo y recorrido de pantallas (escritorio)
+herramientas/cobertura.sh             # cobertura del núcleo; falla por debajo de 80 % (RNF-07)
 ```
+
+En GitHub Actions cada commit publica dos artefactos: `evidencia-e2e` (salida
+de las pruebas de integración y capturas) y `cobertura-dominio` (informe
+LCOV).
 
 Las del servidor y las de integración usan el MySQL de `docker compose`
 (variables `PRUEBAS_DB_*`/`DB_*` del `.env`). Detalle de cada nivel y de la
@@ -150,8 +160,9 @@ cliente/               Flutter MVC: lib/{modelo,controladores,vistas}, test/, in
 basedatos/             esquema.sql, datos_ejemplo.sql, creación de la base de pruebas
 config/parametros.yaml parámetros del modelo y del algoritmo (RNF-07)
 docker/, */Dockerfile  imágenes y configuración de nginx
-herramientas/          e2e.sh (pruebas de integración), respaldo.sh (respaldo y restauración)
-docs/                  documentación técnica, UML, wireframes y capturas
+herramientas/          e2e.sh (integración), cobertura.sh (cobertura del núcleo), respaldo.sh
+experimentos/          paquete del experimento comparativo de la tesis (Anexo E), sin modificar
+docs/                  documentación técnica, UML, wireframes, capturas e instrumentos (docs/instrumentos)
 ```
 
 ## Documentación
@@ -167,13 +178,17 @@ docs/                  documentación técnica, UML, wireframes y capturas
 | [contrato_api.md](docs/contrato_api.md) | endpoints, autenticación, errores y versionado |
 | [wireframes.md](docs/wireframes.md) | wireframes por caso de uso y su implementación |
 | [pruebas.md](docs/pruebas.md) | estrategia y resultados de las pruebas |
-| [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) | diferencias con el diseño de la tesis y pendientes |
+| [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) | diferencias con el diseño de la tesis y seguimiento de su Tabla 48 |
+| [instrumentos/](docs/instrumentos/README.md) | formatos anonimizados RD-01, RD-02, O-01 y E-01 (anexos A–D) |
+| [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método |
 
 ## Versiones
 
 Las etiquetas siguen MAYOR.MENOR.PARCHE y la versión del contrato de la API
 (`X-Version-Api`); cliente y servidor operan juntos si coinciden en
-MAYOR.MENOR.
+MAYOR.MENOR. **Las etiquetas aún no están en GitHub**: el entorno que las
+creó no tiene permiso para subirlas. Se crean desde un clon propio con
+`git tag -a vX.Y.Z <commit> -m "…" && git push origin --tags`.
 
 | Etiqueta | Contenido |
 |---|---|

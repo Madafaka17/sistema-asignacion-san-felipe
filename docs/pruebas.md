@@ -2,7 +2,7 @@
 
 | Nivel | Dónde | Qué verifica | Cantidad | Cómo se ejecuta |
 |---|---|---|---:|---|
-| Unitarias del núcleo | `paquetes/dominio/test/` | ecuación (1), F(X) con el ejemplo de la Tabla 21, reparación, AG (reproducibilidad, elitismo, convergencia, óptimo exacto en n = 7), voraz, validador = evaluador en 300 cromosomas, contrato JSON, indicadores | 53 | `cd paquetes/dominio && dart test` |
+| Unitarias del núcleo | `paquetes/dominio/test/` | ecuación (1), F(X) con el ejemplo de la Tabla 21, reparación, AG (reproducibilidad, elitismo, convergencia, óptimo exacto en n = 7), voraz, validador = evaluador en 300 cromosomas, parámetros de las Tablas 11 y 23, contrato JSON, indicadores | 61 | `cd paquetes/dominio && dart test` |
 | Aceptación del servidor | `servidor/test/aceptacion/` | los 26 escenarios de la Tabla 33 (HU-01 a HU-11) y 13 casos adicionales (duplicados, formatos, rotación de la cookie, reproducibilidad…), sobre la aplicación completa y MySQL real, con reloj fijo | 39 | `cd servidor && dart test` |
 | Contrato HTTP y configuración | `servidor/test/contrato_http_test.dart`, `parametros_sistema_test.dart` | `X-Version-Api`, 426, forma de los errores, CORS, cabeceras de seguridad, validación de `parametros.yaml` | 7 + 3 | idem |
 | Unitarias y de widgets del cliente | `cliente/test/` | `ApiCliente` (Bearer, renovación con la cookie, versión, errores), controladores con repositorios en memoria, formulario HU-06 con servidor simulado | 14 | `cd cliente && flutter test` |
@@ -32,11 +32,22 @@ La misma propiedad (botón desactivado, un solo POST, 201 y actualización
 reactiva) se prueba también sin servidor en
 `cliente/test/registro_servicio_widget_test.dart`, que corre en segundos.
 
+## Evidencia en GitHub Actions
+
+Cada push ejecuta, además de las pruebas de cada paquete, el trabajo
+**«Ciclo completo (E2E, escritorio Linux)»**: levanta `docker compose`, corre
+`herramientas/e2e.sh` bajo Xvfb y publica el artefacto `evidencia-e2e` con la
+salida completa (encabezada por el commit y la fecha UTC) y las capturas de
+cada pantalla. El artefacto `cobertura-dominio` guarda el informe LCOV del
+núcleo. Así la evidencia E2E corresponde siempre al mismo commit que se
+revisa.
+
 ## Ejecución completa
 
 ```sh
 docker compose up -d --build                       # entorno
-(cd paquetes/dominio && dart test)                 # 53
+(cd paquetes/dominio && dart test)                 # 61
+herramientas/cobertura.sh                          # cobertura del núcleo ≥ 80 %
 (cd servidor && dart test)                         # 49, usa <DB_NAME>_pruebas
 (cd cliente && flutter test)                       # 14
 herramientas/e2e.sh                                # 2 pruebas de integración
@@ -48,7 +59,7 @@ si su nombre no termina en `_pruebas`.
 
 ## Resultado de la versión 1.0.0
 
-Todas las pruebas pasan (53 + 49 + 14 + 2 = **118**). Además se verificó con Playwright
+Todas las pruebas pasan (61 + 49 + 14 + 2 = **126**). La cobertura de líneas del núcleo (`lib/src/optimizacion`) es **96,3 %** (RNF-07 exige ≥ 80 %); la del paquete completo, 60,2 %, porque los `toJson`/`fromJson` de los modelos se prueban desde el servidor y el cliente. Además se verificó con Playwright
 el cliente web en Chromium contra `docker compose`: la cookie `refresco` es
 `HttpOnly`, `SameSite=Strict` y `Secure`, `document.cookie` no la expone,
 recargar la página reanuda la sesión sin pedir la contraseña y la aplicación

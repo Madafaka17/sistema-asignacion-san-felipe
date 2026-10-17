@@ -22,15 +22,32 @@ Consecuencias:
 * El paquete `dominio` se comparte entre cliente y servidor: modelos,
   contrato y matriz de permisos son el mismo código en ambos lados.
 
-## 2. Método de optimización — **pendiente**
+## 2. Método de optimización — algoritmo genético (sección 3.3)
 
-La sección 3.3 de la tesis deja pendiente la determinación del método: en las
-pruebas de concepto la programación lineal entera obtuvo el mayor puntaje
-(4,35). El sistema implementa el **algoritmo genético** de la sección 3.4,
-que da título al proyecto, y el **algoritmo voraz** (ecuación 12) como línea
-base. Gracias al patrón Strategy, añadir la PLE solo requiere una clase que
-implemente `EstrategiaOptimizacion` y registrarla en `FabricaEstrategias`;
-el método se elige en `config/parametros.yaml` (`optimizacion.metodo`).
+La sección 3.3 de la tesis **determina el algoritmo genético** con la matriz de
+decisión empírica de la ejecución oficial v1, definida por un protocolo
+registrado antes de ejecutar: AG **4.45**, programación lineal entera 4.05,
+búsqueda tabú 2.80 y voraz 2.35 (Tabla 19). La sensibilidad del presupuesto
+(v2, Tabla 20) mantiene el orden y sube el AG a **4.85**. El análisis
+exploratorio de la definición de `D` (Anexo F) invierte el orden en v1D (PLE
+4.50, AG 4.45), por lo que la forma de medir el equilibrio debe ratificarse
+con la empresa (pregunta 8 de E-01). La evidencia completa está en
+[`experimentos/`](../experimentos/README.md).
+
+Consecuencias para el sistema:
+
+* El método de producción es el AG (`optimizacion.metodo: algoritmo_genetico`
+  en `config/parametros.yaml`).
+* PLE, voraz y búsqueda tabú son **comparadores experimentales** y no métodos
+  adicionales del sistema final. El `AlgoritmoVoraz` del paquete `dominio` se
+  conserva como línea base de las pruebas del núcleo y de
+  `tool/experimento.dart`; no se ofrece como alternativa en la interfaz.
+* Los resultados de `tool/experimento.dart` (AG y voraz en Dart, otras
+  instancias) **no son una repetición** de la matriz de decisión, que se
+  obtuvo con las implementaciones Python del experimento.
+* Las versiones anteriores de este documento citaban un puntaje de 4,35 para
+  la PLE y una determinación pendiente: correspondían a una versión previa de
+  la tesis y quedan reemplazadas por lo anterior.
 
 ## 3. Decisiones del modelo que la tesis no fija
 
@@ -90,3 +107,19 @@ Las carpetas y archivos `src/`, `tests/`, `requirements.txt`, `pytest.ini`,
 prototipo en Python que esta versión reemplaza. **No los usa ninguna parte
 del sistema** (ni Docker ni las pruebas); se conservan en el historial y
 pueden eliminarse con un commit propio cuando el autor lo decida.
+
+## 8. Seguimiento de la Tabla 48 de la tesis (diferencias con el diseño requerido)
+
+La versión de la tesis con el capítulo V revisó el commit `b54c86b` y listó
+en su Tabla 48 lo que el prototipo debía adecuar. Estado en este repositorio:
+
+| Aspecto (Tabla 48) | Pendiente señalado | Estado |
+|---|---|---|
+| Tecnología y comparación | publicar `core/` y `experimentos/poc_cap3/`; no presentar los resultados Dart como repetición de la matriz | Paquete `experimentos/sanfelipe/` publicado sin cambios (huellas verificadas). `core/` y `poc_cap3/` **no se recibieron**: siguen pendientes del autor ([`experimentos/README.md`](../experimentos/README.md)). Los resultados Dart se presentan como verificación del prototipo (§2) |
+| Operación por cola | modelar la posición de cola y el par habitual/reemplazo | en desarrollo |
+| Duraciones y horas | conservar 30/150 min de ida declarados sin tratarlos como ciclos demostrados | en desarrollo (datos de demostración) |
+| Procedencia y versiones | snapshot inmutable de entrada, huella, versión del algoritmo y versión de cada ajuste | en desarrollo |
+| Comunicación y concurrencia | probar concurrencia e idempotencia; el plan 202 es ampliación propuesta | en desarrollo (versión esperada al aprobar) |
+| Tiempo y complejidad | aislar el tiempo del núcleo del tiempo de la API | en desarrollo |
+| Repositorio y pruebas | etiquetas remotas; reporte E2E; cobertura; usabilidad y recuperación | CI publica la salida E2E y las capturas de cada commit (artefacto `evidencia-e2e`) y la cobertura del núcleo (artefacto `cobertura-dominio`, umbral 80 %). Las etiquetas existen localmente pero la sesión que las creó no pudo subirlas: ver README. Usabilidad y recuperación requieren la instalación en la empresa |
+| Documentación previa | alinear con GA 4.45 (v1), 4.85 (v2) y la sección 3.3 | hecho (§2) |
