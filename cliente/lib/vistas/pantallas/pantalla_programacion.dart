@@ -341,7 +341,7 @@ class _FormularioAjusteState extends State<_FormularioAjuste> {
           key: const Key('campo_justificacion_ajuste'),
           controlador: _justificacion,
           etiqueta: 'Motivo del ajuste',
-          ayuda: 'Obligatorio si salta la cola, reemplaza al conductor habitual o demora la salida',
+          ayuda: 'Obligatorio ante un salto de cola, un reemplazo o una demora',
           errorServidor: e['justificacion'],
           obligatorio: false,
           validar: (t) => t.length > 255 ? 'Máximo 255 caracteres' : null,
