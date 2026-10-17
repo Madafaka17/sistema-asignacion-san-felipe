@@ -62,6 +62,12 @@ respaldos/
 *.sqlite3
 *.log
 logs/
+# Evidencia que SÍ se versiona: el paquete del experimento (Anexo E de la
+# tesis: datos sintéticos, resultados crudos y registros de ejecución) y las
+# plantillas de los instrumentos de levantamiento.
+!experimentos/**/*.csv
+!experimentos/**/*.log
+!docs/instrumentos/*.csv
 
 # --- Editores y sistema operativo --------------------------------------
 .vscode/
