@@ -8,6 +8,7 @@
 | Unitarias y de widgets del cliente | `cliente/test/` | `ApiCliente` (Bearer, renovación con la cookie, versión, errores), controladores con repositorios en memoria (incluida la cola), formulario HU-06 con servidor simulado y turno de cola por defecto, versión nueva tras un ajuste | 17 | `cd cliente && flutter test` |
 | **Ciclo completo (E2E)** | `cliente/integration_test/ciclo_completo_test.dart` | interfaz → servidor → MySQL → interfaz (ver abajo) y generación + aprobación | 1 | `herramientas/e2e.sh` |
 | Recorrido de pantallas | `cliente/integration_test/recorrido_pantallas_test.dart` | cada rol ve solo sus módulos y cada pantalla carga sin errores (incluidas la cola de despacho y los conductores autorizados); genera `docs/capturas/` | 1 | `CAPTURAS=docs/capturas herramientas/e2e.sh` |
+| Experimento del Anexo E (Python) | `experimentos/sanfelipe/reevaluar_cromosomas.py`, `experimentos/poc_cap3/verificar_reimplementacion.py` | huellas de los archivos registrados; las 1 320 soluciones registradas y los 12 óptimos de n = 7 reevaluados con la reimplementación de `core/` y `poc_cap3/`; voraz y PLE frente a lo registrado; búsqueda tabú y AG repetibles con la misma semilla; `datos/` e `incertidumbre_brecha.csv` se regeneran sin cambios | — | ver [`experimentos/README.md`](../experimentos/README.md) |
 
 ## Prueba de ciclo completo (Sesión 7)
 
@@ -40,7 +41,9 @@ Cada push ejecuta, además de las pruebas de cada paquete, el trabajo
 salida completa (encabezada por el commit y la fecha UTC) y las capturas de
 cada pantalla. El artefacto `cobertura-dominio` guarda el informe LCOV del
 núcleo. Así la evidencia E2E corresponde siempre al mismo commit que se
-revisa.
+revisa. El trabajo **«Experimento Python»** repite en cada push las
+comprobaciones del paquete del Anexo E con Python 3.11 y las versiones
+registradas de NumPy, PyGAD y PuLP.
 
 ## Ejecución completa
 

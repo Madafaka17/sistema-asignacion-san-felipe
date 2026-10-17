@@ -90,3 +90,15 @@ siendo las de `registro_protocolo.txt` (la integración continua las comprueba).
   (AG − PLE: +3.43 y +12.97 puntos). En v2, AG 0.40 % (0.15 a 0.69) y diferencia
   −9.00 puntos (−19.39 a −1.83). Con tres instancias por tamaño, los intervalos
   describen la variabilidad de este experimento, no la de la operación real.
+- **`repetir_reimplementacion.py` y `reimplementacion/`.** Repetición completa de
+  v1, v2, v1D y v2D con la reimplementación, escrita en `reimplementacion/` para no
+  reemplazar los resultados registrados. El voraz y la PLE dieron la F registrada
+  en las 15 instancias de cada variante y los óptimos de n = 7 fueron los mismos;
+  la búsqueda tabú y el AG dieron otras ejecuciones. Totales (registrado entre
+  paréntesis): v1 AG 4.45 (4.45), PLE 4.20 (4.05), búsqueda tabú 2.80 (2.80), voraz
+  2.50 (2.35); v2 4.85, 4.05, 2.65 y 2.50, iguales a los registrados; v1D AG 4.45
+  (4.45), PLE 4.35 (4.50); v2D AG 4.85 (4.70), PLE 4.35 (4.35). El orden coincide
+  con el registrado en v1, v2 y v2D; en v1D el AG queda por delante de la PLE
+  porque el puntaje C4 de la PLE bajó de 5 a 4 (razón 2.31 frente a 2.12 en la
+  ejecución registrada, alrededor del corte de 2.2), un criterio que depende del
+  equipo. La repetición no reemplaza la ejecución oficial.
