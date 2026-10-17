@@ -1,0 +1,7 @@
+# Entorno registrado del experimento (resumen_*.json, clave "entorno"): Python 3.11.15.
+# PuLP 2.9.0 incluye el solucionador CBC.
+numpy==2.4.4
+pygad==3.7.0
+pulp==2.9.0
+# Solo para figura_rendimiento.py y figura_turno.py; su versión no quedó registrada.
+matplotlib>=3.8
