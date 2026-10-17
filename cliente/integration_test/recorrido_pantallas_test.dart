@@ -115,6 +115,8 @@ void main() {
         // HU-09: diálogo de ajuste (solo en una propuesta sin aprobar).
         final ajustar = find.byWidgetPredicate((w) => clave(w, 'ajustar_'));
         if (ajustar.evaluate().isNotEmpty) {
+          await tester.ensureVisible(ajustar.first);
+          await asentar(tester);
           await tester.tap(ajustar.first);
           await asentar(tester);
           await capturar('operaciones_ajuste');
