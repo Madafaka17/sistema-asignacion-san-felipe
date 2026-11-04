@@ -28,12 +28,15 @@ jobs:
       - name: Pruebas y cobertura del núcleo (≥ 80 %, RNF-07)
         working-directory: .
         run: herramientas/cobertura.sh | tee cobertura.txt
+      - name: P-17 (RNF-02) — AG oficial con 112 servicios y 10 semillas, cada ejecución ≤ 300 s
+        run: dart run tool/p17.dart ../../evidencia-p17
       - uses: actions/upload-artifact@v4
         with:
           name: cobertura-dominio
           path: |
             cobertura.txt
             paquetes/dominio/coverage/lcov.info
+            evidencia-p17/
 
   experimento:
     name: Experimento Python (Anexo E, core/ y poc_cap3/ originales)
