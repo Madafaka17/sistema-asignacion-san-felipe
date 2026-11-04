@@ -65,19 +65,17 @@ Agregado once días después de la ejecución, con todos los resultados conocido
 Ninguno de los archivos registrados de esta carpeta se modificó: sus huellas siguen
 siendo las de `registro_protocolo.txt` (la integración continua las comprueba).
 
-- **Reimplementación de `core/` y `experimentos/poc_cap3/`.** Los archivos con los
-  que se ejecutó el experimento no se conservaron. Para que el paquete pueda
-  ejecutarse desde el repositorio se escribieron de nuevo a partir del capítulo III
-  (`core/README.md`, `experimentos/poc_cap3/README.md`). Sus huellas son otras, de
-  modo que no acreditan lo ejecutado: los resultados registrados siguen siendo la
-  evidencia de la ejecución con el código original.
-- **`reevaluar_cromosomas.py`.** Reevalúa con la reimplementación cada cromosoma de
+- **Reimplementación de `core/` y `experimentos/poc_cap3/` (retirada el 2026-11-04).**
+  Mientras faltaban los archivos con los que se ejecutó el experimento, el repositorio
+  publicó una versión escrita de nuevo a partir del capítulo III, con otras huellas.
+  Se retiró al recuperarse los originales (sección siguiente).
+- **`reevaluar_cromosomas.py`.** Reevalúa cada cromosoma de
   `soluciones_*.jsonl`. Las 1 320 soluciones (v1, v2, v1D y v2D) coinciden con
   `resultados_crudos_*.csv` en los 16 campos —F, J, Φ, validador, E, Ret, R, Tm, D
   y los siete indicadores operativos— y los 12 óptimos de n = 7 coinciden en F y en
   el número de hojas factibles. Esto acredita que las soluciones registradas son
-  coherentes con sus resultados y que la reimplementación evalúa F(X) y Φ como el
-  núcleo original.
+  coherentes con sus resultados. (Se comprobó primero con la reimplementación y, el
+  2026-11-04, con los archivos originales.)
 - **`incertidumbre_bootstrap.py` e `incertidumbre_brecha.csv`.** Intervalos
   bootstrap (B = 10 000, remuestreo estratificado de instancias y semillas, con la
   referencia de la brecha fija) de la brecha media C1 y de la diferencia AG − PLE,
@@ -90,15 +88,25 @@ siendo las de `registro_protocolo.txt` (la integración continua las comprueba).
   (AG − PLE: +3.43 y +12.97 puntos). En v2, AG 0.40 % (0.15 a 0.69) y diferencia
   −9.00 puntos (−19.39 a −1.83). Con tres instancias por tamaño, los intervalos
   describen la variabilidad de este experimento, no la de la operación real.
-- **`repetir_reimplementacion.py` y `reimplementacion/`.** Repetición completa de
-  v1, v2, v1D y v2D con la reimplementación, escrita en `reimplementacion/` para no
-  reemplazar los resultados registrados. El voraz y la PLE dieron la F registrada
-  en las 15 instancias de cada variante y los óptimos de n = 7 fueron los mismos;
-  la búsqueda tabú y el AG dieron otras ejecuciones. Totales (registrado entre
-  paréntesis): v1 AG 4.45 (4.45), PLE 4.20 (4.05), búsqueda tabú 2.80 (2.80), voraz
-  2.50 (2.35); v2 4.85, 4.05, 2.65 y 2.50, iguales a los registrados; v1D AG 4.45
-  (4.45), PLE 4.35 (4.50); v2D AG 4.85 (4.70), PLE 4.35 (4.35). El orden coincide
-  con el registrado en v1, v2 y v2D; en v1D el AG queda por delante de la PLE
-  porque el puntaje C4 de la PLE bajó de 5 a 4 (razón 2.31 frente a 2.12 en la
-  ejecución registrada, alrededor del corte de 2.2), un criterio que depende del
-  equipo. La repetición no reemplaza la ejecución oficial.
+- **`repetir_reimplementacion.py` y `reimplementacion/` (retirados el 2026-11-04).**
+  Repetición completa de v1, v2, v1D y v2D con la reimplementación; con ella, la
+  búsqueda tabú y el AG no repetían las ejecuciones registradas. Al recuperarse los
+  originales dejó de tener objeto; queda en el historial de git (commit 98f19b9).
+
+## Recuperación del código original (2026-11-04)
+
+El autor entregó el paquete del repositorio del núcleo de la sesión 8
+(`paquete_repositorio.zip`, 7/10/2026, con su `SHA256SUMS` íntegro). Sus 14 archivos
+registrados —los cinco de esta carpeta, `metodos.py`, `exhaustivo.py` y
+`validador.py` de `experimentos/poc_cap3/` y los seis de `core/`— tienen las huellas
+de `registro_protocolo.txt`. Se incorporaron sin cambios y sustituyeron a la
+reimplementación; también se incorporaron los registros de la prueba técnica inicial
+de `experimentos/poc_cap3/` (`PROTOCOLO.md`, `resumen.json`, resultados y figura).
+
+Con ellos, en el contenedor de verificación (Python 3.11.18, dependencias de
+`requirements.lock`): `pruebas/nucleo` aprobó 109 pruebas (100 casos del Anexo I y 9
+de `tests/test_core.py`), entre ellas M12-02, que repite las 12 corridas de la
+sección anterior, y M12-03 y M11-04, que repiten la PLE y el voraz en las 15
+instancias; `reevaluar_cromosomas.py` volvió a coincidir en las 1 320 soluciones.
+Las 300 ejecuciones estocásticas v1 se informan en `pruebas/nucleo/README.md`.
+

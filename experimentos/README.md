@@ -42,30 +42,27 @@ CSV, resultados crudos y soluciones de las 330 ejecuciones de cada variante,
 figuras 6 y G1. Entorno registrado: Python 3.11.15, NumPy 2.4.4, PyGAD 3.7.0
 y PuLP 2.9.0 (`resumen_*.json`, clave `entorno`).
 
-## Código importado: reimplementación de `core/` y `poc_cap3/`
+## Código importado: `core/` y `poc_cap3/` originales
 
 El código del paquete importa, sin copiarlas, las implementaciones de los
-candidatos y el núcleo con los que se ejecutó, cuyas huellas también figuran
-en `registro_protocolo.txt`. **Esos archivos originales no se conservaron.**
-Para que el paquete pueda ejecutarse desde el repositorio se escribió una
-reimplementación (17 de octubre de 2026) a partir del capítulo III:
+candidatos y el núcleo con los que se ejecutó, cuyas huellas figuran en
+`registro_protocolo.txt`. Son los archivos de este repositorio: se recuperaron
+el 4 de noviembre de 2026 del paquete del repositorio del núcleo de la sesión 8
+y sus huellas coinciden con las registradas (la integración continua lo
+comprueba). Sustituyeron a la reimplementación del 17 de octubre, publicada
+mientras faltaban (`sanfelipe/DESVIACIONES.md`).
 
-| Ruta | Contenido | Estado |
-|---|---|---|
-| [`poc_cap3/`](poc_cap3/README.md) (`metodos.py`, `exhaustivo.py`, `validador.py`, `requirements.txt`) | los cuatro candidatos, la enumeración exhaustiva y el validador | **reimplementación**; huellas distintas de las registradas |
-| [`../core/`](../core/README.md) (`domain.py`, `conflicts.py`, `fitness.py`, `repair.py`, `scheduler.py`) | núcleo Python del algoritmo genético | **reimplementación**; idem |
-
-Como sus huellas son otras, la reimplementación **no acredita lo ejecutado**:
-los resultados de `sanfelipe/` siguen siendo la evidencia registrada de la
-ejecución con el código original. Lo que sí se comprobó contra esa evidencia:
-
-| Comprobación | Resultado |
+| Ruta | Contenido |
 |---|---|
-| F, J, Φ, validador, componentes e indicadores de las 1 320 soluciones registradas | coinciden las 1 320 |
-| Óptimos de n = 7 (F y hojas factibles) | coinciden los 12 |
-| Voraz (cromosoma) y PLE (F) en las 15 instancias | coinciden; 2 cromosomas de la PLE son óptimos alternativos con la misma F |
-| Búsqueda tabú y AG | no repiten las ejecuciones registradas (otro consumo de números aleatorios) |
-| Repetición completa (`sanfelipe/reimplementacion/`) | mismo orden que el registrado en v1, v2 y v2D; en v1D se invierte el orden entre PLE y AG por el criterio de tiempo C4 |
+| [`poc_cap3/`](poc_cap3/README.md) | los cuatro candidatos (`metodos.py`), la enumeración exhaustiva (`exhaustivo.py`), el validador (`validador.py`) y los registros de la prueba técnica inicial (`PROTOCOLO.md`, `resumen.json`, resultados y figura) |
+| [`../core/`](../core/README.md) | núcleo Python del algoritmo genético |
+
+Comprobado con ellos el 4/11/2026: las 1 320 soluciones registradas y los 12
+óptimos de n = 7 coinciden (`sanfelipe/reevaluar_cromosomas.py`); las 300
+ejecuciones estocásticas v1 de la búsqueda tabú y del AG repiten la aptitud
+registrada, y el voraz y la PLE la repiten en las 15 instancias
+([`../pruebas/nucleo/`](../pruebas/nucleo/README.md), casos M11-04, M12-02 y
+M12-03 y `estocasticas.py`).
 
 ## Material suplementario (2026-10-17)
 
@@ -75,13 +72,12 @@ Agregado después de la ejecución y registrado en `sanfelipe/DESVIACIONES.md`:
 |---|---|
 | `sanfelipe/reevaluar_cromosomas.py` | reevalúa las soluciones registradas y los óptimos de n = 7 |
 | `sanfelipe/incertidumbre_bootstrap.py` → `sanfelipe/incertidumbre_brecha.csv` | intervalos bootstrap de la brecha media (C1) y de la diferencia AG − PLE, solo con resultados registrados |
-| `sanfelipe/repetir_reimplementacion.py` → `sanfelipe/reimplementacion/` | repetición completa con la reimplementación, sin sobrescribir los resultados registrados |
-| `poc_cap3/verificar_reimplementacion.py` | voraz, PLE y determinismo de búsqueda tabú y AG frente a lo registrado |
 
 La integración continua (`.github/workflows/ci.yml`, trabajo «Experimento
-Python») comprueba en cada cambio las huellas de los archivos registrados, la
-reevaluación, la verificación y que `datos/` e `incertidumbre_brecha.csv` se
-regeneran sin cambios.
+Python») comprueba en cada cambio las huellas de los archivos registrados
+(incluidos `core/` y `poc_cap3/`), la reevaluación y que `datos/` e
+`incertidumbre_brecha.csv` se regeneran sin cambios; el trabajo «Núcleo Python»
+ejecuta la suite `pruebas/nucleo`.
 
 ## Relación con el prototipo Dart
 
