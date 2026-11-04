@@ -1,48 +1,53 @@
-# `experimentos/poc_cap3/` — candidatos, enumeración exhaustiva y validador (reimplementación)
+# Pruebas de concepto del capítulo 3 (sección 3.2.3 de la tesis)
 
-**Esta carpeta no contiene los archivos con los que se ejecutó el experimento del
-Anexo E.** Esos archivos no se conservaron. `metodos.py`, `exhaustivo.py` y
-`validador.py` son una **reimplementación escrita el 17 de octubre de 2026** a
-partir de las secciones 3.1.4 a 3.1.7, 3.2.3 y de las Tablas 17 y 18 de la tesis.
-Sus huellas SHA-256 **no son** las registradas en
-[`../sanfelipe/registro_protocolo.txt`](../sanfelipe/registro_protocolo.txt).
+Comparación empírica de los cuatro candidatos del capítulo 3 —programación lineal
+entera (PLE), algoritmo voraz, búsqueda tabú y algoritmo genético (AG)— con las
+mismas instancias, el mismo equipo, la misma función de evaluación
+(`core.fitness.evaluate`) y el mismo límite de tiempo. El protocolo completo, fijado
+antes de la ejecución oficial, está en [PROTOCOLO.md](PROTOCOLO.md).
+
+## Archivos
 
 | Archivo | Contenido |
 |---|---|
-| `metodos.py` | `resolver_voraz` (ec. 12), `resolver_ple` (ec. 9 a 11, PuLP 2.9.0 con CBC), `resolver_tabu` (ec. 13 y 14) y `resolver_ag` (núcleo `core/`) |
-| `exhaustivo.py` | óptimo certificado por enumeración con poda (referencia de C1 en n = 7) |
-| `validador.py` | validador independiente de Φ: no usa Γ ni la función de aptitud |
-| `verificar_reimplementacion.py` | compara la reimplementación con los resultados registrados |
-| `requirements.txt` | NumPy 2.4.4, PyGAD 3.7.0 y PuLP 2.9.0, como en el entorno registrado (Python 3.11.15) |
+| `PROTOCOLO.md` | Protocolo preregistrado (secciones 1 a 7), correcciones de fidelidad tras el piloto (8) y análisis de sensibilidad v2 (9) |
+| `generador.py` | Instancias sintéticas factibles por construcción (semillas 101, 102 y 103; *n* = 7 a 112) |
+| `metodos.py` | Implementación de los cuatro candidatos sobre las estructuras de `core/` |
+| `exhaustivo.py` | Óptimo certificado por enumeración exhaustiva con poda (*n* = 7) |
+| `validador.py` | Conteo independiente de restricciones duras incumplidas |
+| `experimento.py` | Ejecución (`ejecutar`) y cálculo de criterios, puntajes y totales (`analizar`) |
+| `resultados_crudos.csv`, `resumen.json`, `optimos_n7.csv` | Resultados de la ejecución oficial (v1) |
+| `resultados_crudos_v2.csv`, `resumen_v2.json`, `optimos_n7_v2.csv` | Resultados del análisis de sensibilidad (v2) |
+| `figura_poc.py`, `figura_poc.png` | Figura 6 de la tesis (monocromática) |
 
-Qué reproduce exactamente y qué no: ver [`../../core/README.md`](../../core/README.md).
-En resumen, la evaluación, el validador, la enumeración exhaustiva, el voraz y la F
-de la PLE coinciden con lo registrado; la búsqueda tabú y el AG no repiten las
-ejecuciones registradas.
+## Reproducción
 
-## Decisiones que el texto de la tesis no fija
+Desde la raíz del repositorio:
 
-Se tomaron para reproducir los resultados registrados y se comprobaron con ellos:
+```bash
+pip install -r experimentos/poc_cap3/requirements.txt
+cd experimentos/poc_cap3
+python3 experimento.py ejecutar        # ejecución oficial (v1): 330 ejecuciones
+python3 experimento.py analizar        # criterios C1-C5, puntajes 1-5 y totales -> resumen.json
+python3 experimento.py ejecutar v2     # análisis de sensibilidad
+python3 experimento.py analizar v2     # -> resumen_v2.json
+python3 figura_poc.py                  # Figura 6
+```
 
-- **Voraz.** Los choques se cuentan en la tabla de ocupación: cada intervalo ya
-  asignado al vehículo o al conductor que se cruza con la alternativa cuenta uno,
-  y exceder el límite de conducción cuenta uno más; en empate se elige la
-  alternativa más temprana. Con esta regla los 15 cromosomas son los registrados.
-- **PLE.** Variables `x_i_k` binarias; `ini_v`, `fin_v` ∈ [0, H]; `tm_v`, `Lmáx` ≥ 0;
-  CBC con un hilo y 300 s. El orden en que se agregan las restricciones —(3), (10),
-  (5), (11) y (6)— solo decide cuál de los óptimos alternativos devuelve CBC; con
-  él, la F de las 15 instancias es la registrada.
-- **Búsqueda tabú.** `random.Random(semilla)`; cada vecino es un servicio con más
-  de una alternativa y otra alternativa suya, elegidos al azar; el presupuesto
-  cuenta la evaluación de la solución inicial.
-- **AG.** Población inicial con `numpy.random.default_rng(semilla)`; PyGAD elige
-  por torneo tantos progenitores como la población y forma cada descendiente con
-  los progenitores k y k + 1; la reparación se aplica al final de la mutación, de
-  modo que todo descendiente se repara antes de evaluarse.
+Las semillas son fijas, por lo que la brecha y los incumplimientos se reproducen
+exactamente mientras ninguna ejecución alcance el límite de 300 s; los tiempos
+dependen del equipo. Equipo de la ejecución reportada en la tesis: máquina virtual
+Linux (núcleo 6.18, x86_64), 2 vCPU Intel Xeon a 2.10 GHz, 7.8 GiB de RAM;
+Python 3.11.15, NumPy 2.4.4, PyGAD 3.7.0, PuLP 2.9.0 con CBC 2.10.3.
 
-## Lo que sigue sin recuperarse
+## Resultado
 
-Los registros de la **prueba técnica inicial** que la tesis cita como
-`experimentos/poc_cap3/PROTOCOLO.md` (sección 8) y `experimentos/poc_cap3/resumen.json`
-no se reconstruyen: eran resultados de una ejecución, no código, y escribirlos de
-nuevo sería inventarlos.
+| Candidato | Total v1 | Total v2 |
+|---|---|---|
+| Programación lineal entera | 4.35 | 4.35 |
+| Búsqueda tabú | 2.80 | 2.65 |
+| Algoritmo genético | 2.65 | 3.30 |
+| Algoritmo voraz | 2.50 | 2.50 |
+
+El validador independiente coincidió con el conteo de la función de evaluación en
+las 330 ejecuciones de cada variante.

@@ -1,0 +1,34 @@
+2026-10-07T14:57:30.982Z INFO    Prueba de humo 20261007T145730Z_857f. Datos sintéticos; base de pruebas efímera.
+2026-10-07T14:57:30.982Z INFO    [P01] Integridad del protocolo y del núcleo registrados: inicio
+2026-10-07T14:57:30.991Z DEBUG   instantánea inicial: 62 archivos de core/ y experimentos/
+2026-10-07T14:57:30.991Z INFO    [P01] Integridad del protocolo y del núcleo registrados: PASA (0.009 s)
+2026-10-07T14:57:30.991Z INFO    [P02] Entorno, dependencias fijadas y carga de bibliotecas: inicio
+2026-10-07T14:57:31.272Z DEBUG   versiones: {'numpy': '2.4.4', 'pygad': '3.7.0', 'pymysql': '1.2.3', 'cryptography': '50.0.2', 'pulp': '2.9.0', 'cbc': '2.10.3'}
+2026-10-07T14:57:31.272Z INFO    [P02] Entorno, dependencias fijadas y carga de bibliotecas: PASA (0.281 s)
+2026-10-07T14:57:31.272Z INFO    [P03] Configuración desacoplada (.env no versionado): inicio
+2026-10-07T14:57:31.272Z DEBUG   configuración de conexión: {'entorno': 'pruebas', 'host': '127.0.0.1', 'puerto': 33306, 'usuario': 'sf_humo', 'clave': '********', 'prefijo': 'sf_test_'}
+2026-10-07T14:57:31.272Z INFO    [P03] Configuración desacoplada (.env no versionado): PASA (0.000 s)
+2026-10-07T14:57:31.273Z INFO    [P04] Puerto, credenciales y permisos de la BD de pruebas: inicio
+2026-10-07T14:57:31.324Z INFO    [P04] Puerto, credenciales y permisos de la BD de pruebas: PASA (0.052 s)
+2026-10-07T14:57:31.324Z INFO    [P05] Creación de la base efímera y del esquema: inicio
+2026-10-07T14:57:31.478Z INFO    [P05] Creación de la base efímera y del esquema: PASA (0.154 s)
+2026-10-07T14:57:31.478Z INFO    [P06] Carga del conjunto mínimo controlado: inicio
+2026-10-07T14:57:31.493Z INFO    [P06] Carga del conjunto mínimo controlado: PASA (0.014 s)
+2026-10-07T14:57:31.493Z INFO    [P07] Construcción de la instancia desde la BD: inicio
+2026-10-07T14:57:31.496Z DEBUG   instancia: 7 servicios, t_min=10.0, huella=b45ed603bbc95806df0117bfe82d890669e95c2f2def0c1488493ed7a8c3993b
+2026-10-07T14:57:31.496Z INFO    [P07] Construcción de la instancia desde la BD: PASA (0.002 s)
+2026-10-07T14:57:31.496Z INFO    [P08] Ejecución del núcleo AG y validador independiente: inicio
+2026-10-07T14:57:31.750Z DEBUG   cromosoma=[0, 3, 1, 3, 2, 3, 0] aptitud=-0.5996419164764342
+2026-10-07T14:57:31.750Z INFO    [P08] Ejecución del núcleo AG y validador independiente: PASA (0.254 s)
+2026-10-07T14:57:31.750Z INFO    [P09] Persistencia y lectura de la programación: inicio
+2026-10-07T14:57:31.754Z INFO    [P09] Persistencia y lectura de la programación: PASA (0.004 s)
+2026-10-07T14:57:31.755Z INFO    [P10] Determinismo en ejecuciones independientes: inicio
+2026-10-07T14:57:32.404Z DEBUG   repetición 2: {'repeticion': 2, 'pid': 6454, 'huella': 'd61c24991f23f49eebf567847826694d75e642d62e1052e6cf8617a6bf955cbf', 'id_corrida': 2}
+2026-10-07T14:57:33.024Z DEBUG   repetición 3: {'repeticion': 3, 'pid': 6456, 'huella': 'd61c24991f23f49eebf567847826694d75e642d62e1052e6cf8617a6bf955cbf', 'id_corrida': 3}
+2026-10-07T14:57:33.024Z INFO    [P10] Determinismo en ejecuciones independientes: PASA (1.270 s)
+2026-10-07T14:57:33.024Z INFO    [P11] Paridad con el entorno de referencia: inicio
+2026-10-07T14:57:33.024Z INFO    [P11] Paridad con el entorno de referencia: PASA (0.000 s)
+2026-10-07T14:57:33.024Z INFO    [P12] Limpieza de la base efímera e integridad final: inicio
+2026-10-07T14:57:33.098Z INFO    [P12] Limpieza de la base efímera e integridad final: PASA (0.074 s)
+2026-10-07T14:57:33.099Z INFO    Resumen: P01 PASA, P02 PASA, P03 PASA, P04 PASA, P05 PASA, P06 PASA, P07 PASA, P08 PASA, P09 PASA, P10 PASA, P11 PASA, P12 PASA
+2026-10-07T14:57:33.099Z INFO    RESULTADO DE LA PRUEBA DE HUMO: PASA (evidencia en pruebas/humo/salidas/20261007T145730Z_857f)

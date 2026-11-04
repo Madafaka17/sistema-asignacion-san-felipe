@@ -12,15 +12,18 @@
 # =====================================================================
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# ENV_FILE (opcional): otro archivo de variables, p. ej. el de herramientas/medir_restauracion.sh.
+ENV_FILE="${ENV_FILE:-.env}"
 set -a
-# shellcheck disable=SC1091
-source .env
+# shellcheck disable=SC1090
+source "${ENV_FILE}"
 set +a
+dc() { docker compose --env-file "${ENV_FILE}" "$@"; }
 
 if [[ "${1:-}" == "restaurar" ]]; then
   archivo="${2:?Indique el archivo .sql.gz a restaurar}"
   echo "Restaurando ${archivo} en ${DB_NAME}…"
-  gunzip -c "${archivo}" | docker compose exec -T basedatos \
+  gunzip -c "${archivo}" | dc exec -T basedatos \
     sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE"'
   echo "Listo."
   exit 0
@@ -29,7 +32,7 @@ fi
 mkdir -p respaldos
 destino="respaldos/${DB_NAME}_$(date +%Y%m%d_%H%M%S).sql.gz"
 # --single-transaction: copia coherente sin bloquear la operación (InnoDB).
-docker compose exec -T basedatos sh -c \
+dc exec -T basedatos sh -c \
   'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --triggers "$MYSQL_DATABASE"' \
   | gzip > "${destino}"
 echo "Respaldo creado: ${destino} ($(du -h "${destino}" | cut -f1))"

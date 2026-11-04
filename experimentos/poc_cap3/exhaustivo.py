@@ -1,56 +1,53 @@
-"""Óptimo certificado por enumeración exhaustiva (referencia de C1 en n = 7).
+"""Óptimo certificado por enumeración exhaustiva con poda (solo instancias pequeñas).
 
-REIMPLEMENTACIÓN (2026-10-17); ver experimentos/poc_cap3/README.md.
-
-Recorre en profundidad todas las asignaciones, un servicio por nivel y sus
-alternativas en el orden de A_s. Poda una rama en cuanto la asignación parcial
-elige un par de Γ o deja a un conductor por encima de su límite (la carga solo
-crece), de modo que cada hoja alcanzada es una programación factible (Φ = 0).
-Devuelve el cromosoma de mayor F(X) —el primero encontrado en caso de empate—,
-su aptitud y el número de hojas factibles.
+Recorre todas las asignaciones factibles (sin conflictos ni exceso de horas),
+podando en cuanto una asignación parcial incumple una restricción dura, y
+devuelve la de mayor aptitud F según la misma función de evaluación común.
 """
 from __future__ import annotations
 
-import math
+import sys
+from collections import defaultdict
+from pathlib import Path
 
-from core.conflicts import conflict_index
-from core.fitness import evaluate
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-_TOL = 1e-9
+from core.fitness import evaluate  # noqa: E402
 
 
-def optimo_exhaustivo(inst, pares, t_min):
-    servicios = inst.services_with_options()
-    indice = conflict_index(pares)
+def optimo_exhaustivo(instancia, pares, t_min: float):
+    servicios = instancia.services_with_options()
     n = len(servicios)
+    mejor = {"f": float("-inf"), "c": None, "hojas": 0}
+    ocup_v, ocup_c = defaultdict(list), defaultdict(list)
+    carga = defaultdict(float)
     crom = [0] * n
-    carga = {}
-    mejor = {"crom": None, "F": -math.inf, "hojas": 0}
 
-    def admisible(i, a):
-        for j, b in indice.get((i, a), ()):
-            if j < i and crom[j] == b:
+    def libre(a):
+        for (ini, fin) in ocup_v[a.vehicle_id] + ocup_c[a.driver_id]:
+            if not (a.start_time + a.duration + t_min <= ini or fin + t_min <= a.start_time):
                 return False
-        alt = servicios[i].admissible[a]
-        c = alt.driver_id
-        total = inst.driving_time_prior.get(c, 0.0) + carga.get(c, 0.0) + alt.duration
-        return total <= inst.driving_time_limit.get(c, math.inf) + _TOL
+        lim = instancia.driving_time_limit.get(a.driver_id, float("inf"))
+        return instancia.driving_time_prior.get(a.driver_id, 0.0) + carga[a.driver_id] + a.duration <= lim
 
-    def recorrer(i):
+    def rec(i):
         if i == n:
             mejor["hojas"] += 1
-            f = evaluate(crom, inst, pares, index=indice).fitness
-            if f > mejor["F"]:
-                mejor["crom"], mejor["F"] = list(crom), f
+            f = evaluate(tuple(crom), instancia, pares).fitness
+            if f > mejor["f"]:
+                mejor["f"], mejor["c"] = f, tuple(crom)
             return
-        for a, alt in enumerate(servicios[i].admissible):
-            if not admisible(i, a):
-                continue
-            crom[i] = a
-            carga[alt.driver_id] = carga.get(alt.driver_id, 0.0) + alt.duration
-            recorrer(i + 1)
-            carga[alt.driver_id] -= alt.duration
-        crom[i] = 0
+        s = servicios[i]
+        for j, a in enumerate(s.admissible):
+            if libre(a):
+                crom[i] = j
+                ocup_v[a.vehicle_id].append((a.start_time, a.start_time + a.duration))
+                ocup_c[a.driver_id].append((a.start_time, a.start_time + a.duration))
+                carga[a.driver_id] += a.duration
+                rec(i + 1)
+                carga[a.driver_id] -= a.duration
+                ocup_c[a.driver_id].pop()
+                ocup_v[a.vehicle_id].pop()
 
-    recorrer(0)
-    return mejor["crom"], mejor["F"], mejor["hojas"]
+    rec(0)
+    return mejor["c"], mejor["f"], mejor["hojas"]

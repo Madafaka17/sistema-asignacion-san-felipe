@@ -1,117 +1,135 @@
-"""Reparación dirigida (sección 3.4.9).
+"""Constraint repair (Section 2.6: "a uniform or service-block crossover
+... followed by constraint repair"). Applied after crossover and after
+mutation, to steer offspring back toward the conflict-free region of the
+search space rather than relying on the fitness penalty (Eq. 12) alone.
 
-REIMPLEMENTACIÓN (2026-10-17); ver core/README.md. Sigue los mismos pasos que
-paquetes/dominio/lib/src/optimizacion/reparacion.dart, el núcleo Dart del
-sistema.
-
-La ecuación (1) ya excluye los recursos no disponibles o no habilitados, por lo
-que la reparación solo atiende los conflictos de Γ y el límite de conducción:
-
-1. Para cada conflicto, en el orden de los genes, se conserva el servicio de mayor
-   prioridad p_s (en empate, el de inicio más temprano) y el otro se reasigna a la
-   primera alternativa, en orden de hora de salida, que no genere un conflicto y
-   mantenga a su conductor dentro del límite; si no existe, se intenta reasignar
-   el servicio conservado.
-2. Para cada conductor que supera su límite se reasigna uno de sus servicios con
-   el mismo criterio, empezando por el de menor prioridad (en empate, el de
-   inicio más tardío).
-3. Se repite hasta que no haya cambios, con un máximo de cinco pasadas.
-
-Lo que no puede resolverse queda en el cromosoma, penalizado por M. Es
-determinista: el mismo cromosoma da siempre el mismo resultado.
+This is a bounded, greedy heuristic, not a completeness proof: it resolves
+the conflicts it can within `max_passes` re-samplings and leaves the rest
+to the fitness penalty. That trade-off -- and not overstating what the
+repair operator guarantees -- is itself part of the specification.
 """
 from __future__ import annotations
 
-import math
+import random
 
-from .conflicts import conflict_index
+from .domain import Service
 
-MAX_PASSES = 5
-_TOL = 1e-9
+Chromosome = tuple[int, ...]
 
 
-class _Estado:
-    def __init__(self, instance, services, chromosome, index):
-        self.inst = instance
-        self.servs = services
-        self.crom = [int(g) for g in chromosome]
-        self.index = index
-        self.orden_alt = [sorted(range(len(s.admissible)), key=lambda a, s=s: (s.admissible[a].start_time, a))
-                          for s in services]
-        self.carga = {}
-        for i in range(len(self.crom)):
-            a = self.elegida(i)
-            self.carga[a.driver_id] = self.carga.get(a.driver_id, 0.0) + a.duration
+def repair(
+    chromosome: Chromosome,
+    services: tuple[Service, ...],
+    conflict_pairs,
+    rng: random.Random,
+    max_passes: int = 5,
+) -> Chromosome:
+    genes = list(chromosome)
+    service_index = {s.service_id: i for i, s in enumerate(services)}
+    by_id = {s.service_id: s for s in services}
 
-    def elegida(self, i):
-        return self.servs[i].admissible[self.crom[i]]
+    for _ in range(max_passes):
+        violated = [
+            (sid1, sid2)
+            for (sid1, i1), (sid2, i2) in conflict_pairs
+            if genes[service_index[sid1]] == i1 and genes[service_index[sid2]] == i2
+        ]
+        if not violated:
+            break
+        touched: set[str] = set()
+        for sid1, sid2 in violated:
+            target = sid2 if sid2 not in touched else sid1
+            svc = by_id[target]
+            if len(svc.admissible) > 1:
+                genes[service_index[target]] = rng.randrange(len(svc.admissible))
+            touched.add(target)
 
-    def conservar_y_mover(self, i, j):
-        pi, pj = self.servs[i].priority, self.servs[j].priority
-        if pi != pj:
-            return (i, j) if pi > pj else (j, i)
-        ti, tj = self.elegida(i).start_time, self.elegida(j).start_time
-        if ti != tj:
-            return (i, j) if ti < tj else (j, i)
-        return i, j
+    return tuple(genes)
 
-    def excede(self, c):
-        limite = self.inst.driving_time_limit.get(c, math.inf)
-        return self.inst.driving_time_prior.get(c, 0.0) + self.carga.get(c, 0.0) > limite + _TOL
 
-    def _cabe(self, i, k):
-        actual, cand = self.elegida(i), self.servs[i].admissible[k]
-        carga = self.carga.get(cand.driver_id, 0.0)
-        if cand.driver_id == actual.driver_id:
-            carga -= actual.duration
-        total = self.inst.driving_time_prior.get(cand.driver_id, 0.0) + carga + cand.duration
-        return total <= self.inst.driving_time_limit.get(cand.driver_id, math.inf) + _TOL
+def build_conflict_index(services: tuple[Service, ...], conflict_pairs) -> dict:
+    """(service_id, option) -> list of (service_id, option) it conflicts with."""
+    index: dict = {}
+    for (s1, i1), (s2, i2) in conflict_pairs:
+        index.setdefault((s1, i1), []).append((s2, i2))
+        index.setdefault((s2, i2), []).append((s1, i1))
+    return index
 
-    def _choca(self, i, k):
-        return any(j != i and self.crom[j] == b for j, b in self.index.get((i, k), ()))
 
-    def reasignar(self, i):
-        actual = self.elegida(i)
-        for k in self.orden_alt[i]:
-            if k == self.crom[i] or not self._cabe(i, k) or self._choca(i, k):
-                continue
-            cand = self.servs[i].admissible[k]
-            self.carga[actual.driver_id] -= actual.duration
-            self.carga[cand.driver_id] = self.carga.get(cand.driver_id, 0.0) + cand.duration
-            self.crom[i] = k
-            return True
+def repair_targeted(
+    chromosome: Chromosome,
+    services: tuple[Service, ...],
+    conflict_index: dict,
+    driving_time_prior: dict,
+    driving_time_limit: dict,
+    max_passes: int = 5,
+) -> Chromosome:
+    """Repair as specified in the thesis (mecanismo de reparación): for every
+    realized conflict, keep the service with higher priority (ties: earlier
+    start) and move the other one to the first admissible alternative, in
+    order of start time, that creates no new conflict and keeps its driver
+    within the driving-time limit; if none exists, try moving the kept service
+    instead; if still none, the conflict is left in place (an incidence for
+    human review, penalized by the fitness) rather than forcing an invalid
+    assignment. Drivers over their limit are relieved the same way.
+    Deterministic: it uses no random numbers.
+    """
+    genes = list(chromosome)
+    pos = {s.service_id: i for i, s in enumerate(services)}
+
+    def selected(sid):
+        return genes[pos[sid]]
+
+    def loads():
+        out: dict = {}
+        for s, g in zip(services, genes):
+            a = s.admissible[g]
+            out[a.driver_id] = out.get(a.driver_id, 0.0) + a.duration
+        return out
+
+    def fits(i, j, load):
+        s = services[i]
+        a = s.admissible[j]
+        for (t, b) in conflict_index.get((s.service_id, j), ()):
+            if t != s.service_id and selected(t) == b:
+                return False
+        current = s.admissible[genes[i]]
+        extra = a.duration - (current.duration if current.driver_id == a.driver_id else 0.0)
+        total = driving_time_prior.get(a.driver_id, 0.0) + load.get(a.driver_id, 0.0) + extra
+        return total <= driving_time_limit.get(a.driver_id, float("inf")) + 1e-9
+
+    def relocate(i, load):
+        s = services[i]
+        order = sorted(range(len(s.admissible)), key=lambda j: (s.admissible[j].start_time, j))
+        for j in order:
+            if j != genes[i] and fits(i, j, load):
+                genes[i] = j
+                return True
         return False
 
-    def siguiente_conflicto(self, i, desde):
-        js = [j for j, b in self.index.get((i, self.crom[i]), ()) if j >= desde and self.crom[j] == b]
-        return min(js) if js else None
-
-
-def repair(chromosome, instance, conflict_pairs=None, index=None, max_passes=MAX_PASSES):
-    """Cromosoma reparado (lista nueva; el de entrada no se modifica)."""
-    services = instance.services_with_options()
-    if index is None:
-        index = conflict_index(conflict_pairs)
-    e = _Estado(instance, services, chromosome, index)
-    conductores = sorted(instance.driving_time_limit)
     for _ in range(max_passes):
-        cambios = False
-        # Paso 1: los pares (i, j), i < j, en el orden de los genes y con el estado vigente.
-        for i in range(len(e.crom)):
-            desde = i + 1
-            while (j := e.siguiente_conflicto(i, desde)) is not None:
-                conservar, mover = e.conservar_y_mover(i, j)
-                if e.reasignar(mover) or e.reasignar(conservar):
-                    cambios = True
-                desde = j + 1
-        # Paso 2: conductores por encima de su límite.
-        for c in conductores:
-            while e.excede(c):
-                suyos = [i for i in range(len(e.crom)) if e.elegida(i).driver_id == c]
-                suyos.sort(key=lambda i: (e.servs[i].priority, -e.elegida(i).start_time, -i))
-                if not any(e.reasignar(i) for i in suyos):
-                    break
-                cambios = True
-        if not cambios:
+        changed = False
+        for i, s in enumerate(services):
+            for (t, b) in conflict_index.get((s.service_id, genes[i]), ()):
+                k = pos[t]
+                if genes[k] != b or k == i:
+                    continue
+                si, sk = services[i], services[k]
+                ai, ak = si.admissible[genes[i]], sk.admissible[genes[k]]
+                keep_i = (si.priority, -ai.start_time) >= (sk.priority, -ak.start_time)
+                move, stay = (k, i) if keep_i else (i, k)
+                load = loads()
+                if relocate(move, load) or relocate(stay, load):
+                    changed = True
+                break
+        load = loads()
+        for i, s in enumerate(services):
+            a = s.admissible[genes[i]]
+            limit = driving_time_limit.get(a.driver_id, float("inf"))
+            if driving_time_prior.get(a.driver_id, 0.0) + load.get(a.driver_id, 0.0) > limit + 1e-9:
+                if relocate(i, load):
+                    changed = True
+                    load = loads()
+        if not changed:
             break
-    return e.crom
+    return tuple(genes)
