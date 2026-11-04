@@ -173,7 +173,13 @@ config/parametros.yaml parámetros del modelo y del algoritmo (RNF-07)
 docker/, */Dockerfile  imágenes y configuración de nginx
 herramientas/          e2e.sh (integración), cobertura.sh (cobertura del núcleo), respaldo.sh
 experimentos/          paquete del experimento comparativo de la tesis (Anexo E), sin modificar, y material suplementario
-core/                  reimplementación (2026-10-17) del núcleo Python que importa ese paquete; no es el original
+core/                  núcleo Python de referencia (archivos originales, huellas del registro del 6/10/2026)
+persistencia/, bd/     adaptador MySQL y esquema mínimo del núcleo (prueba de humo)
+pruebas/               nucleo/ (100 casos del Anexo I), humo/ (prueba de humo), corrida/ (corrida del capítulo IV)
+scripts/               construcción determinista del núcleo: aprovisionar, MySQL efímero, compilar y probar
+tests/                 test_core.py (9 pruebas del núcleo) y pruebas del esqueleto inicial (src/)
+examples/              ejemplo ilustrativo del núcleo (run_demo.py)
+economia/, articulo/   modelo económico (capítulo VI) y pruebas del código del artículo
 docs/                  documentación técnica, UML, wireframes, capturas e instrumentos (docs/instrumentos)
 ```
 
@@ -192,8 +198,10 @@ docs/                  documentación técnica, UML, wireframes, capturas e inst
 | [pruebas.md](docs/pruebas.md) | estrategia y resultados de las pruebas |
 | [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) | diferencias con el diseño de la tesis y seguimiento de su Tabla 48 |
 | [instrumentos/](docs/instrumentos/README.md) | formatos anonimizados RD-01, RD-02, O-01 y E-01 (anexos A–D) |
-| [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método; reevaluación, incertidumbre bootstrap y repetición con la reimplementación |
-| [core/](core/README.md) | reimplementación del núcleo Python del experimento: qué reproduce del original y qué no |
+| [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método; reevaluación e incertidumbre bootstrap |
+| [core/](core/README.md) | núcleo Python de referencia con el que se ejecutó el experimento |
+| [pruebas/nucleo/](pruebas/nucleo/README.md) | 100 casos unitarios del núcleo (Anexo I), variabilidad estocástica y cobertura |
+| [pruebas/humo/](pruebas/humo/README.md), [MANUAL_COMPILACION.md](docs/MANUAL_COMPILACION.md), [INFORME_PRUEBA_HUMO.md](docs/INFORME_PRUEBA_HUMO.md) | construcción determinista del núcleo y prueba de humo con MySQL (sección 5.6.8) |
 
 ## Versiones
 
@@ -223,7 +231,8 @@ Prográmelo a diario con cron o con el Programador de tareas de Windows.
 
 ## Nota sobre el prototipo anterior
 
-`src/`, `tests/`, `requirements.txt`, `pytest.ini`, `.python-version` y
+`src/`, `tests/` (salvo `tests/test_core.py`, que prueba el núcleo de
+referencia), `requirements.txt`, `pytest.ini`, `.python-version` y
 `config/parametros_ga.yaml` son de un primer prototipo en Python que esta
 versión reemplaza; ninguna parte del sistema actual los usa y pueden
 eliminarse (ver [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) §7).

@@ -19,14 +19,14 @@ python -I pruebas/corrida/trazar_corrida.py . 7 101 1 /tmp/traza.json
 python pruebas/corrida/figura_corrida.py /tmp/traza.json /tmp/figura_corrida.png
 ```
 
-## Verificación con la reimplementación de `core/`
+## Verificación en este repositorio
 
 `traza_n7_101_s1.json` se generó con el núcleo original (CPython 3.11.17). Al
-ejecutar `trazar_corrida.py` sobre la reimplementación de este repositorio
-(CPython 3.11.18, PyGAD 3.7.0, NumPy 2.4.4), el script pasa sus propias
-comprobaciones y la traza obtenida es **idéntica** a la incorporada en todos sus
-campos —población inicial y reparada, progenitores, cruces y mutaciones de la
-primera generación, estadísticas de las 101 generaciones, historial, mejor
-cromosoma, voraz, PLE, búsqueda tabú, hojas factibles del óptimo y registro
-oficial—, salvo `tiempo_traza_s` y la versión de Python de `entorno`. La suite
-`pruebas/nucleo` lo comprueba en cada ejecución.
+ejecutar `trazar_corrida.py` en este repositorio, con el `core/` original
+(huellas del registro), CPython 3.11.18, PyGAD 3.7.0 y NumPy 2.4.4 (4/11/2026),
+el script pasa sus propias comprobaciones y la traza obtenida es **idéntica** a
+la incorporada en todos sus campos —población inicial y reparada, progenitores,
+cruces y mutaciones de la primera generación, estadísticas de las 101
+generaciones, historial, mejor cromosoma, voraz, PLE, búsqueda tabú, hojas
+factibles del óptimo y registro oficial—, salvo `tiempo_traza_s` y la versión de
+Python de `entorno`.

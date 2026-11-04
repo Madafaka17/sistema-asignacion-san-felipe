@@ -36,7 +36,7 @@ jobs:
             paquetes/dominio/coverage/lcov.info
 
   experimento:
-    name: Experimento Python (Anexo E, reimplementación de core/ y poc_cap3/)
+    name: Experimento Python (Anexo E, core/ y poc_cap3/ originales)
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -46,19 +46,50 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -r ../poc_cap3/requirements.txt
-      - name: Huellas de los archivos registrados antes de la ejecución
-        run: grep sintetico_sanfelipe registro_protocolo.txt | sed 's#experimentos/sintetico_sanfelipe/##' | sha256sum -c
+      - run: pip install --require-hashes --no-deps -r ../../requirements.lock
+      - name: Huellas de los 14 archivos registrados antes de la ejecución (protocolo, core/ y poc_cap3/)
+        run: |
+          grep -E '^[0-9a-f]{64}' registro_protocolo.txt \
+            | sed 's#experimentos/sintetico_sanfelipe/##; s#  experimentos/poc_cap3/#  ../poc_cap3/#; s#  core/#  ../../core/#' \
+            | sha256sum -c
       - name: Reevaluación de las 1 320 soluciones registradas y de los óptimos de n = 7
         run: python reevaluar_cromosomas.py
-      - name: Voraz, PLE y determinismo de búsqueda tabú y AG
-        run: python ../poc_cap3/verificar_reimplementacion.py
       - name: Generador, datos e incertidumbre se regeneran sin cambios
         run: |
           python verificar_generador.py > /dev/null
           python exportar_datos.py
           python incertidumbre_bootstrap.py > /dev/null
           git diff --exit-code -- datos incertidumbre_brecha.csv
+      - name: Corrida paso a paso del capítulo IV (traza n = 7, instancia 101, semilla 1)
+        working-directory: .
+        run: |
+          PYTHONHASHSEED=0 python -I pruebas/corrida/trazar_corrida.py . 7 101 1 traza.json
+          python - <<'EOF'
+          import json
+          a = json.load(open("traza.json")); b = json.load(open("pruebas/corrida/traza_n7_101_s1.json"))
+          distintos = [k for k in b if k not in ("tiempo_traza_s", "entorno") and a.get(k) != b[k]]
+          assert not distintos, distintos
+          print("traza idéntica a la registrada")
+          EOF
+
+  nucleo-python:
+    name: Núcleo Python (100 casos del Anexo I y 9 de tests/test_core.py)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install --require-hashes --no-deps -r requirements.lock
+      - name: pruebas/nucleo (109 pruebas; sin las 300 corridas estocásticas)
+        run: SIN_ESTOCASTICAS=1 SALIDA_PRUEBAS="$PWD/salidas-ci" PYTHON=python bash pruebas/nucleo/ejecutar_pruebas.sh
+      - name: Ninguna prueba falló
+        run: grep -E "^=+ 109 passed" salidas-ci/pytest.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pruebas-nucleo
+          path: salidas-ci/
 
   servidor:
     name: Servidor (pruebas de aceptación sobre MySQL)
