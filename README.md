@@ -197,6 +197,7 @@ docs/                  documentación técnica, UML, wireframes, capturas e inst
 | [wireframes.md](docs/wireframes.md) | wireframes por caso de uso y su implementación |
 | [pruebas.md](docs/pruebas.md) | estrategia y resultados de las pruebas |
 | [decisiones_y_desviaciones.md](docs/decisiones_y_desviaciones.md) | diferencias con el diseño de la tesis y seguimiento de su Tabla 48 |
+| [revision_ep3.md](docs/revision_ep3.md) | revisión del EP3: lo que pide la tesis v6, dónde está en el repositorio, correcciones sugeridas al texto y pendientes |
 | [instrumentos/](docs/instrumentos/README.md) | formatos anonimizados RD-01, RD-02, O-01 y E-01 (anexos A–D) |
 | [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método; reevaluación e incertidumbre bootstrap |
 | [core/](core/README.md) | núcleo Python de referencia con el que se ejecutó el experimento |
