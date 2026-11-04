@@ -1,0 +1,14 @@
+Name                                            Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------------
+core/__init__.py                                    0      0      0      0   100%
+core/conflicts.py                                  33      0     20      0   100%
+core/domain.py                                     28      0      0      0   100%
+core/fitness.py                                    82      0     22      0   100%
+core/repair.py                                     81      0     38      1    99%   110->135
+core/scheduler.py                                 103      0     24      0   100%
+experimentos/poc_cap3/exhaustivo.py                39      0     12      0   100%
+experimentos/poc_cap3/metodos.py                  157      5     64      3    96%   104, 106-107, 186, 201
+experimentos/poc_cap3/validador.py                 27      0     14      0   100%
+experimentos/sanfelipe/generador_sanfelipe.py     134      4     32      2    96%   73-74, 107, 137
+-------------------------------------------------------------------------------------------
+TOTAL                                             684      9    226      6    98%
