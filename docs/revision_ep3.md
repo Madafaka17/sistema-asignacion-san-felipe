@@ -39,6 +39,9 @@ cifras de este documento se obtuvieron ejecutando el código del repositorio ese
 
 ## 3. Pendientes y advertencias
 
+La autoevaluación frente a la rúbrica del EP3 (32 criterios), con lo completado y lo que solo
+puede hacer el autor, está en [`docs/ep3/autoevaluacion_rubrica_EP3.md`](ep3/autoevaluacion_rubrica_EP3.md).
+
 - **Reproducibilidad del entorno de la prueba de humo.** `sistema.lock` fija
   `libprotobuf-lite32t64 3.21.12-8.2ubuntu0.3`, que el archivo de Ubuntu ya reemplazó por
   `…0.4`; sigue en `snapshot.ubuntu.com` con la misma huella (se agregó `SF_DEBS` a
@@ -47,8 +50,10 @@ cifras de este documento se obtuvieron ejecutando el código del repositorio ese
   A3 a A5 se ejecutaron a mano. Conviene repetir la prueba en el mini PC antes de comprarlo.
 - **Etiquetas v1.0.0 a v1.2.0.** Desde esta sesión el envío de etiquetas devuelve HTTP 403;
   deben publicarse desde una cuenta con permiso.
-- **Datos reales.** Todo lo verificado usa datos sintéticos o ficticios; la validación con
-  RD-01/RD-02 y el caso real de la sección 5.6.2 siguen pendientes.
+- **Datos reales.** El caso real de la sección 5.6.2 se ejecutó el 4/11/2026 con la salida del
+  manifiesto 001-029483 (`docs/evidencias/caso_real_001-029483/`, `herramientas/caso_real.sh`):
+  PASA, con 15 capturas, el registro del servidor y la extracción de la base. Lo demás usa datos
+  sintéticos o ficticios; la validación con un turno completo de RD-01 sigue pendiente.
 - **README original del núcleo (anomalía A-02).** `pruebas/nucleo/README.md` propone
   corregir la frase sobre la reparación aleatoria; el README original se conserva sin cambios
   en `core/README.md` hasta que el autor decida.
