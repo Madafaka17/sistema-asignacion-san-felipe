@@ -70,12 +70,13 @@ marcada C.
 
 ## 3. Acciones que solo puede hacer el autor (antes del 6/11/2026)
 
-1. **Tesis v7.** Abrir `RIOS_SEPULVEDA_LUIS_tesis_v7_cambios.docx`, revisar cada cambio
-   controlado (autor «Claude»), aceptarlos o modificarlos, actualizar el índice general (Word lo
-   pide al abrir; en LibreOffice, Herramientas › Actualizar › Actualizar todo) para que incluya
-   el Anexo K y el nuevo título del Anexo H, y exportar el PDF. El Anexo K y la fila CR-01 son
-   nuevos; los números de las demás tablas y figuras no cambian, y las tablas y figuras del
-   Anexo K, como las de los demás anexos, no entran en los índices de tablas y de figuras.
+1. **Tesis v7.** El paquete revisado trae en `01_tesis` la versión final con los cambios ya
+   aceptados, el índice general actualizado (con el Anexo K y el nuevo título del Anexo H) y su
+   PDF exportado con LibreOffice 24.2 (390 páginas). Para revisar cada cambio uno por uno está
+   `RIOS_SEPULVEDA_LUIS_tesis_v7_con_cambios_controlados.docx` (autor «Claude»). Los números de
+   las demás tablas y figuras no cambian, y las tablas y figuras del Anexo K, como las de los
+   demás anexos, no entran en los índices de tablas y de figuras. Si se edita algo más, hay que
+   volver a exportar el PDF.
 2. **Criterio 32** (bitácora, marcas «[completar]»): capturas fechadas de Scimago (E-VER-03), de
    CORE o SciELO (E-VER-04) y del portal ISSN (E-VER-05); correo de seguimiento a la revista en
    el mismo hilo (E-ENV-03); captura fechada de la bandeja que acredite el estado (E-EST-01);
@@ -89,8 +90,8 @@ marcada C.
    correcciones, conviene contrastar en la Discusión los resultados con al menos dos trabajos ya
    citados y precisar en las Conclusiones el indicador y el criterio con que se comprobará la
    comparación con el despacho manual.
-5. **Localizadores.** Usar `RIOS_SEPULVEDA_LUIS_localizadores_EP3_v2.docx` (cambios
-   controlados). Sus páginas se calcularon sobre la tesis v7 con todos los cambios aceptados y
+5. **Localizadores.** `08_localizadores` trae la versión final; la versión con cambios
+   controlados está en la carpeta del autor. Sus páginas se calcularon sobre la tesis v7 con todos los cambios aceptados y
    exportada con LibreOffice 24.2, el mismo programa del PDF original (390 páginas; sin cambios
    hasta la p. 228, +1 desde la Tabla 83, +3 desde 5.6.2, +4 desde 5.6.3 y +5 desde la
    Tabla 96). Si se edita algo más antes de exportar, deben revisarse.
