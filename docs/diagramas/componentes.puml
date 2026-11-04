@@ -1,0 +1,55 @@
+@startuml
+!include common.iuml
+skinparam componentStyle uml2
+skinparam nodesep 55
+skinparam ranksep 60
+
+artifact "config/humo.json" as CH
+artifact "registro_protocolo.txt\n(huellas del 6/10/2026)" as REG
+component "Prueba de humo\n(pruebas/humo/)\nprueba_humo.py · integridad.py" as PH
+
+component "Adaptador de persistencia\n(persistencia/)\nconfig.py · conexion.py\nrepositorio.py · canonico.py" as PER
+interface "API del adaptador\n(configuración, conexión,\ninstancia, programación)" as IPER
+component "Núcleo de optimización\n(core/, sin cambios)\nscheduler.py · fitness.py · repair.py\nconflicts.py · domain.py" as CORE
+interface "run(Instance, GAConfig)\n→ ScheduleResult" as IRUN
+component "Validador independiente\n(experimentos/poc_cap3/validador.py)" as VAL
+
+artifact ".env\n(no versionado)" as ENV
+artifact "bd/esquema.sql\nbd/semilla_humo.sql" as SQL
+interface "Protocolo MySQL\nTCP 127.0.0.1:33306" as IMY
+database "MySQL 8.0.46\nbase efímera sf_test_humo_<id>" as BD
+
+package "Bibliotecas fijadas (requirements.lock)" as LIBS {
+  component "PyMySQL 1.2.3" <<biblioteca>> as PYM
+  component "cryptography 50.0.2" <<biblioteca>> as CRY
+  component "PyGAD 3.7.0" <<biblioteca>> as PYGAD
+  component "NumPy 2.4.4" <<biblioteca>> as NP
+  component "PuLP 2.9.0 + CBC 2.10.3" <<biblioteca>> as PULP
+}
+
+PER -up- IPER
+CORE -up- IRUN
+BD -up- IMY
+
+PH .left.> CH : lee
+PH .right.> REG : verifica huellas
+PH ..> IPER : usa
+PH ..> IRUN : invoca
+PH ..> VAL : verifica Φ
+PH ..> LIBS : verifica la carga (P02)
+PER .right.> CORE : construye Instance\n(core.domain)
+PER ..> ENV : lee
+PER ..> SQL : aplica
+PER ..> IMY : SQL
+PER ..> PYM
+PYM .right.> CRY : autenticación
+CORE ..> PYGAD : ciclo generacional
+CORE ..> NP
+PYGAD .right.> NP
+
+legend bottom left
+  Dependencias verificadas contra las sentencias import del código y los metadatos de las bibliotecas.
+  Valores de la ejecución de referencia 20261007T144734Z_945b. Datos sintéticos (CHECK origen_datos = 'sintetico').
+  No se despliegan la capa de presentación ni la construcción de alternativas desde las reglas de la cola (Figura 4).
+endlegend
+@enduml

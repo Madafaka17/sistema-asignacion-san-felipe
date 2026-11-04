@@ -1,0 +1,58 @@
+' Estilo común de los diagramas de la tesis (monocromo, Liberation Serif).
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontName "Liberation Serif"
+skinparam defaultFontSize 14
+skinparam ArrowColor #222222
+skinparam ArrowFontColor #222222
+skinparam ArrowFontSize 12
+
+skinparam component {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+  ArrowColor #222222
+  StereotypeFontColor #555555
+}
+skinparam interface {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam package {
+  BorderColor #999999
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam database {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam artifact {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam node {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+  StereotypeFontColor #555555
+}
+skinparam folder {
+  BorderColor #555555
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam cloud {
+  BorderColor #555555
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam note {
+  BorderColor #999999
+  BackgroundColor #fbfbfb
+  FontSize 12
+}

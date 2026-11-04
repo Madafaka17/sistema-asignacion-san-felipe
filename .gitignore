@@ -75,6 +75,7 @@ logs/
 !pruebas/**/salidas/**
 !articulo/pruebas/salidas/
 !articulo/pruebas/salidas/**
+!pruebas/humo/evidencias/**
 
 # --- Editores y sistema operativo --------------------------------------
 .vscode/
@@ -85,7 +86,7 @@ logs/
 Thumbs.db
 desktop.ini
 
-# Entorno y bytecode del núcleo de referencia (scripts/construir_y_probar.sh)
-.venv-nucleo/
-.pyc-nucleo/
-pruebas/nucleo/salidas/.coverage
+# Núcleo de referencia en Python (scripts/construir_y_probar.sh): construcción,
+# servidor MySQL efímero y evidencias de cada ejecución de la prueba de humo.
+.build/
+pruebas/humo/salidas/
