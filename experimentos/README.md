@@ -79,6 +79,19 @@ Python») comprueba en cada cambio las huellas de los archivos registrados
 `incertidumbre_brecha.csv` se regeneran sin cambios; el trabajo «Núcleo Python»
 ejecuta la suite `pruebas/nucleo`.
 
+## `incidencias/` — reasignación ante incidencias de despacho (24/11/2026)
+
+[`incidencias/`](incidencias/README.md) conserva, sin cambios, la prueba que comprueba si
+el núcleo recomienda una reasignación válida cuando, a mitad del turno, se avería una
+unidad, falta un conductor o se demora un viaje: 27 escenarios sintéticos, la regla voraz
+y el AG v1 con 10 semillas, y los mínimos exactos con programación entera. Usa sin cambios
+el generador de `sanfelipe/`, `poc_cap3/` y `core/` (huellas en su
+`registro_protocolo.txt`). Cuando existe una reasignación válida, el AG la encontró en
+todas las semillas, en menos de 7 s; con las alternativas del modelo ningún escenario
+permite cubrir todos los servicios pendientes. El trabajo «Reasignación ante incidencias»
+de la integración continua verifica las huellas y reproduce v1, v2 y los mínimos en cada
+commit.
+
 ## Relación con el prototipo Dart
 
 El sistema (paquetes `dominio`, `servidor` y `cliente`) implementa en Dart el

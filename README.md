@@ -172,7 +172,7 @@ basedatos/             esquema.sql, datos_ejemplo.sql, creación de la base de p
 config/parametros.yaml parámetros del modelo y del algoritmo (RNF-07)
 docker/, */Dockerfile  imágenes y configuración de nginx
 herramientas/          e2e.sh (integración), cobertura.sh (cobertura del núcleo), respaldo.sh
-experimentos/          paquete del experimento comparativo de la tesis (Anexo E), sin modificar, y material suplementario
+experimentos/          experimento comparativo de la tesis (Anexo E) y prueba de reasignación ante incidencias, sin modificar
 core/                  núcleo Python de referencia (archivos originales, huellas del registro del 6/10/2026)
 persistencia/, bd/     adaptador MySQL y esquema mínimo del núcleo (prueba de humo)
 pruebas/               nucleo/ (100 casos del Anexo I), humo/ (prueba de humo), corrida/ (corrida del capítulo IV)
@@ -200,6 +200,7 @@ docs/                  documentación técnica, UML, wireframes, capturas e inst
 | [revision_ep3.md](docs/revision_ep3.md) | revisión del EP3: lo que pide la tesis v6, dónde está en el repositorio, correcciones sugeridas al texto y pendientes |
 | [instrumentos/](docs/instrumentos/README.md) | formatos anonimizados RD-01, RD-02, O-01 y E-01 (anexos A–D) |
 | [experimentos/](experimentos/README.md) | protocolo, datos, resultados y huellas del experimento que determinó el método; reevaluación e incertidumbre bootstrap |
+| [experimentos/incidencias/](experimentos/incidencias/README.md) | prueba de reasignación ante incidencias de despacho (avería, ausencia y demora): protocolo, resultados, mínimos exactos y reproducción |
 | [core/](core/README.md) | núcleo Python de referencia con el que se ejecutó el experimento |
 | [pruebas/nucleo/](pruebas/nucleo/README.md) | 100 casos unitarios del núcleo (Anexo I), variabilidad estocástica y cobertura |
 | [pruebas/humo/](pruebas/humo/README.md), [MANUAL_COMPILACION.md](docs/MANUAL_COMPILACION.md), [INFORME_PRUEBA_HUMO.md](docs/INFORME_PRUEBA_HUMO.md) | construcción determinista del núcleo y prueba de humo con MySQL (sección 5.6.8) |

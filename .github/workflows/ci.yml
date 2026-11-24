@@ -75,6 +75,31 @@ jobs:
           print("traza idéntica a la registrada")
           EOF
 
+  incidencias:
+    name: Reasignación ante incidencias (experimentos/incidencias)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install --require-hashes --no-deps -r requirements.lock
+      - name: Huellas del protocolo, los scripts y los módulos importados (última registrada de cada uno)
+        run: python herramientas/verificar_incidencias.py huellas
+      - name: v1, v2 y mínimos exactos se reproducen (salvo tiempos y redondeo de F)
+        run: |
+          registrado="$RUNNER_TEMP/registrado"
+          mkdir -p "$registrado"
+          cp experimentos/incidencias/*.csv experimentos/incidencias/*.json "$registrado/"
+          cd experimentos/incidencias
+          for v in v1 v2; do
+            python reasignacion.py ejecutar "$v" > /dev/null
+            python reasignacion.py analizar "$v" > /dev/null
+            python minimos.py "$v" > /dev/null
+          done
+          cd ../..
+          python herramientas/verificar_incidencias.py comparar "$registrado" experimentos/incidencias
+
   nucleo-python:
     name: Núcleo Python (100 casos del Anexo I y 9 de tests/test_core.py)
     runs-on: ubuntu-24.04
