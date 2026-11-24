@@ -1,0 +1,1013 @@
+{
+  "fuentes": {
+    "sueldo_desarrollador": 2511.0,
+    "sueldo_data_scientist": 3490.0,
+    "sueldo_glassdoor": 4000.0,
+    "sueldo_mtpe": 4710.0,
+    "rmv": 1230.0,
+    "tc_venta": 3.431,
+    "rf": 0.0509,
+    "erp": 0.042,
+    "beta_transporte": 0.96,
+    "beta_software": 1.35,
+    "riesgo_pais": 0.0107,
+    "inflacion_12m": 0.0455,
+    "inflacion_esperada_pe": 0.0309,
+    "inflacion_esperada_us": 0.0235,
+    "tsd": 0.08,
+    "igv": 0.18,
+    "lightsail_2gb_usd_mes": 12.0,
+    "lightsail_4gb_usd_mes": 24.0,
+    "lightsail_snapshot_usd_gb_mes": 0.05,
+    "b2_usd_tb_mes": 6.95,
+    "dominio_pe_anual": 110.0,
+    "mini_pc": 2781.5,
+    "ups": 471.0,
+    "disco_respaldo": 359.0
+  },
+  "supuestos": {
+    "horas_mes_jornada": 160,
+    "semanas_cronograma": 16,
+    "horas_semana": 40,
+    "horas_datos": 120,
+    "horas_po": 14.0,
+    "horas_datos_rd01": 8,
+    "horas_capacitacion_personal": 12,
+    "horas_capacitacion_instructor": 4,
+    "meses_entorno_pruebas": 2,
+    "contingencia_capex": 0.1,
+    "mantenimiento_pct": 0.2,
+    "horas_soporte_mes": 2,
+    "respaldo_gb": 10,
+    "potencia_w": 20,
+    "tarifa_kwh": 1.0,
+    "escalamiento_opex": 0.05,
+    "contingencia_opex": 0.1,
+    "realizacion": {
+      "B1": 0.5,
+      "B2": 0.5,
+      "B3": 0.25,
+      "B4": 0.25,
+      "B5": 0.0
+    },
+    "horizonte": 5,
+    "vida_util_equipos": 4,
+    "beta": "transporte",
+    "tarifa_soft": null,
+    "tarifa_datos": null,
+    "despliegue": "local",
+    "monetizar_tiempo": false,
+    "valor_residual": false,
+    "horas_pruebas_previas": 80
+  },
+  "costos_actuales_mes": {
+    "B1": [
+      "Horas administrativas por programación manual",
+      1248.0
+    ],
+    "B2": [
+      "Verificación y ajuste manual de la programación",
+      500.0
+    ],
+    "B3": [
+      "Servicios reprogramados",
+      1680.0
+    ],
+    "B4": [
+      "Servicios con retraso",
+      1120.0
+    ],
+    "B5": [
+      "Uso ineficiente de vehículos, rutas y conductores",
+      1900.0
+    ]
+  },
+  "tarifas": {
+    "soft": 15.69375,
+    "datos": 21.8125
+  },
+  "capex": [
+    [
+      "Ingeniería y desarrollo de software (H_soft)",
+      "440 h × S/ 15.69",
+      6905.25,
+      "humano"
+    ],
+    [
+      "Ciencia de datos y calibración (H_datos)",
+      "120 h × S/ 21.81",
+      2617.5,
+      "humano"
+    ],
+    [
+      "Participación del Product Owner",
+      "14 h × S/ 12.00",
+      168.0,
+      "humano"
+    ],
+    [
+      "Preparación de datos históricos (RD-01)",
+      "8 h × S/ 12.00",
+      96.0,
+      "datos"
+    ],
+    [
+      "Capacitación inicial",
+      "12 h personal × S/ 12.00 + 4 h instructor × S/ 15.69",
+      206.775,
+      "humano"
+    ],
+    [
+      "Pruebas previas a la operación (sprint S7)",
+      "80 h × S/ 15.69",
+      1255.5,
+      "pruebas"
+    ],
+    [
+      "Entorno de pruebas en la nube",
+      "Lightsail 2 GB × 2 meses × US$ 12 × 3.431 × 1.18",
+      97.16591999999999,
+      "pruebas"
+    ],
+    [
+      "Licencias del software base",
+      "Licencias abiertas; instalación incluida en las horas de ingeniería",
+      0.0,
+      "licencias"
+    ],
+    [
+      "Servidor local (mini PC)",
+      "GIGABYTE BRIX GB-BXIP-N250-512-16; 16 GB; SSD 500 GB",
+      2781.5,
+      "infra"
+    ],
+    [
+      "Sistema de alimentación ininterrumpida",
+      "APC BX1200MI-MS, 1200 VA",
+      471.0,
+      "infra"
+    ],
+    [
+      "Disco externo para respaldo local",
+      "Toshiba Canvio Basics 1 TB",
+      359.0,
+      "infra"
+    ],
+    [
+      "Contingencia",
+      "10% del subtotal",
+      1495.769092,
+      "contingencia"
+    ]
+  ],
+  "capex_total": 16453.460012,
+  "opex": {
+    "1": [
+      [
+        "Mantenimiento correctivo, adaptativo y evolutivo",
+        2155.65
+      ],
+      [
+        "Soporte y monitoreo interno",
+        288.0
+      ],
+      [
+        "Respaldo externo cifrado (Backblaze B2)",
+        3.37651572
+      ],
+      [
+        "Dominio .pe (PUNTO.pe)",
+        110.0
+      ],
+      [
+        "Energía eléctrica del servidor y la UPS",
+        175.2
+      ],
+      [
+        "Imprevistos (10% del OPEX)",
+        273.222651572
+      ]
+    ],
+    "2": [
+      [
+        "Mantenimiento correctivo, adaptativo y evolutivo",
+        2263.4325000000003
+      ],
+      [
+        "Soporte y monitoreo interno",
+        302.40000000000003
+      ],
+      [
+        "Respaldo externo cifrado (Backblaze B2)",
+        3.545341506
+      ],
+      [
+        "Dominio .pe (PUNTO.pe)",
+        115.5
+      ],
+      [
+        "Energía eléctrica del servidor y la UPS",
+        183.96
+      ],
+      [
+        "Imprevistos (10% del OPEX)",
+        286.88378415060004
+      ]
+    ],
+    "3": [
+      [
+        "Mantenimiento correctivo, adaptativo y evolutivo",
+        2376.6041250000003
+      ],
+      [
+        "Soporte y monitoreo interno",
+        317.52
+      ],
+      [
+        "Respaldo externo cifrado (Backblaze B2)",
+        3.7226085813000003
+      ],
+      [
+        "Dominio .pe (PUNTO.pe)",
+        121.275
+      ],
+      [
+        "Energía eléctrica del servidor y la UPS",
+        193.158
+      ],
+      [
+        "Imprevistos (10% del OPEX)",
+        301.22797335813004
+      ]
+    ],
+    "4": [
+      [
+        "Mantenimiento correctivo, adaptativo y evolutivo",
+        2495.4343312500005
+      ],
+      [
+        "Soporte y monitoreo interno",
+        333.396
+      ],
+      [
+        "Respaldo externo cifrado (Backblaze B2)",
+        3.9087390103650006
+      ],
+      [
+        "Dominio .pe (PUNTO.pe)",
+        127.33875000000002
+      ],
+      [
+        "Energía eléctrica del servidor y la UPS",
+        202.8159
+      ],
+      [
+        "Imprevistos (10% del OPEX)",
+        316.2893720260366
+      ]
+    ],
+    "5": [
+      [
+        "Mantenimiento correctivo, adaptativo y evolutivo",
+        2620.2060478125004
+      ],
+      [
+        "Soporte y monitoreo interno",
+        350.0658000000001
+      ],
+      [
+        "Respaldo externo cifrado (Backblaze B2)",
+        4.104175960883251
+      ],
+      [
+        "Dominio .pe (PUNTO.pe)",
+        133.70568750000004
+      ],
+      [
+        "Energía eléctrica del servidor y la UPS",
+        212.95669500000002
+      ],
+      [
+        "Imprevistos (10% del OPEX)",
+        332.1038406273384
+      ]
+    ]
+  },
+  "base": {
+    "cok": 0.10988698387884677,
+    "flujo": [
+      {
+        "t": 0,
+        "beneficios": 0.0,
+        "capex": 16453.460012,
+        "renovacion": 0.0,
+        "opex": 0.0,
+        "F": -16453.460012
+      },
+      {
+        "t": 1,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3005.4491672920003,
+        "F": 5394.550832708,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 2,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3155.7216256566003,
+        "F": 5244.278374343399,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 3,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3313.50770693943,
+        "F": 5086.49229306057,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 4,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 3611.5,
+        "opex": 3479.183092286402,
+        "F": 1309.316907713598,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 5,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3653.142246900722,
+        "F": 4746.857753099278,
+        "valor_residual": 0.0
+      }
+    ],
+    "VAN": 65.8695193345551,
+    "TIR": 0.111630244988011,
+    "payback_simple": 3.556120911292246,
+    "payback_descontado": 4.976629281303262,
+    "ROI": 0.32382466332546167,
+    "BC": 1.0021256121754176,
+    "vp_beneficios": 31054.363138409448,
+    "vp_costos": 30988.493619074892,
+    "beneficio_mensual": 700.0,
+    "beneficio_equilibrio_mes": 698.5152275276527,
+    "equilibrio_pct_potencial": 0.10833052536098832,
+    "equilibrio_pct_monetario": 0.24946972411701882,
+    "factor_descuento": [
+      1.0,
+      0.900992636660345,
+      0.8117877313161606,
+      0.7314147684470672,
+      0.6589993207154389,
+      0.5937535355287795
+    ]
+  },
+  "cok_usd": 0.10192,
+  "cok_pen": 0.10988698387884677,
+  "opex_mensual_1": [
+    [
+      "Mantenimiento correctivo, adaptativo y evolutivo",
+      179.63750000000002
+    ],
+    [
+      "Soporte y monitoreo interno",
+      24.0
+    ],
+    [
+      "Respaldo externo cifrado (Backblaze B2)",
+      0.28137631
+    ],
+    [
+      "Dominio .pe (PUNTO.pe)",
+      9.166666666666666
+    ],
+    [
+      "Energía eléctrica del servidor y la UPS",
+      14.6
+    ],
+    [
+      "Imprevistos (10% del OPEX)",
+      22.768554297666668
+    ]
+  ],
+  "tiempo_liberado": {
+    "horas": 52.0,
+    "verificaciones": 10.0,
+    "equivalente_soles": 874.0
+  },
+  "monetizar_tiempo": {
+    "cok": 0.10988698387884677,
+    "flujo": [
+      {
+        "t": 0,
+        "beneficios": 0.0,
+        "capex": 16453.460012,
+        "renovacion": 0.0,
+        "opex": 0.0,
+        "F": -16453.460012
+      },
+      {
+        "t": 1,
+        "beneficios": 18888.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3005.4491672920003,
+        "F": 15882.550832707999,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 2,
+        "beneficios": 18888.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3155.7216256566003,
+        "F": 15732.2783743434,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 3,
+        "beneficios": 18888.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3313.50770693943,
+        "F": 15574.49229306057,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 4,
+        "beneficios": 18888.0,
+        "capex": 0.0,
+        "renovacion": 3611.5,
+        "opex": 3479.183092286402,
+        "F": 11797.316907713597,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 5,
+        "beneficios": 18888.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3653.142246900722,
+        "F": 15234.857753099277,
+        "valor_residual": 0.0
+      }
+    ],
+    "VAN": 38839.460066434345,
+    "TIR": 0.9034238513982864,
+    "payback_simple": 1.0362890336483654,
+    "payback_descontado": 1.1678297118996914,
+    "ROI": 3.510996234639577,
+    "BC": 2.253351019377296,
+    "vp_beneficios": 69827.95368550924,
+    "vp_costos": 30988.493619074892,
+    "beneficio_mensual": 1574.0,
+    "beneficio_equilibrio_mes": 698.5152275276527,
+    "equilibrio_pct_potencial": 0.10833052536098832,
+    "equilibrio_pct_monetario": 0.24946972411701882,
+    "factor_descuento": [
+      1.0,
+      0.900992636660345,
+      0.8117877313161606,
+      0.7314147684470672,
+      0.6589993207154389,
+      0.5937535355287795
+    ]
+  },
+  "escenarios": {
+    "pesimista": {
+      "cok": 0.10988698387884677,
+      "flujo": [
+        {
+          "t": 0,
+          "beneficios": 0.0,
+          "capex": 16453.460012,
+          "renovacion": 0.0,
+          "opex": 0.0,
+          "F": -16453.460012
+        },
+        {
+          "t": 1,
+          "beneficios": 3360.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3005.4491672920003,
+          "F": 354.5508327079997,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 2,
+          "beneficios": 3360.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3155.7216256566003,
+          "F": 204.27837434339972,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 3,
+          "beneficios": 3360.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3313.50770693943,
+          "F": 46.492293060569864,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 4,
+          "beneficios": 3360.0,
+          "capex": 0.0,
+          "renovacion": 3611.5,
+          "opex": 3479.183092286402,
+          "F": -3730.683092286402,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 5,
+          "beneficios": 3360.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3653.142246900722,
+          "F": -293.14224690072206,
+          "valor_residual": 0.0
+        }
+      ],
+      "VAN": -18566.74836371111,
+      "TIR": null,
+      "payback_simple": null,
+      "payback_descontado": null,
+      "ROI": -1.20776808261496,
+      "BC": 0.40085024487016696,
+      "vp_beneficios": 12421.745255363778,
+      "vp_costos": 30988.493619074892,
+      "beneficio_mensual": 280.0,
+      "beneficio_equilibrio_mes": 698.5152275276527,
+      "equilibrio_pct_potencial": 0.10833052536098832,
+      "equilibrio_pct_monetario": 0.24946972411701882,
+      "factor_descuento": [
+        1.0,
+        0.900992636660345,
+        0.8117877313161606,
+        0.7314147684470672,
+        0.6589993207154389,
+        0.5937535355287795
+      ]
+    },
+    "base": {
+      "cok": 0.10988698387884677,
+      "flujo": [
+        {
+          "t": 0,
+          "beneficios": 0.0,
+          "capex": 16453.460012,
+          "renovacion": 0.0,
+          "opex": 0.0,
+          "F": -16453.460012
+        },
+        {
+          "t": 1,
+          "beneficios": 8400.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3005.4491672920003,
+          "F": 5394.550832708,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 2,
+          "beneficios": 8400.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3155.7216256566003,
+          "F": 5244.278374343399,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 3,
+          "beneficios": 8400.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3313.50770693943,
+          "F": 5086.49229306057,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 4,
+          "beneficios": 8400.0,
+          "capex": 0.0,
+          "renovacion": 3611.5,
+          "opex": 3479.183092286402,
+          "F": 1309.316907713598,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 5,
+          "beneficios": 8400.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3653.142246900722,
+          "F": 4746.857753099278,
+          "valor_residual": 0.0
+        }
+      ],
+      "VAN": 65.8695193345551,
+      "TIR": 0.111630244988011,
+      "payback_simple": 3.556120911292246,
+      "payback_descontado": 4.976629281303262,
+      "ROI": 0.32382466332546167,
+      "BC": 1.0021256121754176,
+      "vp_beneficios": 31054.363138409448,
+      "vp_costos": 30988.493619074892,
+      "beneficio_mensual": 700.0,
+      "beneficio_equilibrio_mes": 698.5152275276527,
+      "equilibrio_pct_potencial": 0.10833052536098832,
+      "equilibrio_pct_monetario": 0.24946972411701882,
+      "factor_descuento": [
+        1.0,
+        0.900992636660345,
+        0.8117877313161606,
+        0.7314147684470672,
+        0.6589993207154389,
+        0.5937535355287795
+      ]
+    },
+    "optimista": {
+      "cok": 0.10988698387884677,
+      "flujo": [
+        {
+          "t": 0,
+          "beneficios": 0.0,
+          "capex": 16453.460012,
+          "renovacion": 0.0,
+          "opex": 0.0,
+          "F": -16453.460012
+        },
+        {
+          "t": 1,
+          "beneficios": 16800.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3005.4491672920003,
+          "F": 13794.550832707999,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 2,
+          "beneficios": 16800.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3155.7216256566003,
+          "F": 13644.2783743434,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 3,
+          "beneficios": 16800.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3313.50770693943,
+          "F": 13486.49229306057,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 4,
+          "beneficios": 16800.0,
+          "capex": 0.0,
+          "renovacion": 3611.5,
+          "opex": 3479.183092286402,
+          "F": 9709.316907713597,
+          "valor_residual": 0.0
+        },
+        {
+          "t": 5,
+          "beneficios": 16800.0,
+          "capex": 0.0,
+          "renovacion": 0.0,
+          "opex": 3653.142246900722,
+          "F": 13146.857753099277,
+          "valor_residual": 0.0
+        }
+      ],
+      "VAN": 31120.232657744,
+      "TIR": 0.7629408319911215,
+      "payback_simple": 1.1948735657791762,
+      "payback_descontado": 1.3633602036992603,
+      "ROI": 2.8764792398928307,
+      "BC": 2.0042512243508352,
+      "vp_beneficios": 62108.726276818896,
+      "vp_costos": 30988.493619074892,
+      "beneficio_mensual": 1400.0,
+      "beneficio_equilibrio_mes": 698.5152275276527,
+      "equilibrio_pct_potencial": 0.10833052536098832,
+      "equilibrio_pct_monetario": 0.24946972411701882,
+      "factor_descuento": [
+        1.0,
+        0.900992636660345,
+        0.8117877313161606,
+        0.7314147684470672,
+        0.6589993207154389,
+        0.5937535355287795
+      ]
+    }
+  },
+  "sensibilidad": [
+    {
+      "caso": "Tarifa de desarrollo (Glassdoor, S/ 25.00/h)",
+      "VAN": -10365.079830470742,
+      "TIR": -0.12381807229588332,
+      "payback": null,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -10430.949349805298,
+      "capex": 22238.332512
+    },
+    {
+      "caso": "Tarifa de desarrollo (MTPE, S/ 29.44/h)",
+      "VAN": -16035.50831176476,
+      "TIR": -0.2365432989377691,
+      "payback": null,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -16101.377831099315,
+      "capex": 25381.857512
+    },
+    {
+      "caso": "Horas de desarrollo +30 %",
+      "VAN": -6367.952711009525,
+      "TIR": -0.04097094760835224,
+      "payback": null,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -6433.82223034408,
+      "capex": 20010.282512
+    },
+    {
+      "caso": "Mantenimiento anual 30 %",
+      "VAN": -4729.130031238905,
+      "TIR": -0.028780708415792333,
+      "payback": null,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -4794.99955057346,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Escalamiento del OPEX 10 % anual",
+      "VAN": -1079.4287142210528,
+      "TIR": 0.07978036039079817,
+      "payback": 4.103319583311817,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -1145.298233555608,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Imprevistos del OPEX 20 %",
+      "VAN": -1039.1357134209993,
+      "TIR": 0.08183001513030497,
+      "payback": 4.135102747991503,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -1105.0052327555545,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Beta de software (COK con β = 1.35)",
+      "VAN": -540.1254534301763,
+      "TIR": 0.111630244988011,
+      "payback": 3.556120911292246,
+      "cok": 0.12638541279921833,
+      "delta_VAN": -605.9949727647314,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Escenario pesimista de beneficios",
+      "VAN": -18566.74836371111,
+      "TIR": null,
+      "payback": null,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -18632.617883045667,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Escenario optimista de beneficios",
+      "VAN": 31120.232657744,
+      "TIR": 0.7629408319911215,
+      "payback": 1.1948735657791762,
+      "cok": 0.10988698387884677,
+      "delta_VAN": 31054.363138409444,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Reducción de horas pagadas (B1 y B2 como ahorro)",
+      "VAN": 38839.460066434345,
+      "TIR": 0.9034238513982864,
+      "payback": 1.0362890336483654,
+      "cok": 0.10988698387884677,
+      "delta_VAN": 38773.59054709979,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Valor residual de los equipos renovados en el año 4",
+      "VAN": 1674.125189506196,
+      "TIR": 0.15006850616101042,
+      "payback": 3.556120911292246,
+      "cok": 0.10988698387884677,
+      "delta_VAN": 1608.2556701716408,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Horizonte de 3 años",
+      "VAN": -3615.43300700484,
+      "TIR": -0.022511197440253372,
+      "payback": null,
+      "cok": 0.10988698387884677,
+      "delta_VAN": -3681.302526339395,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Despliegue en la nube (Lightsail 4 GB)",
+      "VAN": 1146.152025194852,
+      "TIR": 0.14748980046440374,
+      "payback": 3.2535977169514245,
+      "cok": 0.10988698387884677,
+      "delta_VAN": 1080.282505860297,
+      "capex": 12480.810012
+    },
+    {
+      "caso": "Tasa de descuento 8%",
+      "VAN": 1268.4581128648426,
+      "TIR": 0.111630244988011,
+      "payback": 3.556120911292246,
+      "cok": 0.08,
+      "delta_VAN": 1202.5885935302877,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Tasa de descuento 10.192 % (COK en dólares, sin convertir)",
+      "VAN": 372.67236184278033,
+      "TIR": 0.111630244988011,
+      "payback": 3.556120911292246,
+      "cok": 0.10192,
+      "delta_VAN": 306.80284250822524,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Tasa de descuento 15%",
+      "VAN": -1344.0336811926886,
+      "TIR": 0.111630244988011,
+      "payback": 3.556120911292246,
+      "cok": 0.15,
+      "delta_VAN": -1409.9032005272438,
+      "capex": 16453.460012
+    },
+    {
+      "caso": "Tasa de descuento 20%",
+      "VAN": -2833.4912853364185,
+      "TIR": 0.111630244988011,
+      "payback": 3.556120911292246,
+      "cok": 0.2,
+      "delta_VAN": -2899.3608046709737,
+      "capex": 16453.460012
+    }
+  ],
+  "nube": {
+    "cok": 0.10988698387884677,
+    "flujo": [
+      {
+        "t": 0,
+        "beneficios": 0.0,
+        "capex": 12480.810012,
+        "renovacion": 0.0,
+        "opex": 0.0,
+        "F": -12480.810012
+      },
+      {
+        "t": 1,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 4309.084335292,
+        "F": 4090.915664708,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 2,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 4524.538552056601,
+        "F": 3875.4614479433994,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 3,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 4750.765479659431,
+        "F": 3649.2345203405694,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 4,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 4988.303753642402,
+        "F": 3411.6962463575983,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 5,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 5237.718941324522,
+        "F": 3162.2810586754777,
+        "valor_residual": 0.0
+      }
+    ],
+    "VAN": 1146.152025194852,
+    "TIR": 0.14748980046440374,
+    "payback_simple": 3.2535977169514245,
+    "payback_descontado": 4.389570447609884,
+    "ROI": 0.4574045210636321,
+    "BC": 1.038322319608358,
+    "vp_beneficios": 31054.363138409448,
+    "vp_costos": 29908.211113214595,
+    "beneficio_mensual": 700.0,
+    "beneficio_equilibrio_mes": 674.1644543132147,
+    "equilibrio_pct_potencial": 0.10455404068132983,
+    "equilibrio_pct_monetario": 0.2407730193975767,
+    "factor_descuento": [
+      1.0,
+      0.900992636660345,
+      0.8117877313161606,
+      0.7314147684470672,
+      0.6589993207154389,
+      0.5937535355287795
+    ]
+  },
+  "horizonte_3": {
+    "cok": 0.10988698387884677,
+    "flujo": [
+      {
+        "t": 0,
+        "beneficios": 0.0,
+        "capex": 16453.460012,
+        "renovacion": 0.0,
+        "opex": 0.0,
+        "F": -16453.460012
+      },
+      {
+        "t": 1,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3005.4491672920003,
+        "F": 5394.550832708,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 2,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3155.7216256566003,
+        "F": 5244.278374343399,
+        "valor_residual": 0.0
+      },
+      {
+        "t": 3,
+        "beneficios": 8400.0,
+        "capex": 0.0,
+        "renovacion": 0.0,
+        "opex": 3313.50770693943,
+        "F": 5086.49229306057,
+        "valor_residual": 0.0
+      }
+    ],
+    "VAN": -3615.43300700484,
+    "TIR": -0.022511197440253372,
+    "payback_simple": null,
+    "payback_descontado": null,
+    "ROI": -0.04425443106537947,
+    "BC": 0.8502719967330481,
+    "vp_beneficios": 20531.23914595801,
+    "vp_costos": 24146.67215296285,
+    "beneficio_mensual": 700.0,
+    "beneficio_equilibrio_mes": 823.2659698185644,
+    "equilibrio_pct_potencial": 0.12767772484779225,
+    "equilibrio_pct_monetario": 0.29402356064948726,
+    "factor_descuento": [
+      1.0,
+      0.900992636660345,
+      0.8117877313161606,
+      0.7314147684470672
+    ]
+  },
+  "tarifa_kwh_equilibrio": 1.0845103838795582
+}

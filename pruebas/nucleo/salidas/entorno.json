@@ -1,0 +1,128 @@
+{
+  "fecha_utc": "2026-10-24T15:01:50Z",
+  "hardware": {
+    "arquitectura": "x86_64",
+    "procesador": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpu_logicas": 2,
+    "memoria_GiB": 7.84,
+    "extensiones_vectoriales": [
+      "sse4_2",
+      "avx",
+      "avx2",
+      "avx512f",
+      "fma"
+    ],
+    "orden_de_bytes": "little"
+  },
+  "sistema_operativo": {
+    "distribucion": "Ubuntu 24.04.5 LTS",
+    "plataforma": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+    "nucleo": "6.18.44-fc-v153"
+  },
+  "interprete": {
+    "implementacion": "CPython",
+    "version": "3.11.17",
+    "compilado_con": "GCC 13.3.0",
+    "fecha_compilacion": "main Oct  1 2026 15:41:07",
+    "parametros_compilacion_OPT": "-DNDEBUG -g -fwrapv -O2 -Wall",
+    "banderas_en_ejecucion": {
+      "optimize": 0,
+      "hash_randomization": 0,
+      "isolated": 0,
+      "no_user_site": 1,
+      "dont_write_bytecode": 0,
+      "utf8_mode": 0,
+      "safe_path": false
+    },
+    "PYTHONHASHSEED": "0"
+  },
+  "punto_flotante": {
+    "formato": "IEEE 754 binary64 (doble precisión)",
+    "bits_mantisa": 53,
+    "digitos_decimales": 15,
+    "epsilon_maquina": 2.220446049250313e-16,
+    "numpy_float64_eps": 2.220446049250313e-16,
+    "numpy_resolucion": 1e-15,
+    "tipo_entero_numpy": "int64"
+  },
+  "bibliotecas": {
+    "numpy": "2.4.4",
+    "pygad": "3.7.0",
+    "pulp": "2.9.0",
+    "cbc": "2.10.3",
+    "pytest": "9.1.1"
+  },
+  "variables_de_entorno": {
+    "PYTHONHASHSEED": "0",
+    "PYTHONNOUSERSITE": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "TZ": "UTC",
+    "LC_ALL": "C.UTF-8",
+    "LANG": "C.UTF-8"
+  },
+  "carpeta_experimento": "experimentos/sanfelipe",
+  "huellas_codigo_evaluado": {
+    "core/__init__.py": {
+      "sha256": "b86410b8c367b4b01f6abd0155b2249b5131d2c6cf0f8f5dc38446281b0b1afd",
+      "igual_al_registro_6_10_2026": true
+    },
+    "core/conflicts.py": {
+      "sha256": "e928b4e9b683dbff1e85450d94e91e9a423a080ac7092464faa4acbfcce95d04",
+      "igual_al_registro_6_10_2026": true
+    },
+    "core/domain.py": {
+      "sha256": "9f4c0943cbe4e0f180a12d5f38f8a7beb026752241557c900d1933e4a05a6864",
+      "igual_al_registro_6_10_2026": true
+    },
+    "core/fitness.py": {
+      "sha256": "ab9f5435b1269042e18e791dd67ec71455399546b194cd67b29742e07d80f910",
+      "igual_al_registro_6_10_2026": true
+    },
+    "core/repair.py": {
+      "sha256": "c3d43b32ff07518806ff02b79b93b959b93f38f7c10080171123691c846ae851",
+      "igual_al_registro_6_10_2026": true
+    },
+    "core/scheduler.py": {
+      "sha256": "0549b14928daba763254423138a402d65e173619b593d74c53f787af5a173a9c",
+      "igual_al_registro_6_10_2026": true
+    },
+    "experimentos/poc_cap3/metodos.py": {
+      "sha256": "f78b4670c10a7dd78ecaca000008602551fa9c06991eb90dc1e4d8169de8cc28",
+      "igual_al_registro_6_10_2026": true
+    },
+    "experimentos/poc_cap3/exhaustivo.py": {
+      "sha256": "03b24560131a0d52fbff35cb4bbefce379b3c1840e532ff152df3712d9ce409e",
+      "igual_al_registro_6_10_2026": true
+    },
+    "experimentos/poc_cap3/validador.py": {
+      "sha256": "e65a44ee264de19dd00ee3251d34d8dffa5749aeffae1bd3932c86e7330434c3",
+      "igual_al_registro_6_10_2026": true
+    },
+    "experimentos/sanfelipe/generador_sanfelipe.py": {
+      "sha256": "51b7e25c0fd0c79f130f5177a65250679388572b21e2a58cb91aee0453ccdd81",
+      "igual_al_registro_6_10_2026": true
+    }
+  },
+  "huellas_pruebas": {
+    "conftest.py": "e52100393b263dbc41e999ec009ae2ec2d7cb32445608c0239be2387074fa1e8",
+    "entorno.py": "45a2d5398ea67f836a4cb1732b03d144f169118fb6d3ee207e882ea0b97862fe",
+    "estocasticas.py": "f56e7698f53a33ecf14042d4e2bdbaf74d0ef1eb14a743268d32761fd4d6596e",
+    "rutas.py": "8f099a99817bf7886158cd6404c6273929ef1f9c27e48ac2f2f6f859196542a4",
+    "test_m01_modelo.py": "8d0957d9c79f216639fe4a6e99a42d525ba41d3d687d18e704f5480888c5d280",
+    "test_m02_conflictos.py": "d56a84b26a1f4a6f83fcca719d145d952692e497302b2cda8111726736054de0",
+    "test_m03_conduccion.py": "818adc9f4340c1b68a5f1ff4af392ba02562776ce594e6d32a587c5203173378",
+    "test_m04_aptitud.py": "ddb6e81f66885c31758ab6c74f2ccee9af622e3c5518ff49b94ef98944205564",
+    "test_m05_cota_M.py": "20ce4b3bf6d611fa76e8f562400599a73dfb82c1d1bf6cff4b7c6ef07c92f14f",
+    "test_m06_reparacion.py": "edeb6e6c2f01da494101df133ca977e2ae7a3548a3eb32553f95106910cc2c98",
+    "test_m07_operadores_ag.py": "185a9598817031e186bc67ad8c9a89819fc3718a45a0ec66dd4130f0365230bd",
+    "test_m08_parada.py": "06b2188613b3f953b9a73c5d911639b1acf3aa23aea6e69c55edc39c383a4ada",
+    "test_m09_reglas_As.py": "5e80500c6a83bbbb8aa7ecf32b0eddd2c8c5f8178fabac6748eff98da3896208",
+    "test_m10_validador.py": "077ac61a0b279bbf6db281b04a4177d9487d8debc69111c5a9f4456507825ecc",
+    "test_m11_comparadores.py": "9202a7734a717d2c63ea8a1870b3362bf0eeb16138c300381f95317b89073ebf",
+    "test_m12_reproducibilidad.py": "302db22ee4e05c088438ff1d2ebbbedbb3306d168b7add32472d586dd0436357",
+    "utilidades.py": "27416605b5995b2efcb08949086075b5e6213b8a2004818e76defd7156a7604c"
+  }
+}

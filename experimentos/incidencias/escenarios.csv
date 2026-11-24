@@ -1,0 +1,28 @@
+n,instancia,incidencia,recurso,efecto,iniciados,pendientes,afectados,sin_alternativa,con_alternativa,conductores_al_limite
+28,101,I1_averia,US02,unidad fuera de servicio,18,10,2,0,10,0
+28,101,I2_ausencia,CS02,conductor ausente,18,10,2,0,10,0
+28,101,I3_demora,US02,viaje en curso +60 min (conductor CS02),18,10,1,0,10,0
+28,102,I1_averia,US07,unidad fuera de servicio,19,9,2,1,8,0
+28,102,I2_ausencia,CS05,conductor ausente,19,9,2,0,9,0
+28,102,I3_demora,US07,viaje en curso +60 min (conductor CS05),19,9,1,1,8,0
+28,103,I1_averia,US01,unidad fuera de servicio,15,13,2,1,12,0
+28,103,I2_ausencia,CS01,conductor ausente,15,13,2,0,13,0
+28,103,I3_demora,US01,viaje en curso +60 min (conductor CS09),15,13,1,1,12,0
+56,101,I1_averia,US02,unidad fuera de servicio,35,21,2,0,21,0
+56,101,I2_ausencia,CS02,conductor ausente,35,21,2,0,21,0
+56,101,I3_demora,US02,viaje en curso +60 min (conductor CS20),35,21,1,0,21,0
+56,102,I1_averia,US07,unidad fuera de servicio,32,24,2,1,23,0
+56,102,I2_ausencia,CS05,conductor ausente,32,24,2,1,23,0
+56,102,I3_demora,US07,viaje en curso +60 min (conductor CS05),32,24,1,0,24,0
+56,103,I1_averia,US01,unidad fuera de servicio,33,23,2,1,22,0
+56,103,I2_ausencia,CS01,conductor ausente,33,23,2,0,23,0
+56,103,I3_demora,US01,viaje en curso +60 min (conductor CS18),33,23,1,1,22,0
+112,101,I1_averia,US02,unidad fuera de servicio,66,46,2,1,45,0
+112,101,I2_ausencia,CS02,conductor ausente,66,46,2,0,46,0
+112,101,I3_demora,US02,viaje en curso +60 min (conductor CS02),66,46,1,0,46,0
+112,102,I1_averia,US07,unidad fuera de servicio,66,46,2,0,46,0
+112,102,I2_ausencia,CS05,conductor ausente,66,46,2,0,46,0
+112,102,I3_demora,US07,viaje en curso +60 min (conductor CS28),66,46,2,0,46,0
+112,103,I1_averia,US01,unidad fuera de servicio,66,46,2,0,46,0
+112,103,I2_ausencia,CS01,conductor ausente,66,46,2,0,46,0
+112,103,I3_demora,US01,viaje en curso +60 min (conductor CS01),66,46,1,0,46,0

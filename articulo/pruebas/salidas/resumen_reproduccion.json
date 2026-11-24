@@ -1,0 +1,265 @@
+{
+  "corridas": 684,
+  "iguales": 684,
+  "por_conjunto": {
+    "sintetico": {
+      "corridas": 285,
+      "iguales": 285
+    },
+    "sintetico_52c56u": {
+      "corridas": 228,
+      "iguales": 228
+    },
+    "gtfs_lodz": {
+      "corridas": 171,
+      "iguales": 171
+    }
+  },
+  "max_dif_relativa_J": 0.0,
+  "tiempo_total_s": 301.7259776719998,
+  "variabilidad_sintetico": [
+    {
+      "metodo": "AG_v1",
+      "n": 7,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.666311471513125,
+      "DE_J": 0.0,
+      "J_min": 0.3708333333333333,
+      "J_max": 0.9468510812060417,
+      "tiempo_media_s": 0.1869333333333333,
+      "tiempo_DE_s": 0.040365042631795474,
+      "tiempo_publicado_media_s": 0.22047999999999998
+    },
+    {
+      "metodo": "AG_v1",
+      "n": 14,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.8320947392593973,
+      "DE_J": 0.0011250521297761094,
+      "J_min": 0.7241490951149867,
+      "J_max": 1.0138001863778259,
+      "tiempo_media_s": 0.2151866666666667,
+      "tiempo_DE_s": 0.038393598176680206,
+      "tiempo_publicado_media_s": 0.25240666666666667
+    },
+    {
+      "metodo": "AG_v1",
+      "n": 28,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.9400502796954793,
+      "DE_J": 0.009019771364270507,
+      "J_min": 0.9018334622626935,
+      "J_max": 1.0218103255854127,
+      "tiempo_media_s": 0.35218,
+      "tiempo_DE_s": 0.05394064462774934,
+      "tiempo_publicado_media_s": 0.42851999999999996
+    },
+    {
+      "metodo": "AG_v1",
+      "n": 56,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.9043979156992861,
+      "DE_J": 0.01188645937468878,
+      "J_min": 0.7972485796661932,
+      "J_max": 0.9647789391367902,
+      "tiempo_media_s": 0.6560199999999999,
+      "tiempo_DE_s": 0.11975459549786449,
+      "tiempo_publicado_media_s": 0.72874
+    },
+    {
+      "metodo": "AG_v1",
+      "n": 112,
+      "corridas": 15,
+      "factibles_pct": 93.33333333333333,
+      "J_media": 0.8490454633809005,
+      "DE_J": 0.01584560184157186,
+      "J_min": 0.8201837085774543,
+      "J_max": 0.8890545507085617,
+      "tiempo_media_s": 1.2910133333333333,
+      "tiempo_DE_s": 0.14607952759011913,
+      "tiempo_publicado_media_s": 1.4946066666666666
+    },
+    {
+      "metodo": "AG_v2",
+      "n": 7,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.666311471513125,
+      "DE_J": 0.0,
+      "J_min": 0.3708333333333333,
+      "J_max": 0.9468510812060417,
+      "tiempo_media_s": 0.08510666666666666,
+      "tiempo_DE_s": 0.018932868874249453,
+      "tiempo_publicado_media_s": 0.08050666666666667
+    },
+    {
+      "metodo": "AG_v2",
+      "n": 14,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.8320947392593973,
+      "DE_J": 0.0011250521297761094,
+      "J_min": 0.7241490951149867,
+      "J_max": 1.0138001863778259,
+      "tiempo_media_s": 0.11274,
+      "tiempo_DE_s": 0.026886023984856625,
+      "tiempo_publicado_media_s": 0.12869333333333333
+    },
+    {
+      "metodo": "AG_v2",
+      "n": 28,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.9327105195947282,
+      "DE_J": 0.0064525212070902565,
+      "J_min": 0.9018334622626935,
+      "J_max": 0.9922184599988737,
+      "tiempo_media_s": 0.25372666666666666,
+      "tiempo_DE_s": 0.04615326124782,
+      "tiempo_publicado_media_s": 0.2906333333333333
+    },
+    {
+      "metodo": "AG_v2",
+      "n": 56,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.8948591525223514,
+      "DE_J": 0.003877882261195672,
+      "J_min": 0.7972485796661932,
+      "J_max": 0.9543622724701236,
+      "tiempo_media_s": 0.60266,
+      "tiempo_DE_s": 0.1739792631321331,
+      "tiempo_publicado_media_s": 0.6686066666666667
+    },
+    {
+      "metodo": "AG_v2",
+      "n": 112,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.843135719790034,
+      "DE_J": 0.00788690807455476,
+      "J_min": 0.8087940075985519,
+      "J_max": 0.8655221796451924,
+      "tiempo_media_s": 1.7381133333333334,
+      "tiempo_DE_s": 0.33931726802647755,
+      "tiempo_publicado_media_s": 1.9724
+    },
+    {
+      "metodo": "Tabu_v1",
+      "n": 7,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.6913114715131249,
+      "DE_J": 0.0,
+      "J_min": 0.4458333333333333,
+      "J_max": 0.9468510812060417,
+      "tiempo_media_s": 0.0967,
+      "tiempo_DE_s": 0.01555478796292089,
+      "tiempo_publicado_media_s": 0.08886
+    },
+    {
+      "metodo": "Tabu_v1",
+      "n": 14,
+      "corridas": 15,
+      "factibles_pct": 100.0,
+      "J_media": 0.8322431256533768,
+      "DE_J": 0.0018908184453131432,
+      "J_min": 0.7241490951149867,
+      "J_max": 1.0242168530444926,
+      "tiempo_media_s": 0.12653999999999999,
+      "tiempo_DE_s": 0.02643119909717086,
+      "tiempo_publicado_media_s": 0.12834666666666666
+    },
+    {
+      "metodo": "Tabu_v1",
+      "n": 28,
+      "corridas": 15,
+      "factibles_pct": 93.33333333333333,
+      "J_media": 0.9373999900321336,
+      "DE_J": 0.006835330149423724,
+      "J_min": 0.9018334622626935,
+      "J_max": 1.0012154768176895,
+      "tiempo_media_s": 0.21826666666666666,
+      "tiempo_DE_s": 0.022983275492865513,
+      "tiempo_publicado_media_s": 0.24038666666666667
+    },
+    {
+      "metodo": "Tabu_v1",
+      "n": 56,
+      "corridas": 15,
+      "factibles_pct": 40.0,
+      "J_media": 0.9603945351616687,
+      "DE_J": 0.031013233622796513,
+      "J_min": 0.7852377843227507,
+      "J_max": 1.1042755203331864,
+      "tiempo_media_s": 0.38028,
+      "tiempo_DE_s": 0.039154113084433055,
+      "tiempo_publicado_media_s": 0.42396
+    },
+    {
+      "metodo": "Tabu_v1",
+      "n": 112,
+      "corridas": 15,
+      "factibles_pct": 13.333333333333334,
+      "J_media": 0.8507207845293367,
+      "DE_J": 0.025639684094007378,
+      "J_min": 0.7893571835158071,
+      "J_max": 0.9448534279649288,
+      "tiempo_media_s": 0.7873800000000001,
+      "tiempo_DE_s": 0.10287324516816104,
+      "tiempo_publicado_media_s": 0.8642933333333332
+    }
+  ],
+  "instancias": {
+    "sintetico": [
+      [
+        7,
+        14,
+        28,
+        56,
+        112
+      ],
+      [
+        101,
+        102,
+        103
+      ]
+    ],
+    "sintetico_52c56u": [
+      [
+        7,
+        14,
+        28,
+        56
+      ],
+      [
+        101,
+        102,
+        103
+      ]
+    ],
+    "gtfs_lodz": [
+      [
+        "MARCEL",
+        "MFTRAN",
+        "PHUOLA"
+      ],
+      [
+        101,
+        102,
+        103
+      ]
+    ]
+  },
+  "semillas": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ]
+}

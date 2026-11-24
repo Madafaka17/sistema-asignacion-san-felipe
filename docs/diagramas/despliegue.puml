@@ -1,0 +1,48 @@
+@startuml
+!include common.iuml
+skinparam nodesep 45
+skinparam ranksep 50
+
+cloud "Archivo de Ubuntu\n(archive.ubuntu.com)" as UBU
+cloud "Índice de paquetes de Python\n(pypi.org)" as PYPI
+
+node "Máquina virtual efímera x86_64\n2 vCPU Intel(R) Xeon(R) Processor @ 2.80GHz; 7,8 GiB de RAM" <<device>> as VM {
+  node "Ubuntu 24.04.4 LTS (núcleo Linux 6.18.44-fc-v77)" <<sistema operativo>> as SO {
+    folder "Carpeta del proyecto" as FS {
+      artifact "scripts/construir_y_probar.sh\naprovisionar.sh · bd_efimera.sh" as A_SH
+      artifact "requirements.lock · sistema.lock\nSHA256SUMS" as A_LOCK
+      artifact ".env (permiso 600, no versionado)\nconfig/humo.json" as A_CFG
+      artifact "bd/esquema.sql\nbd/semilla_humo.sql" as A_SQL
+      artifact "pruebas/humo/salidas/<id>/\nlog · informe.json · salidas" as A_OUT
+    }
+    node "Python 3.11.15 (entorno virtual .venv)\npip 24.0; 13 paquetes de requirements.lock\nPYTHONHASHSEED=0; un hilo; TZ=UTC" <<entorno de ejecución>> as PY {
+      artifact "core/\n(5 módulos, huellas registradas)" as A_CORE
+      artifact "persistencia/\n(4 módulos)" as A_PER
+      artifact "pruebas/humo/\nprueba_humo.py · integridad.py" as A_PH
+      artifact "poc_cap3/validador.py" as A_VAL
+      artifact ".build/pycache\n(bytecode checked-hash)" as A_PYC
+    }
+    node "MySQL Server 8.0.46 (mysqld efímero)\n--no-defaults · datos en .build/mysql\nsolo 127.0.0.1:33306 · usuario sf_humo (sf_test_%)\nroot bloqueado" <<entorno de ejecución>> as MY {
+      database "sf_test_humo_<id>\n9 tablas; se elimina\nal terminar" as DB
+    }
+  }
+}
+
+UBU .down.> SO : paquetes .deb\n(versión y SHA-256 fijados)
+PYPI .down.> PY : ruedas de Python\n(--require-hashes)
+DB <-right- A_PER : TCP/IP 127.0.0.1:33306\nprotocolo MySQL (PyMySQL)
+PY -[hidden]right- FS
+A_SH -[hidden]down- A_LOCK
+A_LOCK -[hidden]down- A_CFG
+A_CFG -[hidden]down- A_SQL
+A_SQL -[hidden]down- A_OUT
+A_CORE -[hidden]down- A_PER
+A_PER -[hidden]down- A_PH
+A_PH -[hidden]down- A_VAL
+A_VAL -[hidden]down- A_PYC
+
+legend bottom left
+  Entorno nuevo, aprovisionado solo con scripts/construir_y_probar.sh.
+  Valores de la ejecución de referencia 20261007T144734Z_945b. La capa de presentación (Figura 4) no se despliega.
+endlegend
+@enduml

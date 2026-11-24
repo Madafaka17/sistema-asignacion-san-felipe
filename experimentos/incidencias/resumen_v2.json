@@ -1,0 +1,273 @@
+{
+  "entorno": {
+    "python": "3.13.18",
+    "pygad": "3.7.0",
+    "numpy": "2.5.3",
+    "plataforma": "Linux-6.18.44-fc-v819-x86_64-with-glibc2.39"
+  },
+  "escenarios": 27,
+  "por_metodo": {
+    "Sin reasignar": {
+      "ejecuciones": 27,
+      "validas_pct": 0.0,
+      "afectados_media": 1.7,
+      "sin_alternativa_media": 0.0,
+      "cambios_adicionales_media": 0.0,
+      "cambios_total_media": 0.0,
+      "retraso_min_media": 0.0,
+      "tiempo_s_media": 0.0,
+      "tiempo_s_max": 0.0
+    },
+    "Voraz": {
+      "ejecuciones": 27,
+      "validas_pct": 0.0,
+      "afectados_media": 1.7,
+      "sin_alternativa_media": 0.0,
+      "cambios_adicionales_media": 5.07,
+      "cambios_total_media": 6.78,
+      "retraso_min_media": 21.48,
+      "tiempo_s_media": 0.0,
+      "tiempo_s_max": 0.0
+    },
+    "AG": {
+      "ejecuciones": 270,
+      "validas_pct": 25.9,
+      "afectados_media": 1.7,
+      "sin_alternativa_media": 0.0,
+      "cambios_adicionales_media": 0.64,
+      "cambios_total_media": 2.34,
+      "retraso_min_media": 17.52,
+      "tiempo_s_media": 1.34,
+      "tiempo_s_max": 6.722
+    }
+  },
+  "por_tamano": {
+    "28": {
+      "Sin reasignar": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.67,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.0,
+        "cambios_total_media": 0.0,
+        "retraso_min_media": 0.0,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "Voraz": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.67,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 2.11,
+        "cambios_total_media": 3.78,
+        "retraso_min_media": 8.89,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "AG": {
+        "ejecuciones": 90,
+        "validas_pct": 22.2,
+        "afectados_media": 1.67,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.21,
+        "cambios_total_media": 1.88,
+        "retraso_min_media": 21.22,
+        "tiempo_s_media": 0.62,
+        "tiempo_s_max": 1.165
+      }
+    },
+    "56": {
+      "Sin reasignar": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.67,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.0,
+        "cambios_total_media": 0.0,
+        "retraso_min_media": 0.0,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "Voraz": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.67,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 3.67,
+        "cambios_total_media": 5.33,
+        "retraso_min_media": 22.22,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "AG": {
+        "ejecuciones": 90,
+        "validas_pct": 33.3,
+        "afectados_media": 1.67,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.44,
+        "cambios_total_media": 2.11,
+        "retraso_min_media": 15.78,
+        "tiempo_s_media": 1.24,
+        "tiempo_s_max": 2.708
+      }
+    },
+    "112": {
+      "Sin reasignar": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.78,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.0,
+        "cambios_total_media": 0.0,
+        "retraso_min_media": 0.0,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "Voraz": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.78,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 9.44,
+        "cambios_total_media": 11.22,
+        "retraso_min_media": 33.33,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "AG": {
+        "ejecuciones": 90,
+        "validas_pct": 22.2,
+        "afectados_media": 1.78,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 1.26,
+        "cambios_total_media": 3.03,
+        "retraso_min_media": 15.56,
+        "tiempo_s_media": 2.14,
+        "tiempo_s_max": 6.722
+      }
+    }
+  },
+  "por_incidencia": {
+    "I1_averia": {
+      "Sin reasignar": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 2.0,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.0,
+        "cambios_total_media": 0.0,
+        "retraso_min_media": 0.0,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "Voraz": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 2.0,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 5.0,
+        "cambios_total_media": 7.0,
+        "retraso_min_media": 21.11,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "AG": {
+        "ejecuciones": 90,
+        "validas_pct": 22.2,
+        "afectados_media": 2.0,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.69,
+        "cambios_total_media": 2.69,
+        "retraso_min_media": 19.0,
+        "tiempo_s_media": 1.42,
+        "tiempo_s_max": 3.614
+      }
+    },
+    "I2_ausencia": {
+      "Sin reasignar": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 2.0,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.0,
+        "cambios_total_media": 0.0,
+        "retraso_min_media": 0.0,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "Voraz": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 2.0,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 5.11,
+        "cambios_total_media": 7.11,
+        "retraso_min_media": 24.44,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "AG": {
+        "ejecuciones": 90,
+        "validas_pct": 33.3,
+        "afectados_media": 2.0,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.39,
+        "cambios_total_media": 2.39,
+        "retraso_min_media": 19.22,
+        "tiempo_s_media": 1.11,
+        "tiempo_s_max": 3.524
+      }
+    },
+    "I3_demora": {
+      "Sin reasignar": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.11,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.0,
+        "cambios_total_media": 0.0,
+        "retraso_min_media": 0.0,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "Voraz": {
+        "ejecuciones": 9,
+        "validas_pct": 0.0,
+        "afectados_media": 1.11,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 5.11,
+        "cambios_total_media": 6.22,
+        "retraso_min_media": 18.89,
+        "tiempo_s_media": 0.0,
+        "tiempo_s_max": 0.0
+      },
+      "AG": {
+        "ejecuciones": 90,
+        "validas_pct": 22.2,
+        "afectados_media": 1.11,
+        "sin_alternativa_media": 0.0,
+        "cambios_adicionales_media": 0.83,
+        "cambios_total_media": 1.94,
+        "retraso_min_media": 14.33,
+        "tiempo_s_media": 1.48,
+        "tiempo_s_max": 6.722
+      }
+    }
+  },
+  "escenarios_detalle": {
+    "pendientes_media_por_n": {
+      "28": 10.67,
+      "56": 22.67,
+      "112": 46.0
+    },
+    "afectados_media_por_n": {
+      "28": 1.67,
+      "56": 1.67,
+      "112": 1.78
+    },
+    "sin_alternativa_total": 0,
+    "conductores_al_limite_total": 0
+  },
+  "variante": "v2"
+}

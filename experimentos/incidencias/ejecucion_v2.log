@@ -1,0 +1,31 @@
+n=28 inst=101 I1_averia: {'recurso': 'US02', 'efecto': 'unidad fuera de servicio', 'iniciados': 18, 'pendientes': 10, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 10, 'conductores_al_limite': 0}
+n=28 inst=101 I2_ausencia: {'recurso': 'CS02', 'efecto': 'conductor ausente', 'iniciados': 18, 'pendientes': 10, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 10, 'conductores_al_limite': 0}
+n=28 inst=101 I3_demora: {'recurso': 'US02', 'efecto': 'viaje en curso +60 min (conductor CS02)', 'iniciados': 18, 'pendientes': 10, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 10, 'conductores_al_limite': 0}
+n=28 inst=102 I1_averia: {'recurso': 'US07', 'efecto': 'unidad fuera de servicio', 'iniciados': 19, 'pendientes': 9, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 9, 'conductores_al_limite': 0}
+n=28 inst=102 I2_ausencia: {'recurso': 'CS05', 'efecto': 'conductor ausente', 'iniciados': 19, 'pendientes': 9, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 9, 'conductores_al_limite': 0}
+n=28 inst=102 I3_demora: {'recurso': 'US07', 'efecto': 'viaje en curso +60 min (conductor CS05)', 'iniciados': 19, 'pendientes': 9, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 9, 'conductores_al_limite': 0}
+n=28 inst=103 I1_averia: {'recurso': 'US01', 'efecto': 'unidad fuera de servicio', 'iniciados': 15, 'pendientes': 13, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 13, 'conductores_al_limite': 0}
+n=28 inst=103 I2_ausencia: {'recurso': 'CS01', 'efecto': 'conductor ausente', 'iniciados': 15, 'pendientes': 13, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 13, 'conductores_al_limite': 0}
+n=28 inst=103 I3_demora: {'recurso': 'US01', 'efecto': 'viaje en curso +60 min (conductor CS09)', 'iniciados': 15, 'pendientes': 13, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 13, 'conductores_al_limite': 0}
+n=56 inst=101 I1_averia: {'recurso': 'US02', 'efecto': 'unidad fuera de servicio', 'iniciados': 35, 'pendientes': 21, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 21, 'conductores_al_limite': 0}
+n=56 inst=101 I2_ausencia: {'recurso': 'CS02', 'efecto': 'conductor ausente', 'iniciados': 35, 'pendientes': 21, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 21, 'conductores_al_limite': 0}
+n=56 inst=101 I3_demora: {'recurso': 'US02', 'efecto': 'viaje en curso +60 min (conductor CS20)', 'iniciados': 35, 'pendientes': 21, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 21, 'conductores_al_limite': 0}
+n=56 inst=102 I1_averia: {'recurso': 'US07', 'efecto': 'unidad fuera de servicio', 'iniciados': 32, 'pendientes': 24, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 24, 'conductores_al_limite': 0}
+n=56 inst=102 I2_ausencia: {'recurso': 'CS05', 'efecto': 'conductor ausente', 'iniciados': 32, 'pendientes': 24, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 24, 'conductores_al_limite': 0}
+n=56 inst=102 I3_demora: {'recurso': 'US07', 'efecto': 'viaje en curso +60 min (conductor CS05)', 'iniciados': 32, 'pendientes': 24, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 24, 'conductores_al_limite': 0}
+n=56 inst=103 I1_averia: {'recurso': 'US01', 'efecto': 'unidad fuera de servicio', 'iniciados': 33, 'pendientes': 23, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 23, 'conductores_al_limite': 0}
+n=56 inst=103 I2_ausencia: {'recurso': 'CS01', 'efecto': 'conductor ausente', 'iniciados': 33, 'pendientes': 23, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 23, 'conductores_al_limite': 0}
+n=56 inst=103 I3_demora: {'recurso': 'US01', 'efecto': 'viaje en curso +60 min (conductor CS18)', 'iniciados': 33, 'pendientes': 23, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 23, 'conductores_al_limite': 0}
+n=112 inst=101 I1_averia: {'recurso': 'US02', 'efecto': 'unidad fuera de servicio', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=101 I2_ausencia: {'recurso': 'CS02', 'efecto': 'conductor ausente', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=101 I3_demora: {'recurso': 'US02', 'efecto': 'viaje en curso +60 min (conductor CS02)', 'iniciados': 66, 'pendientes': 46, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=102 I1_averia: {'recurso': 'US07', 'efecto': 'unidad fuera de servicio', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=102 I2_ausencia: {'recurso': 'CS05', 'efecto': 'conductor ausente', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=102 I3_demora: {'recurso': 'US07', 'efecto': 'viaje en curso +60 min (conductor CS28)', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=103 I1_averia: {'recurso': 'US01', 'efecto': 'unidad fuera de servicio', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=103 I2_ausencia: {'recurso': 'CS01', 'efecto': 'conductor ausente', 'iniciados': 66, 'pendientes': 46, 'afectados': 2, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+n=112 inst=103 I3_demora: {'recurso': 'US01', 'efecto': 'viaje en curso +60 min (conductor CS01)', 'iniciados': 66, 'pendientes': 46, 'afectados': 1, 'sin_alternativa': 0, 'con_alternativa': 46, 'conductores_al_limite': 0}
+
+real	6m1.395s
+user	5m58.508s
+sys	0m0.057s

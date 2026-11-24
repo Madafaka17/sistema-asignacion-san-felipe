@@ -1,0 +1,21 @@
+digraph G {
+  graph [rankdir=TB, fontname="DejaVu Sans", nodesep=0.25, ranksep=0.45, pad=0.12, dpi=220];
+  node [shape=box, style=rounded, fontname="DejaVu Sans", fontsize=16, margin="0.12,0.06"];
+  edge [fontname="DejaVu Sans", fontsize=14];
+  ini [shape=circle, style=filled, fillcolor=black, label="", width=0.2];
+  encola [label="En cola\n(disponible\nen la terminal)"];
+  asignada [label="Asignada\n(a un servicio\naprobado)"];
+  enviaje [label="En viaje\n(ida, estancia\ny retorno)"];
+  mant [label="En\nmantenimiento\n(orden abierta)"];
+  ini -> encola [label=" incorporación\n a la cola\n [unidad operativa]"];
+  encola -> asignada [label=" programación\n aprobada\n (CU-09)"];
+  asignada -> encola [label=" ajuste o\n reemplazo\n [otra unidad\n asignada]"];
+  asignada -> enviaje [label=" salida\n autorizada\n [pasajeros\n completos]"];
+  enviaje -> encola [label=" retorno\n registrado /\n nueva posición\n en la cola"];
+  encola -> mant [label=" aviso de falla\n (CUN-02)"];
+  asignada -> mant [label=" aviso de falla /\n se reprograma\n el servicio"];
+  enviaje -> mant [label=" falla\n en ruta"];
+  mant -> mant [label=" revisión\n no conforme /\n la orden sigue\n abierta"];
+  mant -> encola [label=" reparación\n conforme\n [revisión\n aprobada]"];
+  {rank=same; asignada; mant}
+}

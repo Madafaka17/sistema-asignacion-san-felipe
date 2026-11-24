@@ -1,0 +1,137 @@
+{
+  "fecha_utc": "2026-10-24T15:32:28Z",
+  "hardware": {
+    "arquitectura": "x86_64",
+    "procesador": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpu_logicas": 2,
+    "memoria_GiB": 7.84,
+    "extensiones_vectoriales": [
+      "sse4_2",
+      "avx",
+      "avx2",
+      "avx512f",
+      "fma"
+    ],
+    "orden_de_bytes": "little"
+  },
+  "sistema_operativo": {
+    "distribucion": "Ubuntu 24.04.5 LTS",
+    "plataforma": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+    "nucleo": "6.18.44-fc-v153"
+  },
+  "interprete": {
+    "implementacion": "CPython",
+    "version": "3.13.16",
+    "compilado_con": "GCC 13.3.0",
+    "fecha_compilacion": "main Oct  1 2026 15:40:24",
+    "parametros_compilacion_OPT": "-DNDEBUG -g -O2 -Wall",
+    "banderas_en_ejecucion": {
+      "optimize": 0,
+      "hash_randomization": 0,
+      "isolated": 0,
+      "no_user_site": 1,
+      "dont_write_bytecode": 1,
+      "utf8_mode": 0,
+      "safe_path": false
+    },
+    "PYTHONHASHSEED": "0"
+  },
+  "punto_flotante": {
+    "formato": "IEEE 754 binary64 (doble precisión)",
+    "bits_mantisa": 53,
+    "digitos_decimales": 15,
+    "epsilon_maquina": 2.220446049250313e-16,
+    "numpy_resolucion": 1e-15,
+    "tipo_entero_numpy": "int64"
+  },
+  "bibliotecas": {
+    "numpy": "2.4.4",
+    "pygad": "3.7.0",
+    "pulp": "2.9.0",
+    "cbc": "2.10.3",
+    "scipy": "1.17.1",
+    "networkx": "3.6.1",
+    "matplotlib": "3.11.2",
+    "pytest": "9.1.1"
+  },
+  "variables_de_entorno": {
+    "PYTHONHASHSEED": "0",
+    "PYTHONNOUSERSITE": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "TZ": "UTC",
+    "LC_ALL": "C.UTF-8",
+    "LANG": "C.UTF-8"
+  },
+  "huellas_codigo_evaluado": {
+    "modelo.py": {
+      "sha256": "485d9317efe00cc2f9f44dc36d957c6c8f7d9e9ef28401c3295705a9dbcc2cf6",
+      "igual_a_SHA256SUMS": true
+    },
+    "reparacion.py": {
+      "sha256": "22a216a69190c28a78390b458642ac5fd29a61422c96a1c1b92350f63ddb467c",
+      "igual_a_SHA256SUMS": true
+    },
+    "genetico.py": {
+      "sha256": "b3f745b99af54d57475c358f51f2bb82c9c6aa439f995de602c0fc47a16bad91",
+      "igual_a_SHA256SUMS": true
+    },
+    "metodos.py": {
+      "sha256": "7353f1778cc47507437270d81d50ace3f39dc5c0acfedadd224ef137647435bd",
+      "igual_a_SHA256SUMS": true
+    },
+    "validador.py": {
+      "sha256": "171db99ae1c6628712dd3d53b131ce8285dfa9bd8ff2c6763f0b318851e60088",
+      "igual_a_SHA256SUMS": true
+    },
+    "generador_sintetico.py": {
+      "sha256": "a98e7c2b012282fafd1eba30d57fd198b3913e860009b426dafac0b376f712bb",
+      "igual_a_SHA256SUMS": true
+    },
+    "generador_gtfs.py": {
+      "sha256": "ffd558566b48ecbb4dfb9e2d1a3c098ce2abb0fdc9b14a6161548c06c10c2589",
+      "igual_a_SHA256SUMS": true
+    },
+    "experimento.py": {
+      "sha256": "1fe15a2151ea5e034e92c53456adb02d1d98d65c6983f5b2d40098c6046b7c36",
+      "igual_a_SHA256SUMS": true
+    },
+    "analisis.py": {
+      "sha256": "4aa0b15521ce6655df9f4d2baf19a56e3d2dfdb3d03d9ef6f17c5e487c8817ea",
+      "igual_a_SHA256SUMS": true
+    },
+    "datos/manifiestos_publicables.csv": {
+      "sha256": "37980966e3fcaaa9ed69acd73e47a38a881ce7df13401cb023003888a126a8ee",
+      "igual_a_SHA256SUMS": true
+    },
+    "datos/gtfs/lodz.zip": {
+      "sha256": "6cdea87fb8c0707c8c4ed39e583493109181a69fa8dbc32113c38bd99c8d2ee1",
+      "igual_a_SHA256SUMS": true
+    },
+    "datos/gtfs/buzau.zip": {
+      "sha256": "9cdb672c70b77b9d7ac5900e9eb88a95b70be90ce606d4d04f29916fddbfd1ed",
+      "igual_a_SHA256SUMS": true
+    }
+  },
+  "huellas_pruebas": {
+    "conftest.py": "5a2ed1054bf347811baf3155a1ade5b9fd599da131606ce316094803e15b719e",
+    "entorno.py": "ca3d262bb1ce3808601a0338c72decab3d290be24f44d6fe6515a6f9f6b0d20a",
+    "reproduccion.py": "eebd25e986a107a6f16ede2dfefe8c531e43a6ead2f367fcb983846666b6b743",
+    "test_a01_modelo.py": "ca1a51fd53fd8d220ddd67b5b607e8e98520ac3719b585b7c0f88ee03e595997",
+    "test_a02_evaluacion.py": "867fcd9aa089233bcf32b60c8ca32b9979e9c1599626ebed8f21d61d4de769a2",
+    "test_a03_reparacion.py": "f3e0f4e1f9ea55bb9f40e949d4c59f558c2cd12b4928df373888232ee7cb4295",
+    "test_a04_genetico.py": "837adb7b36411415140da40f3266fd49edec8b0effd544bf49f8bc63d34a50f5",
+    "test_a05_voraz.py": "b47b6fa5f8fe3f3a679cf9eda3f747254580fff99806e3f3a391fc487377ab9f",
+    "test_a06_ple_exacto.py": "9e972dfe015bb91e01edf9b926d454f6139d77df1bafd12d504f1a9595c86cbe",
+    "test_a07_busqueda.py": "9db3aa631bb3ec14a38d5a7b071ae573621551cae13dc51bf63d1abc6797462a",
+    "test_a08_validador.py": "7d98181710f512e09a9e43a270c97877f3a0c235937f1286238aa97cdc76375f",
+    "test_a09_generador_sintetico.py": "beb168f1e7e42305cd882e140f286e561cff1b1bc6cad2c72b823b9a115b8c0e",
+    "test_a10_generador_gtfs.py": "435115e72f8e25c68dd3699dadc85af2f39e5b31b9b0db5794b4c711af7796f9",
+    "test_a11_analisis.py": "0327ad7edfed68dcf3fab9d40c0a933b987cc1c583f626336dd702aad316790a",
+    "test_a12_datos.py": "75adaabade5833aa6402c27c35042dbba7e22dbec397cbe50cd82080c4f3e8d0",
+    "test_a13_reproduccion.py": "0e4fe192b551d1ea2331453aae28913f4cb091fddb2444f8515ad547cfde61e2",
+    "utilidades.py": "ab1d31d98990c5a0fab0d8919b699c466ed1bb10af8cdd65cd786abf5355f389"
+  }
+}

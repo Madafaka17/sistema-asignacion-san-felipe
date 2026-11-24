@@ -1,0 +1,62 @@
+=== Illustrative synthetic instance (NOT company data) ===
+Services with admissible options: 20
+Services with no admissible option (u_s = 1, Eq. 5): 0
+Generations: 60  Population: 10  Seed: 42
+Wall-clock time: 0.135 s
+
+--- Best chromosome found (alpha, Eq. 9) ---
+  S1: option 1 -> vehicle=V5 driver=D2 start=425 dur=55
+  S2: option 0 -> vehicle=V3 driver=D3 start=332 dur=51
+  S3: option 0 -> vehicle=V5 driver=D1 start=67 dur=63
+  S4: option 1 -> vehicle=V3 driver=D6 start=255 dur=34
+  S5: option 2 -> vehicle=V4 driver=D6 start=114 dur=33
+  S6: option 1 -> vehicle=V2 driver=D3 start=224 dur=38
+  S7: option 0 -> vehicle=V4 driver=D5 start=0 dur=34
+  S8: option 0 -> vehicle=V2 driver=D1 start=316 dur=70
+  S9: option 1 -> vehicle=V4 driver=D5 start=283 dur=38
+  S10: option 0 -> vehicle=V4 driver=D6 start=386 dur=73
+  S11: option 0 -> vehicle=V1 driver=D2 start=357 dur=48
+  S12: option 1 -> vehicle=V3 driver=D5 start=419 dur=30
+  S13: option 0 -> vehicle=V3 driver=D5 start=186 dur=47
+  S14: option 0 -> vehicle=V4 driver=D6 start=50 dur=64
+  S15: option 0 -> vehicle=V6 driver=D1 start=139 dur=64
+  S16: option 0 -> vehicle=V5 driver=D2 start=215 dur=45
+  S17: option 1 -> vehicle=V3 driver=D2 start=102 dur=63
+  S18: option 2 -> vehicle=V2 driver=D3 start=404 dur=66
+  S19: option 0 -> vehicle=V6 driver=D3 start=20 dur=68
+  S20: option 2 -> vehicle=V4 driver=D6 start=182 dur=70
+
+--- Feasibility (Eq. 10-11) ---
+  Conflict violations V(alpha):      0
+  Drivers over their limit:          0
+  Total driving-time excess:         0.0
+  Feasible (alpha corresponds to X in F): True
+
+--- Loss components (Eq. 8) ---
+  delay=11.0  reschedule=3  idle=644.7  workload_spread=40.14
+  J(alpha) = 0.8385
+
+--- Fitness (Eq. 12): -0.8385 ---
+
+--- Convergence (best fitness per generation) ---
+  gen   0: -1.1108
+  gen   1: -1.1108
+  gen   2: -0.9821
+  gen   3: -0.9371
+  gen   4: -0.9371
+  gen   5: -0.9371
+  gen   6: -0.8592
+  gen   7: -0.8592
+  gen   8: -0.8592
+  gen   9: -0.8592
+  gen  10: -0.8592
+  gen  11: -0.8385
+  gen  12: -0.8385
+  gen  13: -0.8385
+  gen  14: -0.8385
+  gen  15: -0.8385
+  gen  20: -0.8385
+  gen  30: -0.8385
+  gen  40: -0.8385
+  gen  50: -0.8385
+  gen  59: -0.8385  (final)

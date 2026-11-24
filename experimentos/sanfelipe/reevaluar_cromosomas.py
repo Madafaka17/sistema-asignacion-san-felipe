@@ -15,10 +15,9 @@ hojas factibles con optimos_n7_<variante>.csv.
 Las variantes v1D y v2D se reevalúan con la definición de D de sensibilidad_D.py.
 Sale con código 1 si alguna fila no coincide.
 
-Usa la reimplementación de core/ y experimentos/poc_cap3/ (2026-10-17), no los
-archivos originales, cuyas huellas figuran en registro_protocolo.txt: que todas
-las filas coincidan acredita que las soluciones registradas son coherentes con sus
-resultados y que la reimplementación evalúa F(X) y Φ como el núcleo original.
+Usa core/ y experimentos/poc_cap3/ del repositorio, que desde el 2026-11-04 son los
+archivos originales (huellas de registro_protocolo.txt): que todas las filas
+coincidan acredita que las soluciones registradas son coherentes con sus resultados.
 """
 from __future__ import annotations
 
@@ -28,9 +27,11 @@ import sys
 from pathlib import Path
 
 AQUI = Path(__file__).resolve().parent
-sys.path.insert(0, str(AQUI))
-sys.path.insert(0, str(AQUI.parent / "poc_cap3"))
+# Esta carpeta va primero: experimentos/poc_cap3/ tiene otro experimento.py (el de la
+# prueba técnica inicial) y aquí se importa el de esta carpeta.
 sys.path.insert(0, str(AQUI.parents[1]))
+sys.path.insert(0, str(AQUI.parent / "poc_cap3"))
+sys.path.insert(0, str(AQUI))
 
 import experimento  # noqa: E402
 import sensibilidad_D  # noqa: E402
@@ -86,7 +87,7 @@ def reevaluar(var: str) -> int:
             inst, meta, servs, pares = instancia(sol["n"], sol["instancia"])
             crom = sol["cromosoma"]
             b = fitness.evaluate(crom, inst, pares)
-            calculado = {"F": b.fitness, "J": b.loss, "phi": b.phi,
+            calculado = {"F": b.fitness, "J": b.loss, "phi": b.feasibility_violations,
                          "validador": contar_incumplimientos(crom, servs, inst, meta.t_min),
                          "exceso_min": b.driving_time_excess, "retraso": b.delay, "reprog": b.reschedule,
                          "tiempo_muerto": b.idle, "desequilibrio": b.workload_spread}

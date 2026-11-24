@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1859.375px" preserveAspectRatio="none" style="width:2026px;height:1859px;" version="1.1" viewBox="0 0 2026 1859" width="2026.5625px" zoomAndPan="magnify"><defs/><g><!--MD5=[e1ef416f19a619ed411924d28ede4d44]
+cluster VM--><polygon fill="#FFFFFF" points="66.4063,234.375,82.0313,218.75,1992.9688,218.75,1992.9688,1707.8125,1977.3438,1723.4375,66.4063,1723.4375,66.4063,234.375" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1977.3438" x2="1991.4063" y1="234.375" y2="220.3125"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="66.4063" x2="1977.3438" y1="234.375" y2="234.375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1977.3438" x2="1977.3438" y1="234.375" y2="1723.4375"/><text fill="#000000" font-family="Liberation Serif" font-size="21.875" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="78.125" x="984.375" y="259.4849">«device»</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="306.25" x="870.3125" y="284.639">Máquina virtual efímera x86_64</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="621.875" x="712.5" y="309.7931">2 vCPU Intel(R) Xeon(R) Processor @ 2.80GHz; 7,8 GiB de RAM</text><!--MD5=[811e0862757e735034f44b8186f86d70]
+cluster SO--><polygon fill="#FFFFFF" points="116.4063,371.875,132.0313,356.25,1942.9688,356.25,1942.9688,1657.8125,1927.3438,1673.4375,116.4063,1673.4375,116.4063,371.875" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1927.3438" x2="1941.4063" y1="371.875" y2="357.8125"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="116.4063" x2="1927.3438" y1="371.875" y2="371.875"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1927.3438" x2="1927.3438" y1="371.875" y2="1673.4375"/><text fill="#000000" font-family="Liberation Serif" font-size="21.875" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="176.5625" x="935.1563" y="396.9849">«sistema operativo»</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="475" x="785.9375" y="422.139">Ubuntu 24.04.4 LTS (núcleo Linux 6.18.44-fc-v77)</text><!--MD5=[cacbbd1f42853b9f6a3a422eadbe859e]
+cluster FS--><polygon fill="#FFFFFF" points="1432.0313,564.0625,1639.8438,564.0625,1650.7813,598.5916,1880.4688,598.5916,1880.4688,1610.9375,1432.0313,1610.9375,1432.0313,564.0625" style="stroke: #555555; stroke-width: 2.34375;"/><line style="stroke: #555555; stroke-width: 2.34375;" x1="1432.0313" x2="1650.7813" y1="598.5916" y2="598.5916"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="198.4375" x="1438.2813" y="587.6099">Carpeta del proyecto</text><!--MD5=[91f454f8d1b787a325ff0d38c3406b8a]
+cluster PY--><polygon fill="#FFFFFF" points="839.8438,496.875,855.4688,481.25,1369.5313,481.25,1369.5313,1595.3125,1353.9063,1610.9375,839.8438,1610.9375,839.8438,496.875" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1353.9063" x2="1367.9688" y1="496.875" y2="482.8125"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="839.8438" x2="1353.9063" y1="496.875" y2="496.875"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1353.9063" x2="1353.9063" y1="496.875" y2="1610.9375"/><text fill="#000000" font-family="Liberation Serif" font-size="21.875" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="204.6875" x="996.0938" y="521.9849">«entorno de ejecución»</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="365.625" x="915.625" y="547.139">Python 3.11.15 (entorno virtual .venv)</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="410.9375" x="892.9688" y="572.2931">pip 24.0; 13 paquetes de requirements.lock</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="398.4375" x="899.2188" y="597.4472">PYTHONHASHSEED=0; un hilo; TZ=UTC</text><!--MD5=[913af9f509b02653e44dc9a40faa143d]
+cluster MY--><polygon fill="#FFFFFF" points="178.9063,798.4375,194.5313,782.8125,789.8438,782.8125,789.8438,1075,774.2188,1090.625,178.9063,1090.625,178.9063,798.4375" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="774.2188" x2="788.2813" y1="798.4375" y2="784.375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="178.9063" x2="774.2188" y1="798.4375" y2="798.4375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="774.2188" x2="774.2188" y1="798.4375" y2="1090.625"/><text fill="#000000" font-family="Liberation Serif" font-size="21.875" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="204.6875" x="375.7813" y="823.5474">«entorno de ejecución»</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="376.5625" x="289.8438" y="848.7015">MySQL Server 8.0.46 (mysqld efímero)</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="345.3125" x="305.4688" y="873.8556">--no-defaults · datos en .build/mysql</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="492.1875" x="232.0313" y="899.0097">solo 127.0.0.1:33306 · usuario sf_humo (sf_test_%)</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="140.625" x="407.8125" y="924.1638">root bloqueado</text><!--MD5=[a4519b91065b9cc34558d36a12929003]
+entity A_SH--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="326.5625" x="1515.625" y="631.25"/><polygon fill="#FFFFFF" points="1815.625,639.0625,1815.625,660.9375,1834.375,660.9375,1834.375,648.4375,1825,639.0625,1815.625,639.0625" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1825" x2="1825" y1="639.0625" y2="648.4375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1834.375" x2="1825" y1="648.4375" y2="648.4375"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="262.5" x="1531.25" y="671.9849">scripts/construir_y_probar.sh</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="279.6875" x="1531.25" y="697.139">aprovisionar.sh · bd_efimera.sh</text><!--MD5=[52b82348af41d6630e375720764af4bd]
+entity A_LOCK--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="334.375" x="1505.4688" y="962.5"/><polygon fill="#FFFFFF" points="1813.2813,970.3125,1813.2813,992.1875,1832.0313,992.1875,1832.0313,979.6875,1822.6563,970.3125,1813.2813,970.3125" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1822.6563" x2="1822.6563" y1="970.3125" y2="979.6875"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1832.0313" x2="1822.6563" y1="979.6875" y2="979.6875"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="287.5" x="1521.0938" y="1003.2349">requirements.lock · sistema.lock</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="131.25" x="1521.0938" y="1028.389">SHA256SUMS</text><!--MD5=[805953a29065c569c3652aba5d442aa8]
+entity A_CFG--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="351.5625" x="1490.625" y="1156.25"/><polygon fill="#FFFFFF" points="1815.625,1164.0625,1815.625,1185.9375,1834.375,1185.9375,1834.375,1173.4375,1825,1164.0625,1815.625,1164.0625" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1825" x2="1825" y1="1164.0625" y2="1173.4375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1834.375" x2="1825" y1="1173.4375" y2="1173.4375"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="304.6875" x="1506.25" y="1196.9849">.env (permiso 600, no versionado)</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="154.6875" x="1506.25" y="1222.139">config/humo.json</text><!--MD5=[ec67f29078af65fbefcb758b045f3f1f]
+entity A_SQL--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="226.5625" x="1553.125" y="1321.875"/><polygon fill="#FFFFFF" points="1753.125,1329.6875,1753.125,1351.5625,1771.875,1351.5625,1771.875,1339.0625,1762.5,1329.6875,1753.125,1329.6875" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1762.5" x2="1762.5" y1="1329.6875" y2="1339.0625"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1771.875" x2="1762.5" y1="1339.0625" y2="1339.0625"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="135.9375" x="1568.75" y="1362.6099">bd/esquema.sql</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="179.6875" x="1568.75" y="1387.764">bd/semilla_humo.sql</text><!--MD5=[e5cbffe405be25b4145b7050d9fb8567]
+entity A_OUT--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="289.0625" x="1521.875" y="1487.5"/><polygon fill="#FFFFFF" points="1784.375,1495.3125,1784.375,1517.1875,1803.125,1517.1875,1803.125,1504.6875,1793.75,1495.3125,1784.375,1495.3125" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1793.75" x2="1793.75" y1="1495.3125" y2="1504.6875"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1803.125" x2="1793.75" y1="1504.6875" y2="1504.6875"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="242.1875" x="1537.5" y="1528.2349">pruebas/humo/salidas/&lt;id&gt;/</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="235.9375" x="1537.5" y="1553.389">log · informe.json · salidas</text><!--MD5=[2f9070f277b8de18d5654f36abb6ad50]
+entity A_CORE--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="328.125" x="999.2188" y="631.25"/><polygon fill="#FFFFFF" points="1300.7813,639.0625,1300.7813,660.9375,1319.5313,660.9375,1319.5313,648.4375,1310.1563,639.0625,1300.7813,639.0625" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1310.1563" x2="1310.1563" y1="639.0625" y2="648.4375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1319.5313" x2="1310.1563" y1="648.4375" y2="648.4375"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="45.3125" x="1014.8438" y="671.9849">core/</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="281.25" x="1014.8438" y="697.139">(5 módulos, huellas registradas)</text><!--MD5=[3ed5d60ad9f1ef0a8e405e7419981fee]
+entity A_PER--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="156.25" x="1085.1563" y="962.5"/><polygon fill="#FFFFFF" points="1214.8438,970.3125,1214.8438,992.1875,1233.5938,992.1875,1233.5938,979.6875,1224.2188,970.3125,1214.8438,970.3125" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1224.2188" x2="1224.2188" y1="970.3125" y2="979.6875"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1233.5938" x2="1224.2188" y1="979.6875" y2="979.6875"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="109.375" x="1100.7813" y="1003.2349">persistencia/</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="107.8125" x="1100.7813" y="1028.389">(4 módulos)</text><!--MD5=[07669012cdb9618b6da13d0ceadf76b0]
+entity A_PH--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="329.6875" x="998.4375" y="1156.25"/><polygon fill="#FFFFFF" points="1301.5625,1164.0625,1301.5625,1185.9375,1320.3125,1185.9375,1320.3125,1173.4375,1310.9375,1164.0625,1301.5625,1164.0625" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1310.9375" x2="1310.9375" y1="1164.0625" y2="1173.4375"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1320.3125" x2="1310.9375" y1="1173.4375" y2="1173.4375"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="131.25" x="1014.0625" y="1196.9849">pruebas/humo/</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="282.8125" x="1014.0625" y="1222.139">prueba_humo.py · integridad.py</text><!--MD5=[704a330557ec70f136cb914ee592e878]
+entity A_VAL--><rect fill="#FFFFFF" height="61.0916" style="stroke: #222222; stroke-width: 2.34375;" width="246.875" x="1039.8438" y="1334.375"/><polygon fill="#FFFFFF" points="1260.1563,1342.1875,1260.1563,1364.0625,1278.9063,1364.0625,1278.9063,1351.5625,1269.5313,1342.1875,1260.1563,1342.1875" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1269.5313" x2="1269.5313" y1="1342.1875" y2="1351.5625"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1278.9063" x2="1269.5313" y1="1351.5625" y2="1351.5625"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="200" x="1055.4688" y="1375.1099">poc_cap3/validador.py</text><!--MD5=[c01ed4d1bf918d7f80f70f831a3834b8]
+entity A_PYC--><rect fill="#FFFFFF" height="86.2457" style="stroke: #222222; stroke-width: 2.34375;" width="270.3125" x="1028.125" y="1487.5"/><polygon fill="#FFFFFF" points="1271.875,1495.3125,1271.875,1517.1875,1290.625,1517.1875,1290.625,1504.6875,1281.25,1495.3125,1271.875,1495.3125" style="stroke: #222222; stroke-width: 2.34375;"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1281.25" x2="1281.25" y1="1495.3125" y2="1504.6875"/><line style="stroke: #222222; stroke-width: 2.34375;" x1="1290.625" x2="1281.25" y1="1504.6875" y2="1504.6875"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="128.125" x="1043.75" y="1528.2349">.build/pycache</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="223.4375" x="1043.75" y="1553.389">(bytecode checked-hash)</text><!--MD5=[f9ba5bf973e7832d2ce5ed59077b93f7]
+entity DB--><path d="M561.7188,960.9375 C561.7188,945.3125 663.2813,945.3125 663.2813,945.3125 C663.2813,945.3125 764.8438,945.3125 764.8438,960.9375 L764.8438,1050.4623 C764.8438,1066.0873 663.2813,1066.0873 663.2813,1066.0873 C663.2813,1066.0873 561.7188,1066.0873 561.7188,1050.4623 L561.7188,960.9375 " fill="#FFFFFF" style="stroke: #222222; stroke-width: 2.34375;"/><path d="M561.7188,960.9375 C561.7188,976.5625 663.2813,976.5625 663.2813,976.5625 C663.2813,976.5625 764.8438,976.5625 764.8438,960.9375 " fill="none" style="stroke: #222222; stroke-width: 2.34375;"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="171.875" x="577.3438" y="1003.2349">sf_test_humo_&lt;id&gt;</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="165.625" x="577.3438" y="1028.389">9 tablas; se elimina</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="93.75" x="577.3438" y="1053.5431">al terminar</text><!--MD5=[d59903ad091e85424480a8815fefbb58]
+entity UBU--><path d="M24.3327,28.3138 C27.9647,18.3155 35.799,18.4195 42.0552,25.6079 C46.5768,16.792 53.4781,17.2925 58.9725,24.5864 C64.2715,15.7747 71.1991,14.5323 76.8747,24.222 C82.3412,15.7413 88.6985,15.637 94.1929,24.1938 C99.5228,14.6822 104.9568,16.1679 111.4441,22.9698 C117.9089,14.5024 124.6215,15.093 130.5846,23.5375 C137.1272,15.8337 143.1497,14.7098 148.4871,24.7533 C154.3886,17.287 162.3503,15.6387 167.487,25.5877 C172.3439,17.3753 179.9185,17.1597 185.3757,24.9154 C190.4513,15.6246 198.9186,16.6599 203.6693,25.2478 C209.634,19.8746 214.9759,19.7055 218.7069,27.751 C224.8085,18.1842 231.6132,18.0125 237.3253,28.1197 C246.4957,31.4715 248.2696,37.7915 240.6999,44.5761 C249.715,50.55 250.7369,56.9727 241.3387,63.5659 C249.6985,68.196 249.7983,76.2707 241.758,81.2888 C248.5959,90.0642 246.3789,95.9381 236.6361,100.2299 C231.3929,107.3155 222.1172,107.1388 218.1606,98.6989 C213.9896,106.7082 207.1792,108.0438 201.8292,99.8901 C197.5234,107.4223 191.116,109.1373 185.3345,101.4941 C179.9011,111.4393 174.4262,111.3329 167.522,102.9213 C162.3772,111.5823 153.3075,113.1906 148.1466,102.9379 C143.4454,111.8776 138.2189,111.6119 131.5702,105.016 C127.3383,114.5125 119.2834,114.312 114.3454,105.6872 C108.2894,113.3325 100.6929,112.8504 95.5854,104.57 C88.9586,111.2965 81.609,112.7474 77.1379,102.2599 C70.8895,110.6012 65.6581,109.8736 60.352,101.3236 C54.6588,108.4805 46.2868,108.9911 42.953,98.9383 C37.4869,109.2471 29.5496,106.7183 23.8953,99.1388 C15.1798,96.1638 12.5837,89.0296 19.3808,81.9745 C10.1247,78.0189 8.6099,67.9476 16.1233,61.3442 C9.6156,54.6323 11.4473,46.2959 20.3878,43.2187 C13.2952,37.2768 15.2127,29.9647 24.3327,28.3138 " fill="#FFFFFF" style="stroke: #555555; stroke-width: 2.34375;"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="167.1875" x="32.8125" y="56.3599">Archivo de Ubuntu</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="192.1875" x="32.8125" y="81.514">(archive.ubuntu.com)</text><!--MD5=[97eae2023b7ba255ae9ef3551b6f517a]
+entity PYPI--><path d="M788.3862,27.8335 C793.4849,17.8491 801.5465,16.0177 808.7094,25.7004 C816.4599,15.17 823.13,14.2564 830.8276,25.7535 C837.123,16.4723 845.5899,16.9641 850.7403,26.9376 C853.9903,16.6599 862.4432,16.1383 868.7708,23.8536 C875.1604,14.6858 884.734,12.2914 890.7915,24.2006 C895.4675,15.6512 903.5971,13.8495 908.8966,23.5831 C916.7802,14.1927 925.768,13.2714 931.2489,26.01 C935.7869,17.0051 945.6513,15.3725 951.3881,24.6924 C958.3772,16.7326 963.979,16.6647 969.371,26.3226 C975.3082,15.0817 983.833,15.9844 990.8378,25.2024 C995.7909,14.7061 1004.324,14.8147 1009.9904,24.5264 C1017.0566,13.926 1025.5043,15.7456 1030.7826,26.2849 C1036.7901,18.1851 1043.9978,16.2416 1049.9119,26.3829 C1054.8763,16.6785 1065.1337,15.2625 1071.2459,25.1319 C1091.8177,31.3983 1091.8895,49.5226 1078.8734,62.6225 C1091.36,76.5806 1088.3448,92.5015 1070.3093,99.3406 C1064.8519,107.3731 1057.6525,109.2294 1051.9677,99.5763 C1049.4032,110.9527 1039.7215,114.5254 1031.7029,104.8188 C1025.7993,113.2433 1016.1247,114.1748 1010.5883,104.3928 C1006.1551,115.0389 998.3878,115.7977 990.3782,108.3982 C985.3356,117.2054 976.6072,117.9803 970.9359,109.0889 C968.5416,119.1999 960.1583,122.6337 952.7536,113.9312 C945.568,123.109 938.2663,124.7264 930.9368,114.0896 C923.6699,124.5851 917.0089,123.5453 910.9564,112.9397 C903.5668,120.2356 897.3278,121.7498 892.0338,110.7701 C884.2267,119.9516 876.8661,118.6849 870.6869,108.9345 C862.6386,116.8334 853.2841,114.6382 849.0318,104.4018 C841.4445,111.4019 835.3957,112.7504 830.062,101.9942 C824.5408,110.9136 816.1493,109.607 811.8215,100.7684 C804.9397,108.7477 797.0493,110.3447 791.9375,98.9517 C774.949,90.0234 771.1327,75.99 786.7091,62.4032 C770.6407,50.1862 769.0098,38.3309 788.3862,27.8335 " fill="#FFFFFF" style="stroke: #555555; stroke-width: 2.34375;"/><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="259.375" x="799.2188" y="56.3599">Índice de paquetes de Python</text><text fill="#222222" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="89.0625" x="799.2188" y="81.514">(pypi.org)</text><!--MD5=[bd4549caa359bcf3162c739e784b5765]
+link UBU to SO--><path d="M128.9063,109.875 C128.9063,145.4336 128.9063,197.9785 128.9063,256.895 C128.9063,286.3533 128.9063,317.4044 128.9063,348.7216 C128.9063,350.6789 128.9063,352.6373 128.9063,354.5964 " fill="none" id="UBU-&gt;SO" style="stroke: #222222; stroke-width: 1.5625; stroke-dasharray: 7.0,7.0;"/><polygon fill="#222222" points="128.9063,354.5964,135.1563,340.5339,128.9063,346.7839,122.6563,340.5339,128.9063,354.5964" style="stroke: #222222; stroke-width: 1.5625;"/><text fill="#222222" font-family="Liberation Serif" font-size="18.75" lengthAdjust="spacingAndGlyphs" textLength="103.125" x="185.9375" y="167.5049">paquetes .deb</text><text fill="#222222" font-family="Liberation Serif" font-size="18.75" lengthAdjust="spacingAndGlyphs" textLength="214.0625" x="130.4688" y="189.0656">(versión y SHA-256 fijados)</text><!--MD5=[e5ac9558451d17e52f3fe1cfaf8ac2a5]
+link PYPI to PY--><path d="M928.9063,109.875 C928.9063,180.9922 928.9063,320.0547 928.9063,442.1445 C928.9063,449.7751 928.9063,457.3395 928.9063,464.8167 C928.9063,468.5554 928.9063,472.2723 928.9063,475.9648 C928.9063,476.8879 928.9063,477.8096 928.9063,478.7296 " fill="none" id="PYPI-&gt;PY" style="stroke: #222222; stroke-width: 1.5625; stroke-dasharray: 7.0,7.0;"/><polygon fill="#222222" points="928.9063,478.7296,935.1563,464.6671,928.9063,470.9171,922.6563,464.6671,928.9063,478.7296" style="stroke: #222222; stroke-width: 1.5625;"/><text fill="#222222" font-family="Liberation Serif" font-size="18.75" lengthAdjust="spacingAndGlyphs" textLength="131.25" x="931.25" y="167.5049">ruedas de Python</text><text fill="#222222" font-family="Liberation Serif" font-size="18.75" lengthAdjust="spacingAndGlyphs" textLength="132.8125" x="930.4688" y="189.0656">(--require-hashes)</text><!--MD5=[88c8f15d7868b68b4e1ed8987f773002]
+reverse link DB to A_PER--><path d="M772.9219,1005.4688 C867.2812,1005.4688 1001.0938,1005.4688 1085,1005.4688 " fill="none" id="DB&lt;-A_PER" style="stroke: #222222; stroke-width: 1.5625;"/><polygon fill="#222222" points="765.0625,1005.4688,779.125,1011.7188,772.875,1005.4688,779.125,999.2188,765.0625,1005.4688" style="stroke: #222222; stroke-width: 1.5625;"/><text fill="#222222" font-family="Liberation Serif" font-size="18.75" lengthAdjust="spacingAndGlyphs" textLength="184.375" x="832.8125" y="974.5361">TCP/IP 127.0.0.1:33306</text><text fill="#222222" font-family="Liberation Serif" font-size="18.75" lengthAdjust="spacingAndGlyphs" textLength="245.3125" x="802.3438" y="996.0968">protocolo MySQL (PyMySQL)</text><!--MD5=[c8e03e06ee802d7a85ea20edea0a1fc2]
+link PY to FS--><!--MD5=[fa37ca3ab3076f9d6c84c4a9b2d7a41b]
+link A_SH to A_LOCK--><!--MD5=[ef27799ab50f78a638a6332f61059a6b]
+link A_LOCK to A_CFG--><!--MD5=[975b1393b8d69ec27331abbc5cfff37d]
+link A_CFG to A_SQL--><!--MD5=[b48ee98b6eb13d5e2afe9533660ee6b0]
+link A_SQL to A_OUT--><!--MD5=[eef3de5474a68373f29217949c8c9f0a]
+link A_CORE to A_PER--><!--MD5=[40144d0fdeb8c94a942601e8df8ca2bf]
+link A_PER to A_PH--><!--MD5=[abe9f521a01cf7e86a5abb0b0f05dbd7]
+link A_PH to A_VAL--><!--MD5=[284d44bf4f25a6f0658b030985729aff]
+link A_VAL to A_PYC--><rect fill="#DDDDDD" height="65.9332" rx="7.8125" ry="7.8125" style="stroke: #000000; stroke-width: 1.5625;" width="1046.875" x="12.5" y="1776.5625"/><text fill="#000000" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="620.3125" x="21.875" y="1804.7974">Entorno nuevo, aprovisionado solo con scripts/construir_y_probar.sh.</text><text fill="#000000" font-family="Liberation Serif" font-size="21.875" lengthAdjust="spacingAndGlyphs" textLength="1028.125" x="21.875" y="1829.9515">Valores de la ejecución de referencia 20261007T144734Z_945b. La capa de presentación (Figura 4) no se despliega.</text><!--MD5=[383364f579af4766cd6917d682eb77da]
+@startuml
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam dpi 150
+skinparam defaultFontName "Liberation Serif"
+skinparam defaultFontSize 14
+skinparam ArrowColor #222222
+skinparam ArrowFontColor #222222
+skinparam ArrowFontSize 12
+
+skinparam component {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+  ArrowColor #222222
+  StereotypeFontColor #555555
+}
+skinparam interface {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam package {
+  BorderColor #999999
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam database {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam artifact {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam node {
+  BorderColor #222222
+  BackgroundColor white
+  FontColor #222222
+  StereotypeFontColor #555555
+}
+skinparam folder {
+  BorderColor #555555
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam cloud {
+  BorderColor #555555
+  BackgroundColor white
+  FontColor #222222
+}
+skinparam note {
+  BorderColor #999999
+  BackgroundColor #fbfbfb
+  FontSize 12
+}
+skinparam nodesep 45
+skinparam ranksep 50
+
+cloud "Archivo de Ubuntu\n(archive.ubuntu.com)" as UBU
+cloud "Índice de paquetes de Python\n(pypi.org)" as PYPI
+
+node "Máquina virtual efímera x86_64\n2 vCPU Intel(R) Xeon(R) Processor @ 2.80GHz; 7,8 GiB de RAM" <<device>> as VM {
+  node "Ubuntu 24.04.4 LTS (núcleo Linux 6.18.44-fc-v77)" <<sistema operativo>> as SO {
+    folder "Carpeta del proyecto" as FS {
+      artifact "scripts/construir_y_probar.sh\naprovisionar.sh · bd_efimera.sh" as A_SH
+      artifact "requirements.lock · sistema.lock\nSHA256SUMS" as A_LOCK
+      artifact ".env (permiso 600, no versionado)\nconfig/humo.json" as A_CFG
+      artifact "bd/esquema.sql\nbd/semilla_humo.sql" as A_SQL
+      artifact "pruebas/humo/salidas/<id>/\nlog · informe.json · salidas" as A_OUT
+    }
+    node "Python 3.11.15 (entorno virtual .venv)\npip 24.0; 13 paquetes de requirements.lock\nPYTHONHASHSEED=0; un hilo; TZ=UTC" <<entorno de ejecución>> as PY {
+      artifact "core/\n(5 módulos, huellas registradas)" as A_CORE
+      artifact "persistencia/\n(4 módulos)" as A_PER
+      artifact "pruebas/humo/\nprueba_humo.py · integridad.py" as A_PH
+      artifact "poc_cap3/validador.py" as A_VAL
+      artifact ".build/pycache\n(bytecode checked-hash)" as A_PYC
+    }
+    node "MySQL Server 8.0.46 (mysqld efímero)\n- -no-defaults · datos en .build/mysql\nsolo 127.0.0.1:33306 · usuario sf_humo (sf_test_%)\nroot bloqueado" <<entorno de ejecución>> as MY {
+      database "sf_test_humo_<id>\n9 tablas; se elimina\nal terminar" as DB
+    }
+  }
+}
+
+UBU .down.> SO : paquetes .deb\n(versión y SHA-256 fijados)
+PYPI .down.> PY : ruedas de Python\n(- -require-hashes)
+DB <-right- A_PER : TCP/IP 127.0.0.1:33306\nprotocolo MySQL (PyMySQL)
+PY -[hidden]right- FS
+A_SH -[hidden]down- A_LOCK
+A_LOCK -[hidden]down- A_CFG
+A_CFG -[hidden]down- A_SQL
+A_SQL -[hidden]down- A_OUT
+A_CORE -[hidden]down- A_PER
+A_PER -[hidden]down- A_PH
+A_PH -[hidden]down- A_VAL
+A_VAL -[hidden]down- A_PYC
+
+legend bottom left
+  Entorno nuevo, aprovisionado solo con scripts/construir_y_probar.sh.
+  Valores de la ejecución de referencia 20261007T144734Z_945b. La capa de presentación (Figura 4) no se despliega.
+endlegend
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 10:22:07 UTC 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 21.0.10+7-Ubuntu-124.04
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

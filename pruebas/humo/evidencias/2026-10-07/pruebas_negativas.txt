@@ -1,0 +1,46 @@
+N1: archivo registrado alterado (core/repair.py) y SHA256SUMS regenerado
+  código de salida: 1
+  resultado: FALLA
+   P01 FALLA el código o el protocolo no coinciden con el registro: core/repair.py: huella distinta de la registrada
+   P02 NO EJECUTADA 
+   P03 NO EJECUTADA 
+   P04 NO EJECUTADA 
+   P05 NO EJECUTADA 
+   P06 NO EJECUTADA 
+   P07 NO EJECUTADA 
+   P08 NO EJECUTADA 
+   P09 NO EJECUTADA 
+   P10 NO EJECUTADA 
+   P11 NO EJECUTADA 
+   P12 FALLA al terminar, hay archivos registrados distintos del registro: core/repair.py: huella distinta de la registrada
+2026-10-07T14:49:22.704Z ERROR   [P01] condición de rechazo: el código o el protocolo no coinciden con el registro: core/repair.py: huella distinta de la registrada
+2026-10-07T14:49:22.704Z ERROR   [P01] Integridad del protocolo y del núcleo registrados: FALLA (0.001 s)
+2026-10-07T14:49:22.704Z FATAL   BLOQUEO ESTRICTO en P01: se detiene la prueba; no debe continuar la experimentación hasta corregir la causa.
+2026-10-07T14:49:22.705Z ERROR   [P12] condición de rechazo: al terminar, hay archivos registrados distintos del registro: core/repair.py: huella distinta de la registrada
+2026-10-07T14:49:22.705Z ERROR   [P12] Limpieza de la base efímera e integridad final: FALLA (0.001 s)
+N2: contraseña de .env distinta de la del servidor (rechazo de credenciales)
+  código de salida: 1
+  resultado: FALLA
+   P04 FALLA el servidor rechazó la conexión (credenciales o permisos): (1045, "Access denied for user 'sf_humo'@'127.0.0.1' (using password: YES)")
+   P05 NO EJECUTADA 
+   P06 NO EJECUTADA 
+   P07 NO EJECUTADA 
+   P08 NO EJECUTADA 
+   P09 NO EJECUTADA 
+   P10 NO EJECUTADA 
+   P11 NO EJECUTADA 
+N3: dependencia instalada fuera del manifiesto (pluggy 1.5.0 en lugar de 1.6.0)
+  código de salida: 1
+  resultado: FALLA
+   P02 FALLA dependencias distintas del manifiesto: pluggy: fijada 1.6.0, instalada 1.5.0
+   P03 NO EJECUTADA 
+   P04 NO EJECUTADA 
+   P05 NO EJECUTADA 
+   P06 NO EJECUTADA 
+   P07 NO EJECUTADA 
+   P08 NO EJECUTADA 
+   P09 NO EJECUTADA 
+   P10 NO EJECUTADA 
+   P11 NO EJECUTADA 
+sin mysqld residual
+sin sockets residuales

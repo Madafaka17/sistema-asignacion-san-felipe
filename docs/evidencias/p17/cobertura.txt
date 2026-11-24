@@ -1,0 +1,5 @@
+optimizacion    695 /  710 líneas =  97.9 %
+modelos         388 /  620 líneas =  62.6 %
+contrato         72 /  132 líneas =  54.5 %
+TOTAL          1155 / 1462 líneas =  79.0 %
+Núcleo (optimizacion): 97.9 % ≥ 80 % (RNF-07)

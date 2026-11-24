@@ -1,0 +1,22 @@
+Registro del protocolo de la prueba de reasignación ante incidencias
+Fecha y hora (UTC) del registro, antes de ejecutar: 2026-11-24T03:32:00Z
+
+c46303a95fcf1e4bddcf32cf6918840fbf158e5a5d5b40ff6a3d6afd6b65b13e  experimentos/incidencias/PROTOCOLO.md
+ed8069c1e579b703b478662e6b3b518c12b33a1f461377c6de38078732020eed  experimentos/incidencias/reasignacion.py
+51b7e25c0fd0c79f130f5177a65250679388572b21e2a58cb91aee0453ccdd81  experimentos/sanfelipe/generador_sanfelipe.py
+f78b4670c10a7dd78ecaca000008602551fa9c06991eb90dc1e4d8169de8cc28  experimentos/poc_cap3/metodos.py
+e65a44ee264de19dd00ee3251d34d8dffa5749aeffae1bd3932c86e7330434c3  experimentos/poc_cap3/validador.py
+9f4c0943cbe4e0f180a12d5f38f8a7beb026752241557c900d1933e4a05a6864  core/domain.py
+ab9f5435b1269042e18e791dd67ec71455399546b194cd67b29742e07d80f910  core/fitness.py
+e928b4e9b683dbff1e85450d94e91e9a423a080ac7092464faa4acbfcce95d04  core/conflicts.py
+c3d43b32ff07518806ff02b79b93b959b93f38f7c10080171123691c846ae851  core/repair.py
+0549b14928daba763254423138a402d65e173619b593d74c53f787af5a173a9c  core/scheduler.py
+
+Adenda: sección 8 del protocolo y cambios del script para v2 y minimos.py, registrados después de ejecutar v1 y antes de ejecutar v2: 2026-11-24T03:36:18Z
+1659e7e270a3597efaeda684680eabbb4c6c39ebde217a7043d0a009bd012b55  experimentos/incidencias/PROTOCOLO.md
+12b223c2edb9adefa0534296d7d727bec99063b22581ad55be39a75ab1f4bfde  experimentos/incidencias/reasignacion.py
+56435887267568df534f1cb78f39728bfb1d9de1555c3cb202470a639ce0c1a5  experimentos/incidencias/minimos.py
+
+Adenda 8.3 (exploratorio, después del diagnóstico) y minimos.py con phi_min_sin_limite: 2026-11-24T03:47:17Z
+d5e9526ecf433e04e95fa13e9c6d419470f2c92ba6555e93bff45212dae6465d  experimentos/incidencias/PROTOCOLO.md
+6e1f9c661b9479c7f67d50af979428f07faebbc846a90ecb50df229487a11416  experimentos/incidencias/minimos.py

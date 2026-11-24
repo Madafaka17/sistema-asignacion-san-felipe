@@ -1,0 +1,20 @@
+# Dependencias directas del prototipo desplegado: núcleo de optimización, persistencia
+# en MySQL, PLE de referencia y pruebas. Versiones exactas (pinning).
+# requirements.lock se genera desde este archivo y fija TODAS las dependencias
+# (también las transitivas) con sus huellas SHA-256:
+#   pip-compile --generate-hashes --strip-extras --no-emit-index-url \
+#               --output-file=requirements.lock requirements.in
+numpy==2.4.4
+pygad==3.7.0
+pulp==2.9.0
+pymysql==1.2.3
+cryptography==50.0.2
+pytest==9.1.1
+
+# Transitivas fijadas en la versión del entorno en que se ejecutó el experimento
+# registrado (paridad con experimentos/sintetico_sanfelipe).
+cloudpickle==3.1.2
+packaging==26.1
+pluggy==1.6.0
+iniconfig==2.3.0
+pygments==2.20.0

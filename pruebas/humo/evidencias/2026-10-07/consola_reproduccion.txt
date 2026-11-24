@@ -1,0 +1,53 @@
+2026-10-07T14:47:56Z INFO    [aprovisionar] A1 integridad del paquete: 102 archivos verificados
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 python3.11 3.11.15-1+noble1: ya instalado
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 python3.11-venv 3.11.15-1+noble1: ya instalado
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 libaio1t64 0.3.113-6build1.1: ya instalado
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 libevent-core-2.1-7t64 2.1.12-stable-9ubuntu2.2: ya instalado
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 libevent-2.1-7t64 2.1.12-stable-9ubuntu2.2: ya instalado
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 libevent-pthreads-2.1-7t64 2.1.12-stable-9ubuntu2.2: ya instalado
+2026-10-07T14:47:56Z INFO    [aprovisionar] A2 libmecab2 0.996-14ubuntu4: ya instalado
+2026-10-07T14:47:57Z INFO    [aprovisionar] A2 libprotobuf-lite32t64 3.21.12-8.2ubuntu0.3: ya instalado
+2026-10-07T14:47:57Z INFO    [aprovisionar] A2 mysql-server-core-8.0 8.0.46-0ubuntu0.24.04.4: ya instalado
+2026-10-07T14:47:57Z INFO    [aprovisionar] A2 mysql-client-core-8.0 8.0.46-0ubuntu0.24.04.4: ya instalado
+2026-10-07T14:47:57Z INFO    [aprovisionar] A2 paquetes del sistema en las versiones fijadas: 10
+2026-10-07T14:48:03Z INFO    [aprovisionar] A3 entorno virtual nuevo: Python 3.11.15, pip 24.0
+2026-10-07T14:48:22Z INFO    [aprovisionar] A4 dependencias instaladas con huella verificada: 13 paquetes
+2026-10-07T14:48:22Z INFO    [aprovisionar] A5 módulos compilados: 17; huella del bytecode: e19c0774d956f9a11ad5f51b9cabac8f009f87320a175110faf5c62d9bf591e0
+2026-10-07T14:48:22Z INFO    [aprovisionar] aprovisionamiento terminado
+2026-10-07T14:48:22Z INFO    [bd_efimera] .env creado con una contraseña aleatoria local (no se versiona ni se muestra)
+2026-10-07T14:48:28Z INFO    [bd_efimera] MySQL 8.0.46-0ubuntu0.24.04.4 efímero en 127.0.0.1:33306 (pid 4998); usuario sf_humo limitado a sf_test_%; root bloqueado
+.........                                                                [100%]
+9 passed in 0.41s
+2026-10-07T14:48:29.502Z INFO    Prueba de humo 20261007T144829Z_329f. Datos sintéticos; base de pruebas efímera.
+2026-10-07T14:48:29.502Z INFO    [P01] Integridad del protocolo y del núcleo registrados: inicio
+2026-10-07T14:48:29.511Z INFO    [P01] Integridad del protocolo y del núcleo registrados: PASA (0.009 s)
+2026-10-07T14:48:29.511Z INFO    [P02] Entorno, dependencias fijadas y carga de bibliotecas: inicio
+2026-10-07T14:48:29.806Z INFO    [P02] Entorno, dependencias fijadas y carga de bibliotecas: PASA (0.294 s)
+2026-10-07T14:48:29.806Z INFO    [P03] Configuración desacoplada (.env no versionado): inicio
+2026-10-07T14:48:29.806Z INFO    [P03] Configuración desacoplada (.env no versionado): PASA (0.000 s)
+2026-10-07T14:48:29.806Z INFO    [P04] Puerto, credenciales y permisos de la BD de pruebas: inicio
+2026-10-07T14:48:29.857Z INFO    [P04] Puerto, credenciales y permisos de la BD de pruebas: PASA (0.051 s)
+2026-10-07T14:48:29.857Z INFO    [P05] Creación de la base efímera y del esquema: inicio
+2026-10-07T14:48:29.990Z INFO    [P05] Creación de la base efímera y del esquema: PASA (0.133 s)
+2026-10-07T14:48:29.991Z INFO    [P06] Carga del conjunto mínimo controlado: inicio
+2026-10-07T14:48:30.006Z INFO    [P06] Carga del conjunto mínimo controlado: PASA (0.016 s)
+2026-10-07T14:48:30.007Z INFO    [P07] Construcción de la instancia desde la BD: inicio
+2026-10-07T14:48:30.010Z INFO    [P07] Construcción de la instancia desde la BD: PASA (0.003 s)
+2026-10-07T14:48:30.010Z INFO    [P08] Ejecución del núcleo AG y validador independiente: inicio
+2026-10-07T14:48:30.337Z INFO    [P08] Ejecución del núcleo AG y validador independiente: PASA (0.327 s)
+2026-10-07T14:48:30.337Z INFO    [P09] Persistencia y lectura de la programación: inicio
+2026-10-07T14:48:30.341Z INFO    [P09] Persistencia y lectura de la programación: PASA (0.005 s)
+2026-10-07T14:48:30.341Z INFO    [P10] Determinismo en ejecuciones independientes: inicio
+2026-10-07T14:48:31.788Z INFO    [P10] Determinismo en ejecuciones independientes: PASA (1.446 s)
+2026-10-07T14:48:31.788Z INFO    [P11] Paridad con el entorno de referencia: inicio
+2026-10-07T14:48:31.788Z INFO    [P11] Paridad con el entorno de referencia: PASA (0.000 s)
+2026-10-07T14:48:31.788Z INFO    [P12] Limpieza de la base efímera e integridad final: inicio
+2026-10-07T14:48:31.878Z INFO    [P12] Limpieza de la base efímera e integridad final: PASA (0.089 s)
+2026-10-07T14:48:31.879Z INFO    Resumen: P01 PASA, P02 PASA, P03 PASA, P04 PASA, P05 PASA, P06 PASA, P07 PASA, P08 PASA, P09 PASA, P10 PASA, P11 PASA, P12 PASA
+2026-10-07T14:48:31.879Z INFO    RESULTADO DE LA PRUEBA DE HUMO: PASA (evidencia en pruebas/humo/salidas/20261007T144829Z_329f)
+2026-10-07T14:48:33Z INFO    [bd_efimera] servidor detenido (pid 4998)
+2026-10-07T14:48:34Z INFO    [bd_efimera] directorio de datos efímero eliminado
+
+real	0m37.344s
+user	0m16.144s
+sys	0m2.708s
